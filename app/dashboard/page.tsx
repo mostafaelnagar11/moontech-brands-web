@@ -326,7 +326,7 @@ export default function Dashboard() {
           <div className="rounded-2xl px-6 py-5 flex items-center justify-between shadow-sm border border-[#e9defa]/60" style={{ backgroundImage: "linear-gradient(-20deg, #e9defa 0%, #fbfcdb 100%)" }}>
             <div>
               <h2 className="text-[18px] font-bold text-[#1e1b4b]">Welcome back, Mostafa 👋</h2>
-              <p className="text-[13px] text-neutral-500 mt-0.5">Wednesday, 18 June 2026 · Here's what's happening today</p>
+              <p className="text-[13px] text-neutral-500 mt-0.5">Wednesday, 18 June 2026 · Here&apos;s what&apos;s happening today</p>
             </div>
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1.5 rounded-xl bg-white/60 border border-white/80 backdrop-blur-sm px-3 py-1.5 text-[12px] font-semibold text-[#1e1b4b]">
