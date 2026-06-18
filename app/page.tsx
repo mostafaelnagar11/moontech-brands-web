@@ -30,7 +30,7 @@ export default function MoonTechPrototype() {
       <ShowcasePanel />
 
       {/* ── Right panel — form ── */}
-      <div className="relative flex w-full flex-col bg-white lg:w-[52%] lg:min-w-[560px] ">
+      <div className="relative flex w-full flex-col bg-white lg:w-[48%] lg:min-w-[440px] xl:min-w-[520px]">
         {/* Language toggle */}
         <div className="absolute right-6 top-5 z-10">
           <button
@@ -76,7 +76,7 @@ export default function MoonTechPrototype() {
 
 function ShowcasePanel() {
   return (
-    <div className="relative hidden lg:block lg:flex-1 p-4 bg-white">
+    <div className="relative hidden lg:block lg:flex-1 p-4 bg-white overflow-hidden">
       <div className="relative h-full w-full overflow-hidden rounded-2xl">
       {/* Background */}
       <div className="absolute inset-0" style={{ backgroundImage: "linear-gradient(-20deg, #e9defa 0%, #fbfcdb 100%)" }} />
@@ -171,10 +171,10 @@ function ShowcasePanel() {
 
       {/* ── Tagline — bottom left ── */}
       <div className="absolute bottom-16 left-8">
-        <h2 className="text-[48px] font-black leading-tight tracking-tight text-indigo-950 whitespace-nowrap">
+        <h2 className="text-[32px] xl:text-[48px] font-black leading-tight tracking-tight text-indigo-950">
           Create. Match. Convert.
         </h2>
-        <p className="mt-3 text-[22px] font-medium text-indigo-700/55 whitespace-nowrap">
+        <p className="mt-3 text-[16px] xl:text-[22px] font-medium text-indigo-700/55">
           AI-powered influencer marketing, from discovery to campaign ROI.
         </p>
       </div>
