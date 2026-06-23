@@ -29,7 +29,7 @@ export default function BusinessProfile() {
   const sectionsDone = [sec1Done, sec2Done, sec3Done].filter(Boolean).length;
 
   const fieldCls = "w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-800 placeholder:text-neutral-400 transition focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-500/10";
-  const labelCls = "mb-1.5 block text-sm font-semibold text-neutral-600";
+  const labelCls = "mb-1.5 block text-xs font-medium text-neutral-500 uppercase tracking-wide";
   const hintCls = "mt-1.5 text-xs text-neutral-400";
 
   return (
@@ -45,7 +45,7 @@ export default function BusinessProfile() {
           </svg>
         </button>
         <div>
-          <h1 className="text-base font-semibold text-neutral-800">Complete your business profile</h1>
+          <h1 className="text-base font-semibold text-[#1e1b4b]">Complete your business profile</h1>
           <p className="text-xs leading-relaxed text-neutral-500">
             We need these details to set up your campaign, issue VAT-compliant invoices, and verify your business.
           </p>
@@ -62,7 +62,7 @@ export default function BusinessProfile() {
             Your <strong>VAT number and office location are required before payment</strong>. Trade license can be added any time, but completing it now speeds up campaign setup. Details are encrypted and only used for invoicing &amp; compliance.
           </p>
           <div className="shrink-0 text-right">
-            <p className="text-xl font-semibold text-violet-600">{sectionsDone}/3</p>
+            <p className="text-2xl font-bold text-violet-600">{sectionsDone}/3</p>
             <p className="text-[9px] font-medium uppercase tracking-widest text-violet-400">Sections done</p>
           </div>
         </div>
@@ -71,7 +71,7 @@ export default function BusinessProfile() {
         <div className="mb-4 rounded-2xl bg-white p-5 shadow-sm">
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-1.5">
-              <span className="text-sm font-semibold text-neutral-800">1 · Tax registration</span>
+              <span className="text-sm font-semibold text-[#1e1b4b]">1 · Tax registration</span>
               <span className="text-red-500">*</span>
             </div>
             <span className="rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-700">
@@ -112,7 +112,7 @@ export default function BusinessProfile() {
         {/* ── Section 2: Trade license ── */}
         <div className="mb-4 rounded-2xl bg-white p-5 shadow-sm">
           <div className="mb-4 flex items-center justify-between">
-            <span className="text-sm font-semibold text-neutral-800">2 · Trade license</span>
+            <span className="text-sm font-semibold text-[#1e1b4b]">2 · Trade license</span>
             <span className="rounded-full border border-neutral-200 bg-neutral-50 px-2.5 py-1 text-[11px] font-medium text-neutral-500">
               Optional now · needed before launch
             </span>
@@ -168,7 +168,7 @@ export default function BusinessProfile() {
         <div className="mb-4 rounded-2xl bg-white p-5 shadow-sm">
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-1.5">
-              <span className="text-sm font-semibold text-neutral-800">3 · Office location</span>
+              <span className="text-sm font-semibold text-[#1e1b4b]">3 · Office location</span>
               <span className="text-red-500">*</span>
             </div>
             <span className="rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-700">

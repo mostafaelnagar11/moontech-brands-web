@@ -143,7 +143,7 @@ function RevenueOverTimeChart() {
         ))}
       </svg>
 
-      <div className="mt-2 flex items-center gap-6 text-[11px] font-semibold text-neutral-500">
+      <div className="mt-2 flex items-center gap-6 text-xs font-medium text-neutral-500">
         <span className="flex items-center gap-2">
           <span className="h-3 w-3 rounded-sm bg-violet-200 border border-violet-400" />Revenue
         </span>
@@ -210,7 +210,7 @@ function RevenueByCampaignChart() {
             transform={`rotate(-20,${cx(i)},${H + 30})`}>{d.name}</text>
         ))}
       </svg>
-      <div className="mt-1 flex items-center gap-5 text-[11px] font-semibold text-neutral-500">
+      <div className="mt-1 flex items-center gap-5 text-xs font-medium text-neutral-500">
         <span className="flex items-center gap-2">
           <span className="h-3 w-3 rounded-sm bg-violet-600" />Revenue
         </span>
@@ -263,14 +263,14 @@ function KeyAverages() {
       {items.map((item) => (
         <div key={item.label} className="rounded-2xl bg-neutral-50 border border-neutral-100 p-4">
           <div className="flex items-start justify-between gap-2">
-            <p className="text-[10px] font-medium uppercase tracking-widest font-medium text-neutral-400">{item.label}</p>
+            <p className="text-[10px] font-medium uppercase tracking-widest text-neutral-400">{item.label}</p>
             <span className={`shrink-0 rounded-full border px-2.5 py-0.5 text-[10px] font-medium ${item.badgeCls}`}>{item.badge}</span>
           </div>
-          <p className={`mt-1 text-[26px] font-bold leading-none ${item.color}`}>{item.value}</p>
+          <p className={`mt-1 text-2xl font-bold leading-none ${item.color}`}>{item.value}</p>
           <div className="mt-2.5 h-1.5 w-full rounded-full bg-neutral-100">
             <div className={`h-full rounded-full ${item.bar}`} style={{ width: `${item.pct}%` }} />
           </div>
-          <p className="mt-2 text-[11px] leading-relaxed text-neutral-400">{item.desc}</p>
+          <p className="mt-2 text-xs leading-relaxed text-neutral-400">{item.desc}</p>
         </div>
       ))}
     </div>
@@ -304,14 +304,14 @@ function HowYouCompare() {
   return (
     <div className="rounded-2xl bg-violet-50 border border-violet-100 p-6 shadow-sm">
       <h3 className="text-[15px] font-semibold text-violet-800">How you compare — Fashion &amp; Apparel, GCC</h3>
-      <p className="text-[12px] text-neutral-500 mt-0.5 mb-4">Benchmarked against anonymized MoonTech brands in your category &amp; region</p>
+      <p className="text-xs text-neutral-500 mt-0.5 mb-4">Benchmarked against anonymized MoonTech brands in your category &amp; region</p> 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {items.map((item) => (
           <div key={item.label} className="rounded-2xl bg-white border border-neutral-100 p-4 shadow-sm">
-            <p className="text-[10px] font-medium uppercase tracking-widest font-medium text-neutral-400">{item.label}</p>
+            <p className="text-[10px] font-medium uppercase tracking-widest text-neutral-400">{item.label}</p>
             <div className="mt-1 flex items-baseline gap-2 flex-wrap">
-              <p className={`text-[24px] font-bold ${item.valueCls}`}>{item.value}</p>
-              <p className="text-[12px] text-neutral-400">{item.vs}</p>
+              <p className={`text-2xl font-bold ${item.valueCls}`}>{item.value}</p>
+              <p className="text-xs text-neutral-400">{item.vs}</p>
             </div>
             <p className={`mt-1 text-[12px] font-semibold ${item.noteCls}`}>{item.note}</p>
           </div>
@@ -331,7 +331,7 @@ function CampaignCard({ c }: { c: typeof RUNNING[0] }) {
       <div className="flex items-start justify-between gap-3">
         <div>
           <h3 className="text-[15px] font-semibold text-[#1e1b4b]">{c.name}</h3>
-          <p className="text-[12px] text-neutral-400 mt-0.5">{c.phase} · {c.dates}</p>
+          <p className="text-xs text-neutral-400 mt-0.5">{c.phase} · {c.dates}</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <span className="flex items-center gap-1.5 rounded-full border border-green-200 bg-green-50 px-3 py-1 text-[11px] font-semibold text-green-600">
@@ -348,11 +348,11 @@ function CampaignCard({ c }: { c: typeof RUNNING[0] }) {
         <div className="flex items-start justify-between gap-2">
           <p className="text-[10px] font-medium uppercase tracking-widest text-violet-700">Revenue Generated vs. Budget</p>
           <div className="shrink-0 text-right">
-            <p className="text-[22px] font-bold text-violet-600 leading-none">{c.revPct}%</p>
-            <p className="text-[10px] font-semibold text-violet-400">of target reached</p>
+            <p className="text-xl font-bold text-violet-600 leading-none">{c.revPct}%</p>
+            <p className="text-[10px] font-medium text-violet-400">of target reached</p>
           </div>
         </div>
-        <p className="mt-1.5 text-[20px] font-bold text-[#1e1b4b]">
+        <p className="mt-1.5 text-xl font-bold text-[#1e1b4b]">
           {fmt(c.rev)}{" "}
           <span className="text-[13px] font-normal text-neutral-400">of {fmt(c.revTarget)} budget</span>
         </p>
@@ -360,8 +360,8 @@ function CampaignCard({ c }: { c: typeof RUNNING[0] }) {
           <div className="h-full rounded-full bg-violet-600 transition-all" style={{ width: `${c.revPct}%` }} />
         </div>
         <div className="mt-2 flex items-start justify-between gap-2">
-          <p className={`text-[11px] font-semibold ${c.thresholdGreen ? "text-green-600" : "text-amber-600"}`}>{c.threshold}</p>
-          <p className="shrink-0 text-[11px] text-neutral-400 text-right">{c.remaining}<br />remaining</p>
+          <p className={`text-xs font-semibold ${c.thresholdGreen ? "text-green-600" : "text-amber-600"}`}>{c.threshold}</p>
+          <p className="shrink-0 text-xs text-neutral-400 text-right">{c.remaining}<br />remaining</p>
         </div>
       </div>
 
@@ -372,14 +372,14 @@ function CampaignCard({ c }: { c: typeof RUNNING[0] }) {
         { label: "CONTENT POSTED",     value: c.content,     suffix: "",               note: c.contentNote,            pct: c.contentPct,    bar: "bg-amber-400" },
       ].map((m) => (
         <div key={m.label} className="rounded-2xl bg-white border border-neutral-100 p-4 shadow-sm">
-          <p className="text-[10px] font-medium uppercase tracking-widest font-medium text-neutral-400">{m.label}</p>
-          <p className="mt-1 text-[22px] font-bold text-[#1e1b4b]">
+          <p className="text-[10px] font-medium uppercase tracking-widest text-neutral-400">{m.label}</p>
+          <p className="mt-1 text-xl font-bold text-[#1e1b4b]">
             {m.value}<span className="text-[14px] font-normal text-neutral-400">{m.suffix}</span>
           </p>
           <div className="mt-2 h-1.5 w-full rounded-full bg-neutral-100">
             <div className={`h-full rounded-full ${m.bar}`} style={{ width: `${Math.min(m.pct, 100)}%` }} />
           </div>
-          <p className="mt-1.5 text-[11px] text-neutral-400">{m.note}</p>
+          <p className="mt-1.5 text-xs text-neutral-400">{m.note}</p>
         </div>
       ))}
     </div>
@@ -403,12 +403,12 @@ function PhaseTracker() {
   return (
     <div className="rounded-2xl bg-white border border-neutral-100 shadow-sm hover:shadow-md transition-shadow p-6 overflow-x-auto">
       <h3 className="text-[15px] font-semibold text-[#1e1b4b]">Phase completion tracker</h3>
-      <p className="text-[12px] text-neutral-400 mt-0.5 mb-5">Status of each phase across all campaigns</p>
+      <p className="text-xs text-neutral-400 mt-0.5 mb-5">Status of each phase across all campaigns</p>
       <table className="w-full min-w-[560px] text-[13px]">
         <thead>
           <tr className="border-b border-neutral-100">
             {["Campaign","Phase 1","Phase 2","Phase 3","Revenue","ROAS","Status"].map((h) => (
-              <th key={h} className="pb-3 text-left text-[10px] font-medium uppercase tracking-widest font-medium text-neutral-400">{h}</th>
+              <th key={h} className="pb-3 text-left text-[10px] font-medium uppercase tracking-widest text-neutral-400">{h}</th>
             ))}
           </tr>
         </thead>
@@ -418,13 +418,13 @@ function PhaseTracker() {
               <td className="py-3.5 font-semibold text-[#1e1b4b] pr-4">{row.name}</td>
               {[row.p1, row.p2, row.p3].map((p, i) => (
                 <td key={i} className="py-3.5 pr-3">
-                  <span className={`rounded-full px-3 py-1 text-[11px] font-semibold ${phaseCls(p)}`}>{p}</span>
+                  <span className={`rounded-full px-3 py-1 text-xs font-semibold ${phaseCls(p)}`}>{p}</span>
                 </td>
               ))}
               <td className="py-3.5 font-semibold text-neutral-700 pr-3">{row.rev}</td>
               <td className="py-3.5 font-semibold text-violet-600 pr-3">{row.roas}</td>
               <td className="py-3.5">
-                <span className={`rounded-full px-3 py-1 text-[11px] font-semibold ${statusCls(row.status)}`}>{row.status}</span>
+                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusCls(row.status)}`}>{row.status}</span>
               </td>
             </tr>
           ))}
@@ -479,7 +479,7 @@ export default function Dashboard() {
 
           <div className="flex items-center gap-2 ml-auto shrink-0">
             <button onClick={() => router.push("/campaigns/new")}
-              className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-3 sm:px-4 py-2 text-[12px] font-semibold text-white shadow-md shadow-violet-200 hover:shadow-violet-300 hover:from-violet-700 hover:to-indigo-700 transition-all">
+              className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-3 sm:px-4 py-2 text-[12px] font-semibold text-white shadow-sm shadow-violet-200 hover:shadow-violet-300 hover:from-violet-700 hover:to-indigo-700 transition-all">
               <Plus size={13} weight="bold" />
               <span className="hidden sm:inline">New Campaign</span>
             </button>
@@ -495,7 +495,7 @@ export default function Dashboard() {
               {userMenuOpen && (
                 <div className="absolute right-0 top-full mt-2 w-36 rounded-2xl border border-neutral-100 bg-white shadow-xl z-50 overflow-hidden">
                   <div className="px-4 pt-3 pb-2 border-b border-neutral-50">
-                    <p className="text-[12px] font-semibold text-neutral-800">Mostafa Elnagar</p>
+                    <p className="text-xs font-semibold text-neutral-700">Mostafa Elnagar</p>
                     <p className="text-[10px] text-neutral-400">Admin</p>
                   </div>
                   <button onClick={() => router.push("/")}
@@ -531,17 +531,17 @@ export default function Dashboard() {
                   s.hero ? "bg-[#eef0fb] border border-[#dde0f5]" : "bg-white border border-neutral-100"
                 }`}>
                 <p className="text-[10px] font-medium uppercase tracking-widest text-neutral-400 mb-3">{s.label}</p>
-                <p className={`text-[22px] sm:text-[26px] font-bold leading-none ${s.hero ? "text-[#1e1b4b]" : "text-neutral-800"}`}>{s.value}</p>
+                <p className={`text-[22px] sm:text-[26px] font-bold leading-none ${s.hero ? "text-[#1e1b4b]" : "text-[#1e1b4b]"}`}>{s.value}</p>
                 <div className="mt-2.5">
                   {s.change ? (
-                    <span className="flex items-center gap-1 text-[11px] sm:text-[12px] font-semibold text-green-600">
+                    <span className="flex items-center gap-1 text-xs font-semibold text-green-600">
                       <svg viewBox="0 0 10 10" className="h-2.5 w-2.5 shrink-0" fill="currentColor">
                         <polygon points="5,1 9,9 1,9" />
                       </svg>
                       {s.change} {s.sub}
                     </span>
                   ) : (
-                    <span className="text-[11px] sm:text-[12px] text-neutral-400">{s.sub}</span>
+                    <span className="text-xs text-neutral-500">{s.sub}</span>
                   )}
                 </div>
               </div>
@@ -551,7 +551,7 @@ export default function Dashboard() {
           {/* Running Campaigns header */}
           <div>
             <h2 className="text-[15px] sm:text-[16px] font-semibold text-[#1e1b4b]">Running Campaigns</h2>
-            <p className="text-[12px] text-neutral-400 mt-0.5">Live performance · updated in real time</p>
+            <p className="text-xs text-neutral-400 mt-0.5">Live performance · updated in real time</p>
           </div>
 
           {/* Row 1: Campaign cards + Key averages */}
@@ -559,7 +559,7 @@ export default function Dashboard() {
             {RUNNING.map((c) => <CampaignCard key={c.name} c={c} />)}
             <div className="rounded-2xl bg-white border border-neutral-100 p-5 shadow-sm hover:shadow-md transition-shadow">
               <h3 className="text-[14px] font-semibold text-[#1e1b4b]">Key averages</h3>
-              <p className="text-[11px] text-neutral-400 mt-0.5 mb-4">Across all completed phases</p>
+              <p className="text-xs text-neutral-500 mt-0.5 mb-4">Across all completed phases</p> 
               <KeyAverages />
             </div>
           </div>
@@ -571,12 +571,12 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <div className="rounded-2xl bg-white border border-neutral-100 p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
               <h3 className="text-[14px] font-semibold text-[#1e1b4b]">Revenue over time</h3>
-              <p className="text-[11px] text-neutral-400 mt-0.5 mb-4">Monthly revenue generated across all campaigns</p>
+              <p className="text-xs text-neutral-500 mt-0.5 mb-4">Monthly revenue generated across all campaigns</p> 
               <RevenueOverTimeChart />
             </div>
             <div className="rounded-2xl bg-white border border-neutral-100 p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
               <h3 className="text-[14px] font-semibold text-[#1e1b4b]">Revenue per campaign</h3>
-              <p className="text-[11px] text-neutral-400 mt-0.5 mb-4">How each campaign contributed to total revenue vs. target</p>
+              <p className="text-xs text-neutral-500 mt-0.5 mb-4">How each campaign contributed to total revenue vs. target</p> 
               <RevenueByCampaignChart />
             </div>
           </div>

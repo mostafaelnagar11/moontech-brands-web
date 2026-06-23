@@ -51,7 +51,7 @@ function PillToggle<T extends string>({
           className={`rounded-xl border px-4 py-2 text-sm font-semibold transition ${
             value === o.value
               ? "border-violet-600 bg-violet-50 text-violet-700"
-              : "border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300"
+              : "border-neutral-200 bg-white text-neutral-500 hover:border-violet-300 hover:text-violet-600"
           }`}
         >{o.label}</button>
       ))}
@@ -146,7 +146,7 @@ function StepType({ data, onChange }: { data: CampaignData; onChange: (d: Partia
           <p className="mb-3 text-[10px] font-medium uppercase tracking-widest text-violet-800">Why brands trust MoonTech</p>
           <div className="flex items-start gap-3">
             <span className="text-xl shrink-0">🎯</span>
-            <p className="text-sm leading-relaxed text-neutral-800">
+            <p className="text-sm leading-relaxed text-neutral-700">
               We work with vetted <strong>micro-influencers &amp; community leaders</strong> — not pricey mega names — so spend goes further.
             </p>
           </div>
@@ -254,8 +254,8 @@ function StepBudget({ data, onChange }: { data: CampaignData; onChange: (d: Part
       {/* Budget slider */}
       <div>
         <div className="flex items-baseline justify-between mb-4">
-          <p className="text-[15px] font-normal text-neutral-700">Total campaign budget</p>
-          <p className="text-[32px] font-bold text-violet-600 leading-none">
+          <p className="text-sm text-neutral-600">Total campaign budget</p>
+          <p className="text-3xl font-bold text-violet-600 leading-none">
             ${data.budget.toLocaleString()}
           </p>
         </div>
@@ -274,10 +274,10 @@ function StepBudget({ data, onChange }: { data: CampaignData; onChange: (d: Part
       {/* ROAS slider */}
       <div>
         <div className="flex items-start justify-between mb-4">
-          <p className="text-[15px] font-normal text-neutral-700 mt-1">Target ROAS</p>
+          <p className="text-sm text-neutral-600 mt-1">Target ROAS</p>
           <div className="text-right">
-            <p className="text-[32px] font-bold text-violet-600 leading-none">{data.roas}×</p>
-            <p className="text-sm text-neutral-400 mt-1">= ${projectedSales.toLocaleString()} in sales</p>
+            <p className="text-3xl font-bold text-violet-600 leading-none">{data.roas}×</p>
+            <p className="text-xs text-neutral-400 mt-1">= ${projectedSales.toLocaleString()} in sales</p>
           </div>
         </div>
         <input
@@ -294,7 +294,7 @@ function StepBudget({ data, onChange }: { data: CampaignData; onChange: (d: Part
 
       {/* Confidence score */}
       <div className="rounded-2xl border border-neutral-100 bg-white p-5 shadow-sm">
-        <p className="text-[10px] font-medium uppercase tracking-widest font-medium text-neutral-400 mb-3">Confidence Score</p>
+        <p className="text-[10px] font-medium uppercase tracking-widest text-neutral-400 mb-3">Confidence Score</p>
         <div className="h-2 w-full overflow-hidden rounded-full bg-neutral-100 mb-3">
           <div
             className={`h-full rounded-full transition-all duration-500 ${confidence.bar}`}
@@ -366,7 +366,7 @@ function StepReview({ data }: { data: CampaignData }) {
       {/* Hero card */}
       <div className="rounded-2xl bg-violet-600 p-5 text-white">
         <p className="mb-2 text-[10px] font-medium uppercase tracking-widest text-violet-200">Your plan</p>
-        <h2 className="text-[22px] font-bold leading-snug mb-3">Your 4-phase campaign plan</h2>
+        <h2 className="text-xl font-semibold leading-snug mb-3">Your 4-phase campaign plan</h2>
         <p className="text-sm leading-relaxed text-violet-100">
           Targeting <strong className="text-white">{data.roas}× ROAS</strong> on a{" "}
           <strong className="text-white">{fmt(data.budget)}</strong> budget. Your first three phases
@@ -378,7 +378,7 @@ function StepReview({ data }: { data: CampaignData }) {
       {/* Committed phases */}
       <div className="flex items-center gap-3">
         <div className="flex-1 h-px bg-neutral-200" />
-        <span className="text-[10px] font-medium uppercase tracking-widest font-medium text-neutral-400">Committed</span>
+        <span className="text-[10px] font-medium uppercase tracking-widest text-neutral-400">Committed</span>
         <div className="flex-1 h-px bg-neutral-200" />
       </div>
 
@@ -395,7 +395,7 @@ function StepReview({ data }: { data: CampaignData }) {
             {/* Card */}
             <div className="flex-1 rounded-2xl border border-neutral-100 bg-white p-4 shadow-sm" style={{ borderLeft: "3px solid #7c3aed" }}>
               <div className="flex items-start justify-between">
-                <p className="text-sm font-semibold text-neutral-800">{p.label}</p>
+                <p className="text-sm font-semibold text-neutral-700">{p.label}</p>
                 <span className="rounded-full bg-green-50 border border-green-200 px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-green-600">
                   Committed
                 </span>
@@ -415,7 +415,7 @@ function StepReview({ data }: { data: CampaignData }) {
       {/* Estimated phases */}
       <div className="flex items-center gap-3">
         <div className="flex-1 h-px bg-neutral-200" />
-        <span className="text-[10px] font-medium uppercase tracking-widest font-medium text-neutral-400">Estimated phases</span>
+        <span className="text-[10px] font-medium uppercase tracking-widest text-neutral-400">Estimated phases</span>
         <div className="flex-1 h-px bg-neutral-200" />
       </div>
 
@@ -425,7 +425,7 @@ function StepReview({ data }: { data: CampaignData }) {
         </div>
         <div className="flex-1 rounded-2xl border border-neutral-100 bg-white p-4 shadow-sm" style={{ borderLeft: "3px solid #f59e0b" }}>
           <div className="flex items-start justify-between">
-            <p className="text-sm font-semibold text-neutral-800">Phase 4 · Growth</p>
+            <p className="text-sm font-semibold text-neutral-700">Phase 4 · Growth</p>
             <span className="rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-500">
               Estimated
             </span>
@@ -448,7 +448,7 @@ function StepReview({ data }: { data: CampaignData }) {
             <p className="mt-0.5 text-xs text-green-600">Across all 4 phases · {fmt(data.budget)} spend</p>
           </div>
           <div className="text-right">
-            <p className="text-[26px] font-bold text-green-600 leading-none">{fmt(totalTarget)}</p>
+            <p className="text-2xl font-bold text-green-600 leading-none">{fmt(totalTarget)}</p>
             <p className="mt-1 text-xs font-semibold text-green-500">✓ matches your {data.roas}× goal</p>
           </div>
         </div>
@@ -465,7 +465,7 @@ function StepReview({ data }: { data: CampaignData }) {
               <circle cx="12" cy="12" r="10" /><path strokeLinecap="round" d="M12 8v4M12 16h.01" />
             </svg>
           </div>
-          <p className="flex-1 text-sm font-semibold text-neutral-800">Before you launch — 4 things to know</p>
+          <p className="flex-1 text-sm font-semibold text-neutral-700">Before you launch — 4 things to know</p>
           <svg className={`h-4 w-4 text-neutral-400 transition-transform ${knowOpen ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <polyline points="6 9 12 15 18 9" />
           </svg>
@@ -478,7 +478,7 @@ function StepReview({ data }: { data: CampaignData }) {
                   {item.icon}
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-neutral-800">{item.title}</p>
+                  <p className="text-sm font-semibold text-neutral-700">{item.title}</p>
                   <p className="mt-1 text-sm leading-relaxed text-neutral-500">{item.desc}</p>
                 </div>
               </div>
@@ -490,13 +490,13 @@ function StepReview({ data }: { data: CampaignData }) {
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-lg">
                   💡
                 </div>
-                <p className="text-sm font-semibold text-neutral-800">Tracker best practices</p>
+                <p className="text-sm font-semibold text-neutral-700">Tracker best practices</p>
               </div>
               <div className="space-y-2">
                 {TRACKER_BEST.map((b) => (
                   <div key={b.title} className="rounded-xl bg-neutral-50 p-3 text-center">
                     <p className="text-xl mb-1">{b.icon}</p>
-                    <p className="text-sm font-semibold text-neutral-800">{b.title}</p>
+                    <p className="text-sm font-semibold text-neutral-700">{b.title}</p>
                     <p className="text-xs text-neutral-400 mt-0.5">{b.desc}</p>
                   </div>
                 ))}
@@ -551,7 +551,7 @@ function StepPay({
         <p className="text-[11px] font-medium uppercase tracking-widest text-violet-600 mb-2">
           Due today — Phase 1 only
         </p>
-        <p className="text-[40px] font-bold text-violet-600 leading-none">{fmt(p1Budget)}</p>
+        <p className="text-4xl font-bold text-violet-600 leading-none">{fmt(p1Budget)}</p>
         <p className="mt-2 text-sm text-neutral-500">Phases 2 &amp; 3 paid separately as you progress.</p>
       </div>
 
@@ -570,11 +570,11 @@ function StepPay({
         {rows.map((r, i) => (
           <div key={r.label} className={`flex items-center justify-between px-5 py-3.5 ${i < rows.length - 1 ? "border-b border-neutral-50" : ""}`}>
             <p className="text-sm text-neutral-400">{r.label}</p>
-            <p className="text-sm font-semibold text-neutral-800">{r.value}</p>
+            <p className="text-sm font-semibold text-neutral-700">{r.value}</p>
           </div>
         ))}
         <div className="border-t-2 border-violet-100 flex items-center justify-between px-5 py-4">
-          <p className="text-sm font-semibold text-neutral-800">Total due now</p>
+          <p className="text-sm font-semibold text-neutral-700">Total due now</p>
           <p className="text-[18px] font-semibold text-violet-600">{fmt(total)}</p>
         </div>
       </div>
@@ -615,7 +615,7 @@ function StepPay({
 
       {/* Confirm checkboxes */}
       <div>
-        <p className="text-sm font-semibold text-neutral-800 mb-3">Before you pay, please confirm</p>
+        <p className="text-sm font-semibold text-neutral-700 mb-3">Before you pay, please confirm</p>
         <div className="space-y-3">
           {[
             {
@@ -699,7 +699,7 @@ function BuildingScreen({ onDone }: { onDone: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-6">
       <div className="text-6xl mb-6 animate-spin" style={{ animationDuration: "3s" }}>⚙️</div>
-      <h2 className="text-[26px] font-bold text-neutral-800 mb-3">Building your plan…</h2>
+      <h2 className="text-2xl font-bold text-neutral-700 mb-3">Building your plan…</h2>
       <p className="text-[15px] text-neutral-400 leading-relaxed max-w-xs">
         Analysing budget, ROAS target, and traffic data to design your phase structure.
       </p>
@@ -739,7 +739,7 @@ function ProcessingScreen({ onDone }: { onDone: () => void }) {
       <div className="text-[72px] mb-8 drop-shadow-md" style={{ animation: "float-a 3s ease-in-out infinite" }}>
         💳
       </div>
-      <h2 className="text-[26px] font-bold text-neutral-800 mb-2">Processing payment…</h2>
+      <h2 className="text-2xl font-bold text-neutral-700 mb-2">Processing payment…</h2>
       <p className="text-sm text-neutral-400">Please don&apos;t close the app.</p>
       <div className="mt-8 flex items-center gap-2.5">
         {[0, 1, 2].map((i) => (
@@ -837,7 +837,7 @@ export default function NewCampaign() {
               <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           </button>
-          <h1 className="text-base font-semibold text-neutral-800">New campaign</h1>
+          <h1 className="text-base font-semibold text-[#1e1b4b]">New campaign</h1>
           <div className="ml-auto text-right">
             <div className="h-1.5 w-36 overflow-hidden rounded-full bg-neutral-100">
               <div
@@ -845,7 +845,7 @@ export default function NewCampaign() {
                 style={{ width: `${(stepNum / TOTAL_STEPS) * 100}%` }}
               />
             </div>
-            <p className="mt-1 text-[11px] text-neutral-400">
+            <p className="mt-1 text-xs text-neutral-400">
               Step <span className="font-semibold text-neutral-500">{stepNum}</span> of {TOTAL_STEPS} ·{" "}
               <span className="font-semibold text-neutral-500">{STEP_LABELS[step]}</span>
             </p>
