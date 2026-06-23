@@ -305,20 +305,8 @@ function HowYouCompare() {
     <div className="rounded-2xl bg-violet-50 border border-violet-100 p-6 shadow-sm">
       <h3 className="text-[15px] font-bold text-violet-800">How you compare — Fashion &amp; Apparel, GCC</h3>
       <p className="text-[12px] text-neutral-500 mt-0.5 mb-4">Benchmarked against anonymized MoonTech brands in your category &amp; region</p>
-      <div className="grid grid-cols-2 gap-3">
-        {items.slice(0, 2).map((item) => (
-          <div key={item.label} className="rounded-2xl bg-white border border-neutral-100 p-4 shadow-sm">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-400">{item.label}</p>
-            <div className="mt-1 flex items-baseline gap-2 flex-wrap">
-              <p className={`text-[24px] font-black ${item.valueCls}`}>{item.value}</p>
-              <p className="text-[12px] text-neutral-400">{item.vs}</p>
-            </div>
-            <p className={`mt-1 text-[12px] font-semibold ${item.noteCls}`}>{item.note}</p>
-          </div>
-        ))}
-      </div>
-      <div className="mt-3">
-        {items.slice(2).map((item) => (
+      <div className="grid grid-cols-3 gap-3">
+        {items.map((item) => (
           <div key={item.label} className="rounded-2xl bg-white border border-neutral-100 p-4 shadow-sm">
             <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-400">{item.label}</p>
             <div className="mt-1 flex items-baseline gap-2 flex-wrap">
