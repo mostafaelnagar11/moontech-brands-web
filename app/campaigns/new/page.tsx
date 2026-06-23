@@ -41,6 +41,104 @@ const STEP_NUM: Record<Step, number> = { type: 1, basics: 2, budget: 3, building
 const fieldCls = "w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-800 placeholder:text-neutral-400 outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-500/10 transition";
 const labelCls = "mb-1.5 block text-sm font-medium text-neutral-600";
 
+/* ------------------------------------------------------------------ */
+/* DatePicker                                                          */
+/* ------------------------------------------------------------------ */
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const DAYS_SHORT = ["Su","Mo","Tu","We","Th","Fr","Sa"];
+
+function DatePicker({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder?: string }) {
+  const [open, setOpen] = useState(false);
+  const today = new Date();
+  const parsed = value ? new Date(value + "T00:00:00") : null;
+  const [viewYear, setViewYear]   = useState(parsed?.getFullYear() ?? today.getFullYear());
+  const [viewMonth, setViewMonth] = useState(parsed?.getMonth() ?? today.getMonth());
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const prevMonth = () => { if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1); } else setViewMonth(m => m - 1); };
+  const nextMonth = () => { if (viewMonth === 11) { setViewMonth(0); setViewYear(y => y + 1); } else setViewMonth(m => m + 1); };
+
+  const firstDayOfWeek = new Date(viewYear, viewMonth, 1).getDay();
+  const daysInMonth    = new Date(viewYear, viewMonth + 1, 0).getDate();
+
+  const selectDay = (day: number) => {
+    const mm = String(viewMonth + 1).padStart(2, "0");
+    const dd = String(day).padStart(2, "0");
+    onChange(`${viewYear}-${mm}-${dd}`);
+    setOpen(false);
+  };
+
+  const displayValue = parsed
+    ? parsed.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+    : "";
+
+  return (
+    <div ref={ref} className="relative">
+      <button type="button" onClick={() => setOpen(o => !o)}
+        className={`${fieldCls} flex items-center justify-between text-left ${!displayValue ? "text-neutral-400" : "text-neutral-800"}`}>
+        <span>{displayValue || placeholder || "Select date"}</span>
+        <svg className="h-4 w-4 shrink-0 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+          <rect x="3" y="4" width="18" height="18" rx="2" strokeLinecap="round" />
+          <path strokeLinecap="round" d="M16 2v4M8 2v4M3 10h18" />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="absolute top-full left-0 z-50 mt-2 w-72 rounded-2xl border border-neutral-100 bg-white p-4 shadow-xl shadow-neutral-200/50">
+          {/* Month nav */}
+          <div className="mb-4 flex items-center justify-between">
+            <button onClick={prevMonth} className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-400 hover:bg-neutral-100 transition">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><polyline points="15 18 9 12 15 6" /></svg>
+            </button>
+            <p className="text-sm font-semibold text-[#1e1b4b]">{MONTHS[viewMonth]} {viewYear}</p>
+            <button onClick={nextMonth} className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-400 hover:bg-neutral-100 transition">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><polyline points="9 18 15 12 9 6" /></svg>
+            </button>
+          </div>
+
+          {/* Day headers */}
+          <div className="mb-1 grid grid-cols-7">
+            {DAYS_SHORT.map(d => <p key={d} className="py-1 text-center text-[10px] font-medium text-neutral-400">{d}</p>)}
+          </div>
+
+          {/* Day grid */}
+          <div className="grid grid-cols-7 gap-y-0.5">
+            {Array.from({ length: firstDayOfWeek }).map((_, i) => <div key={`e${i}`} />)}
+            {Array.from({ length: daysInMonth }).map((_, i) => {
+              const day = i + 1;
+              const isSelected = parsed &&
+                parsed.getFullYear() === viewYear &&
+                parsed.getMonth() === viewMonth &&
+                parsed.getDate() === day;
+              const isToday = today.getFullYear() === viewYear && today.getMonth() === viewMonth && today.getDate() === day;
+              return (
+                <button key={day} onClick={() => selectDay(day)}
+                  className={`h-8 w-full rounded-lg text-sm transition ${
+                    isSelected
+                      ? "bg-violet-600 font-semibold text-white"
+                      : isToday
+                      ? "border border-violet-300 text-violet-600 font-semibold"
+                      : "text-neutral-700 hover:bg-violet-50 hover:text-violet-600"
+                  }`}>
+                  {day}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function PillToggle<T extends string>({
   options, value, onChange,
 }: { options: { label: string; value: T }[]; value: T; onChange: (v: T) => void }) {
@@ -165,11 +263,11 @@ function StepBasics({ data, onChange }: { data: CampaignData; onChange: (d: Part
     <div className="space-y-5">
       <div>
         <label className={labelCls}>Start date</label>
-        <input value={data.startDate} onChange={(e) => onChange({ startDate: e.target.value })} placeholder="Apr 1, 2026" className={fieldCls} />
+        <DatePicker value={data.startDate} onChange={(v) => onChange({ startDate: v })} placeholder="Select start date" />
       </div>
       <div>
         <label className={labelCls}>End date</label>
-        <input value={data.endDate} onChange={(e) => onChange({ endDate: e.target.value })} placeholder="May 30, 2026" className={fieldCls} />
+        <DatePicker value={data.endDate} onChange={(v) => onChange({ endDate: v })} placeholder="Select end date" />
       </div>
       <div>
         <label className={labelCls}>Target gender</label>
@@ -763,8 +861,8 @@ export default function NewCampaign() {
   const [data, setData] = useState<CampaignData>({
     name: "Spring 2026",
     type: "roas",
-    startDate: "Apr 1, 2026",
-    endDate: "May 30, 2026",
+    startDate: "2026-04-01",
+    endDate: "2026-05-30",
     gender: "all",
     age: "18-34",
     region: "uae",
