@@ -565,8 +565,8 @@ export default function Dashboard() {
           {/* Performance Overview heading */}
           <h2 className="text-[16px] font-bold text-[#1e1b4b]">Performance Overview</h2>
 
-          {/* Row 2: Revenue over time + Revenue per campaign + How you compare */}
-          <div className="grid grid-cols-3 gap-4">
+          {/* Row 2: Two charts side by side */}
+          <div className="grid grid-cols-2 gap-4">
             <div className="rounded-2xl bg-white border border-neutral-100 p-5 shadow-sm hover:shadow-md transition-shadow">
               <h3 className="text-[14px] font-bold text-[#1e1b4b]">Revenue over time</h3>
               <p className="text-[11px] text-neutral-400 mt-0.5 mb-4">Monthly revenue generated across all campaigns</p>
@@ -577,8 +577,10 @@ export default function Dashboard() {
               <p className="text-[11px] text-neutral-400 mt-0.5 mb-4">How each campaign contributed to total revenue vs. target</p>
               <RevenueByCampaignChart />
             </div>
-            <HowYouCompare />
           </div>
+
+          {/* Row 3: How you compare — full width */}
+          <HowYouCompare />
 
           {/* Phase tracker */}
           <PhaseTracker />
