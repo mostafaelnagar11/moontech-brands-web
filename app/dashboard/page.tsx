@@ -330,17 +330,17 @@ function CampaignCard({ c }: { c: typeof RUNNING[0] }) {
     <div className="rounded-2xl bg-white border border-neutral-100 shadow-sm hover:shadow-md transition-shadow p-5 space-y-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h3 className="text-[15px] font-semibold text-[#1e1b4b]">{c.name}</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-[15px] font-semibold text-[#1e1b4b]">{c.name}</h3>
+            <span className="flex items-center gap-1.5 rounded-full border border-green-200 bg-green-50 px-2.5 py-0.5 text-[11px] font-semibold text-green-600">
+              <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-live" />Live
+            </span>
+          </div>
           <p className="text-xs text-neutral-400 mt-0.5">{c.phase} · {c.dates}</p>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="flex items-center gap-1.5 rounded-full border border-green-200 bg-green-50 px-3 py-1 text-[11px] font-semibold text-green-600">
-            <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-live" />Live
-          </span>
-          <button className="rounded-xl px-4 py-2 text-[12px] font-semibold text-[#1e1b4b] hover:bg-[#1e1b4b]/5 transition-colors">
-            View →
-          </button>
-        </div>
+        <button className="shrink-0 rounded-xl px-4 py-2 text-[12px] font-semibold text-[#1e1b4b] hover:bg-[#1e1b4b]/5 transition-colors">
+          View →
+        </button>
       </div>
 
       {/* Revenue progress */}
