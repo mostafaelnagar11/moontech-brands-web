@@ -349,7 +349,7 @@ function CampaignCard({ c }: { c: typeof RUNNING[0] }) {
           <span className="flex items-center gap-1.5 rounded-full border border-green-200 bg-green-50 px-3 py-1 text-[11px] font-semibold text-green-600">
             <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-live" />Live
           </span>
-          <button className="rounded-xl bg-[#1e1b4b] px-4 py-2 text-[12px] font-bold text-white hover:bg-[#2d2a6b] transition-colors">
+          <button className="rounded-xl border border-[#1e1b4b] px-4 py-2 text-[12px] font-semibold text-[#1e1b4b] hover:bg-[#1e1b4b]/5 transition-colors">
             View →
           </button>
         </div>
@@ -547,15 +547,9 @@ export default function Dashboard() {
           </div>
 
           {/* Running Campaigns header */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-[16px] font-bold text-[#1e1b4b]">Running Campaigns</h2>
-              <p className="text-[12px] text-neutral-400 mt-0.5">Live performance · updated in real time</p>
-            </div>
-            <button onClick={() => router.push("/campaigns/new")}
-              className="flex items-center gap-2 rounded-xl bg-[#1e1b4b] px-5 py-2.5 text-[13px] font-bold text-white hover:bg-[#2d2a6b] transition-colors shadow-md">
-              <Plus size={14} weight="bold" /> New Campaign
-            </button>
+          <div>
+            <h2 className="text-[16px] font-bold text-[#1e1b4b]">Running Campaigns</h2>
+            <p className="text-[12px] text-neutral-400 mt-0.5">Live performance · updated in real time</p>
           </div>
 
           {/* Row 1: Campaign cards + Key averages */}
