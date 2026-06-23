@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   House, Megaphone,
-  Gear, Question, SignOut,
+  Gear, Question, SignOut, X,
 } from "@phosphor-icons/react";
 
 const NAV_MENU = [
@@ -27,22 +27,36 @@ interface SidebarProps {
   collapsed: boolean;
   activeNav: string;
   onNavChange: (label: string) => void;
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
-export default function Sidebar({ collapsed, activeNav, onNavChange }: SidebarProps) {
+function SidebarContent({
+  collapsed, activeNav, onNavChange, onMobileClose,
+}: {
+  collapsed: boolean;
+  activeNav: string;
+  onNavChange: (label: string) => void;
+  onMobileClose?: () => void;
+}) {
   const router = useRouter();
   const [brandMenuOpen, setBrandMenuOpen] = useState(false);
   const [activeBrand, setActiveBrand] = useState(BRANDS[0]);
 
   return (
-    <aside className={`flex shrink-0 flex-col bg-white border-r border-neutral-100/80 py-5 overflow-y-auto transition-all duration-200 ${collapsed ? "w-[60px] px-2 items-center" : "w-[210px] px-3"}`}>
+    <div className={`flex h-full flex-col bg-white py-5 overflow-y-auto ${collapsed ? "px-2 items-center" : "px-3"}`}>
 
-      {/* Logo */}
-      <div className={`mb-4 ${collapsed ? "flex justify-center" : "px-2"}`}>
+      {/* Logo + mobile close */}
+      <div className={`mb-4 flex items-center ${collapsed ? "justify-center" : "justify-between px-2"}`}>
         {collapsed
           ? <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-700 flex items-center justify-center text-white text-[10px] font-medium shadow-md">M</div>
           : <Image src="/logo.svg" alt="MoonTech" width={110} height={20} />
         }
+        {!collapsed && onMobileClose && (
+          <button onClick={onMobileClose} className="flex h-7 w-7 items-center justify-center rounded-lg text-neutral-400 hover:bg-neutral-100 md:hidden">
+            <X size={16} />
+          </button>
+        )}
       </div>
 
       {/* Brand switcher */}
@@ -52,41 +66,25 @@ export default function Sidebar({ collapsed, activeNav, onNavChange }: SidebarPr
             onClick={() => setBrandMenuOpen((o) => !o)}
             className="flex w-full items-center gap-2.5 rounded-xl border border-neutral-100 bg-neutral-50 px-3 py-2 transition hover:bg-neutral-100"
           >
-            <div
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[11px] font-medium text-white shadow-sm"
-              style={{ backgroundColor: activeBrand.color }}
-            >
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[11px] font-medium text-white shadow-sm"
+              style={{ backgroundColor: activeBrand.color }}>
               {activeBrand.initials}
             </div>
-            <span className="flex-1 truncate text-left text-[13px] font-semibold text-neutral-700">
-              {activeBrand.name}
-            </span>
-            <svg
-              viewBox="0 0 24 24"
-              className={`h-3.5 w-3.5 shrink-0 text-neutral-400 transition-transform ${brandMenuOpen ? "rotate-180" : ""}`}
-              fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round"
-            >
+            <span className="flex-1 truncate text-left text-[13px] font-semibold text-neutral-700">{activeBrand.name}</span>
+            <svg viewBox="0 0 24 24" className={`h-3.5 w-3.5 shrink-0 text-neutral-400 transition-transform ${brandMenuOpen ? "rotate-180" : ""}`}
+              fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round">
               <path d="M6 9l6 6 6-6" />
             </svg>
           </button>
 
           {brandMenuOpen && (
             <div className="absolute top-full left-0 right-0 z-50 mt-1 overflow-hidden rounded-xl border border-neutral-100 bg-white shadow-xl shadow-neutral-200/60">
-              <p className="px-3 pb-1 pt-2.5 text-[9px] font-medium uppercase tracking-widest font-medium text-neutral-400">
-                Switch brand
-              </p>
+              <p className="px-3 pb-1 pt-2.5 text-[9px] font-medium uppercase tracking-widest text-neutral-400">Switch brand</p>
               {BRANDS.map((b) => (
-                <button
-                  key={b.id}
-                  onClick={() => { setActiveBrand(b); setBrandMenuOpen(false); }}
-                  className={`flex w-full items-center gap-2.5 px-3 py-2.5 text-left transition hover:bg-neutral-50 ${activeBrand.id === b.id ? "bg-indigo-50/60" : ""}`}
-                >
-                  <div
-                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[10px] font-medium text-white"
-                    style={{ backgroundColor: b.color }}
-                  >
-                    {b.initials}
-                  </div>
+                <button key={b.id} onClick={() => { setActiveBrand(b); setBrandMenuOpen(false); }}
+                  className={`flex w-full items-center gap-2.5 px-3 py-2.5 text-left transition hover:bg-neutral-50 ${activeBrand.id === b.id ? "bg-indigo-50/60" : ""}`}>
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[10px] font-medium text-white"
+                    style={{ backgroundColor: b.color }}>{b.initials}</div>
                   <span className="flex-1 text-[12px] font-medium text-neutral-700">{b.name}</span>
                   {activeBrand.id === b.id && (
                     <svg className="h-3.5 w-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -112,13 +110,13 @@ export default function Sidebar({ collapsed, activeNav, onNavChange }: SidebarPr
       {!collapsed && <p className="px-2 mb-2 text-[9px] font-medium uppercase tracking-widest text-neutral-300">Menu</p>}
       <nav className="flex flex-col gap-1 mb-6 w-full">
         {NAV_MENU.map((item) => (
-          <button key={item.label} onClick={() => onNavChange(item.label)} title={collapsed ? item.label : undefined}
+          <button key={item.label} onClick={() => { onNavChange(item.label); onMobileClose?.(); }}
+            title={collapsed ? item.label : undefined}
             className={`flex items-center rounded-xl py-2.5 text-[13px] font-medium transition-all text-left ${collapsed ? "justify-center px-0" : "gap-3 px-3"} ${
               activeNav === item.label
                 ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md shadow-violet-200"
                 : "text-neutral-500 hover:bg-neutral-50 hover:text-neutral-800"
-            }`}
-          >
+            }`}>
             {item.icon}
             {!collapsed && item.label}
           </button>
@@ -130,19 +128,38 @@ export default function Sidebar({ collapsed, activeNav, onNavChange }: SidebarPr
         <div className={`flex flex-col gap-1 w-full ${!collapsed ? "border-t border-neutral-100 pt-3" : ""}`}>
           {NAV_OTHERS.map((item) => (
             <button key={item.label} onClick={() => onNavChange(item.label)} title={collapsed ? item.label : undefined}
-              className={`flex items-center rounded-xl py-2.5 text-[13px] font-medium text-neutral-500 hover:bg-neutral-50 hover:text-neutral-800 transition-all text-left ${collapsed ? "justify-center px-0" : "gap-3 px-3"}`}
-            >
+              className={`flex items-center rounded-xl py-2.5 text-[13px] font-medium text-neutral-500 hover:bg-neutral-50 hover:text-neutral-800 transition-all text-left ${collapsed ? "justify-center px-0" : "gap-3 px-3"}`}>
               {item.icon}{!collapsed && item.label}
             </button>
           ))}
           <button onClick={() => router.push("/")} title={collapsed ? "Log out" : undefined}
-            className={`flex items-center rounded-xl py-2.5 text-[13px] font-medium text-neutral-400 hover:bg-red-50 hover:text-red-500 transition-all text-left w-full ${collapsed ? "justify-center px-0" : "gap-3 px-3"}`}
-          >
+            className={`flex items-center rounded-xl py-2.5 text-[13px] font-medium text-neutral-400 hover:bg-red-50 hover:text-red-500 transition-all text-left w-full ${collapsed ? "justify-center px-0" : "gap-3 px-3"}`}>
             <SignOut size={16} weight="bold" />
             {!collapsed && "Log out"}
           </button>
         </div>
       </div>
-    </aside>
+    </div>
+  );
+}
+
+export default function Sidebar({ collapsed, activeNav, onNavChange, mobileOpen, onMobileClose }: SidebarProps) {
+  return (
+    <>
+      {/* Desktop sidebar */}
+      <aside className={`hidden md:flex shrink-0 flex-col border-r border-neutral-100/80 transition-all duration-200 ${collapsed ? "w-[60px]" : "w-[210px]"}`}>
+        <SidebarContent collapsed={collapsed} activeNav={activeNav} onNavChange={onNavChange} />
+      </aside>
+
+      {/* Mobile drawer overlay */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-40 md:hidden">
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onMobileClose} />
+          <aside className="absolute left-0 top-0 h-full w-[240px] border-r border-neutral-100 shadow-xl">
+            <SidebarContent collapsed={false} activeNav={activeNav} onNavChange={onNavChange} onMobileClose={onMobileClose} />
+          </aside>
+        </div>
+      )}
+    </>
   );
 }

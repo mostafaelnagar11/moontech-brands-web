@@ -305,7 +305,7 @@ function HowYouCompare() {
     <div className="rounded-2xl bg-violet-50 border border-violet-100 p-6 shadow-sm">
       <h3 className="text-[15px] font-semibold text-violet-800">How you compare — Fashion &amp; Apparel, GCC</h3>
       <p className="text-[12px] text-neutral-500 mt-0.5 mb-4">Benchmarked against anonymized MoonTech brands in your category &amp; region</p>
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {items.map((item) => (
           <div key={item.label} className="rounded-2xl bg-white border border-neutral-100 p-4 shadow-sm">
             <p className="text-[10px] font-medium uppercase tracking-widest font-medium text-neutral-400">{item.label}</p>
@@ -439,35 +439,49 @@ function PhaseTracker() {
 /* ------------------------------------------------------------------ */
 export default function Dashboard() {
   const router = useRouter();
-  const [activeNav, setActiveNav]   = useState("Dashboard");
+  const [activeNav, setActiveNav]       = useState("Dashboard");
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [collapsed, setCollapsed]   = useState(false);
+  const [collapsed, setCollapsed]       = useState(false);
+  const [mobileOpen, setMobileOpen]     = useState(false);
 
   return (
-    <div className="flex bg-[#fafafa] overflow-hidden"
-      style={{ fontFamily: "var(--font-geist-sans), system-ui, sans-serif", zoom: "110%", height: "calc(100vh / 1.1)" }}>
+    <div className="flex h-screen bg-[#fafafa] overflow-hidden"
+      style={{ fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>
 
-      <Sidebar collapsed={collapsed} activeNav={activeNav} onNavChange={setActiveNav} />
+      <Sidebar
+        collapsed={collapsed}
+        activeNav={activeNav}
+        onNavChange={setActiveNav}
+        mobileOpen={mobileOpen}
+        onMobileClose={() => setMobileOpen(false)}
+      />
 
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex flex-1 flex-col overflow-hidden min-w-0">
 
         {/* Top bar */}
-        <header className="flex items-center gap-4 bg-white/80 backdrop-blur-sm border-b border-neutral-100 px-5 py-3 sticky top-0 z-20">
-          <button onClick={() => setCollapsed((o) => !o)}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-400 hover:bg-neutral-100 transition-colors">
+        <header className="flex items-center gap-3 bg-white/80 backdrop-blur-sm border-b border-neutral-100 px-4 py-3 sticky top-0 z-20">
+          {/* Hamburger: toggles drawer on mobile, collapses sidebar on desktop */}
+          <button
+            onClick={() => {
+              if (window.innerWidth < 768) setMobileOpen((o) => !o);
+              else setCollapsed((o) => !o);
+            }}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-neutral-400 hover:bg-neutral-100 transition-colors">
             <List size={18} />
           </button>
-          <h1 className="text-[15px] font-semibold text-[#1e1b4b]">Dashboard</h1>
+          <h1 className="text-[15px] font-semibold text-[#1e1b4b] shrink-0">Dashboard</h1>
 
-          <div className="flex flex-1 items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-2.5 max-w-sm mx-auto">
+          {/* Search — hidden on small screens */}
+          <div className="hidden sm:flex flex-1 items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-2.5 max-w-sm mx-auto">
             <MagnifyingGlass size={14} className="text-neutral-400 shrink-0" />
             <input placeholder="Search anything…" className="bg-transparent text-[13px] text-neutral-600 placeholder:text-neutral-400 outline-none w-full" />
           </div>
 
-          <div className="flex items-center gap-2.5 ml-auto">
+          <div className="flex items-center gap-2 ml-auto shrink-0">
             <button onClick={() => router.push("/campaigns/new")}
-              className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2 text-[12px] font-semibold text-white shadow-md shadow-violet-200 hover:shadow-violet-300 hover:from-violet-700 hover:to-indigo-700 transition-all">
-              <Plus size={13} weight="bold" /> New Campaign
+              className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-3 sm:px-4 py-2 text-[12px] font-semibold text-white shadow-md shadow-violet-200 hover:shadow-violet-300 hover:from-violet-700 hover:to-indigo-700 transition-all">
+              <Plus size={13} weight="bold" />
+              <span className="hidden sm:inline">New Campaign</span>
             </button>
             <button className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-neutral-200 bg-white text-neutral-500 hover:bg-neutral-50 transition-colors shadow-sm">
               <Bell size={16} />
@@ -495,39 +509,39 @@ export default function Dashboard() {
         </header>
 
         {/* Body */}
-        <main className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
+        <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
 
           {/* Welcome banner */}
-          <div className="rounded-2xl px-6 py-5 flex items-center justify-between shadow-sm border border-[#e9defa]/60"
+          <div className="rounded-2xl px-4 sm:px-6 py-4 sm:py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm border border-[#e9defa]/60"
             style={{ backgroundImage: "linear-gradient(-20deg, #e9defa 0%, #fbfcdb 100%)" }}>
             <div>
-              <h2 className="text-[18px] font-semibold text-[#1e1b4b]">Welcome back, Mostafa 👋</h2>
-              <p className="text-[13px] text-neutral-500 mt-0.5">Wednesday, 18 June 2026 · Here&apos;s what&apos;s happening today</p>
+              <h2 className="text-[16px] sm:text-[18px] font-semibold text-[#1e1b4b]">Welcome back, Mostafa 👋</h2>
+              <p className="text-[12px] sm:text-[13px] text-neutral-500 mt-0.5">Wednesday, 18 June 2026 · Here&apos;s what&apos;s happening today</p>
             </div>
-            <div className="flex items-center gap-1.5 rounded-xl bg-white/60 border border-white/80 backdrop-blur-sm px-3 py-1.5 text-[12px] font-semibold text-[#1e1b4b]">
+            <div className="flex items-center gap-1.5 self-start sm:self-auto rounded-xl bg-white/60 border border-white/80 backdrop-blur-sm px-3 py-1.5 text-[12px] font-semibold text-[#1e1b4b]">
               <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />2 live campaigns
             </div>
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {STATS.map((s) => (
               <div key={s.label}
-                className={`rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow ${
+                className={`rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow ${
                   s.hero ? "bg-[#eef0fb] border border-[#dde0f5]" : "bg-white border border-neutral-100"
                 }`}>
-                <p className="text-[10px] font-medium uppercase tracking-widest font-medium text-neutral-400 mb-3">{s.label}</p>
-                <p className={`text-[26px] font-bold leading-none ${s.hero ? "text-[#1e1b4b]" : "text-neutral-800"}`}>{s.value}</p>
+                <p className="text-[10px] font-medium uppercase tracking-widest text-neutral-400 mb-3">{s.label}</p>
+                <p className={`text-[22px] sm:text-[26px] font-bold leading-none ${s.hero ? "text-[#1e1b4b]" : "text-neutral-800"}`}>{s.value}</p>
                 <div className="mt-2.5">
                   {s.change ? (
-                    <span className="flex items-center gap-1 text-[12px] font-semibold text-green-600">
+                    <span className="flex items-center gap-1 text-[11px] sm:text-[12px] font-semibold text-green-600">
                       <svg viewBox="0 0 10 10" className="h-2.5 w-2.5 shrink-0" fill="currentColor">
                         <polygon points="5,1 9,9 1,9" />
                       </svg>
                       {s.change} {s.sub}
                     </span>
                   ) : (
-                    <span className="text-[12px] text-neutral-400">{s.sub}</span>
+                    <span className="text-[11px] sm:text-[12px] text-neutral-400">{s.sub}</span>
                   )}
                 </div>
               </div>
@@ -536,12 +550,12 @@ export default function Dashboard() {
 
           {/* Running Campaigns header */}
           <div>
-            <h2 className="text-[16px] font-semibold text-[#1e1b4b]">Running Campaigns</h2>
+            <h2 className="text-[15px] sm:text-[16px] font-semibold text-[#1e1b4b]">Running Campaigns</h2>
             <p className="text-[12px] text-neutral-400 mt-0.5">Live performance · updated in real time</p>
           </div>
 
           {/* Row 1: Campaign cards + Key averages */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {RUNNING.map((c) => <CampaignCard key={c.name} c={c} />)}
             <div className="rounded-2xl bg-white border border-neutral-100 p-5 shadow-sm hover:shadow-md transition-shadow">
               <h3 className="text-[14px] font-semibold text-[#1e1b4b]">Key averages</h3>
@@ -551,16 +565,16 @@ export default function Dashboard() {
           </div>
 
           {/* Performance Overview heading */}
-          <h2 className="text-[16px] font-semibold text-[#1e1b4b]">Performance Overview</h2>
+          <h2 className="text-[15px] sm:text-[16px] font-semibold text-[#1e1b4b]">Performance Overview</h2>
 
           {/* Row 2: Two charts side by side */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="rounded-2xl bg-white border border-neutral-100 p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="rounded-2xl bg-white border border-neutral-100 p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
               <h3 className="text-[14px] font-semibold text-[#1e1b4b]">Revenue over time</h3>
               <p className="text-[11px] text-neutral-400 mt-0.5 mb-4">Monthly revenue generated across all campaigns</p>
               <RevenueOverTimeChart />
             </div>
-            <div className="rounded-2xl bg-white border border-neutral-100 p-5 shadow-sm hover:shadow-md transition-shadow">
+            <div className="rounded-2xl bg-white border border-neutral-100 p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
               <h3 className="text-[14px] font-semibold text-[#1e1b4b]">Revenue per campaign</h3>
               <p className="text-[11px] text-neutral-400 mt-0.5 mb-4">How each campaign contributed to total revenue vs. target</p>
               <RevenueByCampaignChart />

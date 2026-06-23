@@ -921,24 +921,26 @@ export default function NewCampaign() {
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
                 <button onClick={handleBack} className="shrink-0 text-sm font-medium text-neutral-500 transition hover:text-neutral-700">
                   ← Back
                 </button>
-                <p className="flex-1 text-xs leading-relaxed text-neutral-400">
+                <p className="hidden sm:block flex-1 text-xs leading-relaxed text-neutral-400">
                   {step === "type"   ? "Choose a name and campaign type to get started." :
                    step === "basics" ? "Fill in your target audience and campaign brief." :
                    step === "budget" ? "Set your budget and ROAS target to build your plan." : ""}
                 </p>
+                <div className="flex-1 sm:flex-none" />
                 <button onClick={handleNext}
                   disabled={step === "type" && !data.name.trim()}
-                  className={`shrink-0 rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-md transition active:scale-[0.98] ${
+                  className={`shrink-0 rounded-xl px-4 sm:px-5 py-2.5 text-sm font-semibold text-white shadow-md transition active:scale-[0.98] ${
                     isLowConfidence
                       ? "bg-violet-400 shadow-violet-100 cursor-not-allowed"
                       : "bg-violet-600 shadow-violet-200 hover:bg-violet-700"
                   }`}
                 >
-                  {nextLabel} →
+                  <span className="hidden sm:inline">{nextLabel} →</span>
+                  <span className="sm:hidden">Next →</span>
                 </button>
               </div>
             )}
