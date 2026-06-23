@@ -311,7 +311,7 @@ function StepBudget({ data, onChange }: { data: CampaignData; onChange: (d: Part
 /* ------------------------------------------------------------------ */
 /* Step 4 — Review plan                                               */
 /* ------------------------------------------------------------------ */
-function StepReview({ data, onEditBudget }: { data: CampaignData; onEditBudget: () => void }) {
+function StepReview({ data }: { data: CampaignData }) {
   const [knowOpen, setKnowOpen] = useState(false);
 
   const p1b = Math.round(data.budget * 0.1);
@@ -859,7 +859,7 @@ export default function NewCampaign() {
         {step === "basics"   && <StepBasics data={data} onChange={update} />}
         {step === "budget"   && <StepBudget data={data} onChange={update} />}
         {step === "building" && <BuildingScreen onDone={() => setStep("review")} />}
-        {step === "review"   && <StepReview data={data} onEditBudget={() => setStep("budget")} />}
+        {step === "review"   && <StepReview data={data} />}
         {step === "pay"      && <StepPay data={data} profileComplete={profileComplete} onAddBilling={() => router.push("/profile")} onPay={() => setStep("processing")} />}
         {step === "processing" && <ProcessingScreen onDone={() => router.push("/dashboard")} />}
       </div>

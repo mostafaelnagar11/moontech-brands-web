@@ -88,7 +88,6 @@ function RevenueOverTimeChart() {
   const barW = Math.min(colW * 0.52, 26);
   const r = barW / 2;
 
-  const revY  = (v: number) => PT + cH - (v / maxRev) * cH;
   const ordY  = (v: number) => PT + cH - (v / maxOrd) * cH;
   const cx    = (i: number) => PL + (i + 0.5) * colW;
 
