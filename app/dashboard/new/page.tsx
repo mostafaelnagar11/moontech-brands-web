@@ -29,7 +29,7 @@ export default function NewBrandDashboard() {
           <button onClick={() => setCollapsed((o) => !o)} className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-400 hover:bg-neutral-100 transition-colors">
             <List size={18} />
           </button>
-          <h1 className="text-[15px] font-bold text-[#1e1b4b]">Dashboard</h1>
+          <h1 className="text-[15px] font-semibold text-[#1e1b4b]">Dashboard</h1>
 
           <div className="flex flex-1 items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-2.5 max-w-sm mx-auto">
             <MagnifyingGlass size={14} className="text-neutral-400 shrink-0" />
@@ -45,7 +45,7 @@ export default function NewBrandDashboard() {
               <Bell size={16} />
             </button>
             <div className="relative">
-              <button onClick={() => setUserMenuOpen((o) => !o)} className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 text-white text-xs font-bold shadow-md shadow-violet-200">
+              <button onClick={() => setUserMenuOpen((o) => !o)} className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 text-white text-xs font-medium shadow-md shadow-violet-200">
                 V
               </button>
               {userMenuOpen && (
@@ -77,7 +77,7 @@ export default function NewBrandDashboard() {
             </span>
             <button
               onClick={() => router.push("/profile")}
-              className="shrink-0 text-[11px] font-bold text-white hover:underline whitespace-nowrap"
+              className="shrink-0 text-[11px] font-medium text-white hover:underline whitespace-nowrap"
             >
               Complete now →
             </button>
@@ -92,7 +92,7 @@ export default function NewBrandDashboard() {
                   <span className="inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-3 py-1.5 text-xs font-semibold text-green-700">
                     Welcome to MoonTech 🎉
                   </span>
-                  <h1 className="mt-4 text-[32px] font-black leading-tight tracking-tight text-neutral-900">
+                  <h1 className="mt-4 text-[32px] font-bold leading-tight tracking-tight text-neutral-900">
                     Your brand is{" "}
                     <span className="text-violet-600">eligible</span>
                     <br />for a ROAS campaign
@@ -107,14 +107,14 @@ export default function NewBrandDashboard() {
                       { value: "100%", label: "Performance-based" },
                     ].map((s) => (
                       <div key={s.label} className="rounded-xl bg-white px-4 py-3 shadow-sm">
-                        <p className="text-xl font-black text-violet-600">{s.value}</p>
+                        <p className="text-xl font-semibold text-violet-600">{s.value}</p>
                         <p className="mt-0.5 text-[11px] font-medium text-neutral-500">{s.label}</p>
                       </div>
                     ))}
                   </div>
                   <button
                     onClick={() => router.push("/campaigns/new")}
-                    className="mt-6 flex items-center gap-2 rounded-xl bg-violet-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-violet-200 transition hover:bg-violet-700 active:scale-[0.98]"
+                    className="mt-6 flex items-center gap-2 rounded-xl bg-violet-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-200 transition hover:bg-violet-700 active:scale-[0.98]"
                   >
                     Create your first campaign →
                   </button>
@@ -132,7 +132,7 @@ export default function NewBrandDashboard() {
                       </svg>
                     </div>
                   </div>
-                  <span className="text-[11px] font-black tracking-[0.25em] text-violet-500 uppercase">Eligible</span>
+                  <span className="text-[11px] font-medium tracking-[0.25em] text-violet-500 uppercase">Eligible</span>
                 </div>
               </div>
             </div>
@@ -149,8 +149,8 @@ export default function NewBrandDashboard() {
                 { num: "04", title: "Guaranteed or we make it right", desc: "If a committed phase misses its target, MoonTech covers the difference. No fine print." },
               ].map((step) => (
                 <div key={step.num} className="rounded-2xl border border-neutral-100 bg-white p-5 shadow-sm">
-                  <p className="mb-3 text-3xl font-black text-indigo-100">{step.num}</p>
-                  <p className="mb-1.5 text-sm font-bold text-neutral-800">{step.title}</p>
+                  <p className="mb-3 text-3xl font-bold text-indigo-100">{step.num}</p>
+                  <p className="mb-1.5 text-sm font-semibold text-neutral-800">{step.title}</p>
                   <p className="text-xs leading-relaxed text-neutral-500">{step.desc}</p>
                 </div>
               ))}

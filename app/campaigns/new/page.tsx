@@ -143,7 +143,7 @@ function StepType({ data, onChange }: { data: CampaignData; onChange: (d: Partia
           </p>
         </div>
         <div className="rounded-2xl bg-[#eeeeff] p-4">
-          <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-violet-800">Why brands trust MoonTech</p>
+          <p className="mb-3 text-[10px] font-medium uppercase tracking-widest text-violet-800">Why brands trust MoonTech</p>
           <div className="flex items-start gap-3">
             <span className="text-xl shrink-0">🎯</span>
             <p className="text-sm leading-relaxed text-neutral-800">
@@ -255,7 +255,7 @@ function StepBudget({ data, onChange }: { data: CampaignData; onChange: (d: Part
       <div>
         <div className="flex items-baseline justify-between mb-4">
           <p className="text-[15px] font-normal text-neutral-700">Total campaign budget</p>
-          <p className="text-[32px] font-black text-violet-600 leading-none">
+          <p className="text-[32px] font-bold text-violet-600 leading-none">
             ${data.budget.toLocaleString()}
           </p>
         </div>
@@ -276,7 +276,7 @@ function StepBudget({ data, onChange }: { data: CampaignData; onChange: (d: Part
         <div className="flex items-start justify-between mb-4">
           <p className="text-[15px] font-normal text-neutral-700 mt-1">Target ROAS</p>
           <div className="text-right">
-            <p className="text-[32px] font-black text-violet-600 leading-none">{data.roas}×</p>
+            <p className="text-[32px] font-bold text-violet-600 leading-none">{data.roas}×</p>
             <p className="text-sm text-neutral-400 mt-1">= ${projectedSales.toLocaleString()} in sales</p>
           </div>
         </div>
@@ -294,7 +294,7 @@ function StepBudget({ data, onChange }: { data: CampaignData; onChange: (d: Part
 
       {/* Confidence score */}
       <div className="rounded-2xl border border-neutral-100 bg-white p-5 shadow-sm">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-3">Confidence Score</p>
+        <p className="text-[10px] font-medium uppercase tracking-widest font-medium text-neutral-400 mb-3">Confidence Score</p>
         <div className="h-2 w-full overflow-hidden rounded-full bg-neutral-100 mb-3">
           <div
             className={`h-full rounded-full transition-all duration-500 ${confidence.bar}`}
@@ -365,7 +365,7 @@ function StepReview({ data }: { data: CampaignData }) {
     <div className="space-y-5">
       {/* Hero card */}
       <div className="rounded-2xl bg-violet-600 p-5 text-white">
-        <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-violet-200">Your plan</p>
+        <p className="mb-2 text-[10px] font-medium uppercase tracking-widest text-violet-200">Your plan</p>
         <h2 className="text-[22px] font-bold leading-snug mb-3">Your 4-phase campaign plan</h2>
         <p className="text-sm leading-relaxed text-violet-100">
           Targeting <strong className="text-white">{data.roas}× ROAS</strong> on a{" "}
@@ -378,7 +378,7 @@ function StepReview({ data }: { data: CampaignData }) {
       {/* Committed phases */}
       <div className="flex items-center gap-3">
         <div className="flex-1 h-px bg-neutral-200" />
-        <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400">Committed</span>
+        <span className="text-[10px] font-medium uppercase tracking-widest font-medium text-neutral-400">Committed</span>
         <div className="flex-1 h-px bg-neutral-200" />
       </div>
 
@@ -387,7 +387,7 @@ function StepReview({ data }: { data: CampaignData }) {
           <div key={p.num} className="flex items-stretch gap-3">
             {/* Number + connector */}
             <div className="flex flex-col items-center">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-violet-600 text-sm font-bold text-white shadow-md shadow-violet-200">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-violet-600 text-sm font-semibold text-white shadow-md shadow-violet-200">
                 {p.num}
               </div>
               {i < committed.length - 1 && <div className="flex-1 w-px bg-violet-200 my-1" />}
@@ -396,7 +396,7 @@ function StepReview({ data }: { data: CampaignData }) {
             <div className="flex-1 rounded-2xl border border-neutral-100 bg-white p-4 shadow-sm" style={{ borderLeft: "3px solid #7c3aed" }}>
               <div className="flex items-start justify-between">
                 <p className="text-sm font-semibold text-neutral-800">{p.label}</p>
-                <span className="rounded-full bg-green-50 border border-green-200 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-green-600">
+                <span className="rounded-full bg-green-50 border border-green-200 px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-green-600">
                   Committed
                 </span>
               </div>
@@ -415,18 +415,18 @@ function StepReview({ data }: { data: CampaignData }) {
       {/* Estimated phases */}
       <div className="flex items-center gap-3">
         <div className="flex-1 h-px bg-neutral-200" />
-        <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400">Estimated phases</span>
+        <span className="text-[10px] font-medium uppercase tracking-widest font-medium text-neutral-400">Estimated phases</span>
         <div className="flex-1 h-px bg-neutral-200" />
       </div>
 
       <div className="flex items-stretch gap-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-dashed border-amber-400 text-amber-500 text-sm font-bold">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-dashed border-amber-400 text-amber-500 text-sm font-semibold">
           ~
         </div>
         <div className="flex-1 rounded-2xl border border-neutral-100 bg-white p-4 shadow-sm" style={{ borderLeft: "3px solid #f59e0b" }}>
           <div className="flex items-start justify-between">
             <p className="text-sm font-semibold text-neutral-800">Phase 4 · Growth</p>
-            <span className="rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-500">
+            <span className="rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-500">
               Estimated
             </span>
           </div>
@@ -444,11 +444,11 @@ function StepReview({ data }: { data: CampaignData }) {
       <div className="rounded-2xl border border-green-200 bg-green-50 p-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-green-700">Total projected revenue</p>
+            <p className="text-[10px] font-medium uppercase tracking-widest text-green-700">Total projected revenue</p>
             <p className="mt-0.5 text-xs text-green-600">Across all 4 phases · {fmt(data.budget)} spend</p>
           </div>
           <div className="text-right">
-            <p className="text-[26px] font-black text-green-600 leading-none">{fmt(totalTarget)}</p>
+            <p className="text-[26px] font-bold text-green-600 leading-none">{fmt(totalTarget)}</p>
             <p className="mt-1 text-xs font-semibold text-green-500">✓ matches your {data.roas}× goal</p>
           </div>
         </div>
@@ -548,10 +548,10 @@ function StepPay({
     <div className="space-y-5">
       {/* Due today card */}
       <div className="rounded-2xl bg-violet-50 border border-violet-100 p-5">
-        <p className="text-[11px] font-black uppercase tracking-widest text-violet-600 mb-2">
+        <p className="text-[11px] font-medium uppercase tracking-widest text-violet-600 mb-2">
           Due today — Phase 1 only
         </p>
-        <p className="text-[40px] font-black text-violet-600 leading-none">{fmt(p1Budget)}</p>
+        <p className="text-[40px] font-bold text-violet-600 leading-none">{fmt(p1Budget)}</p>
         <p className="mt-2 text-sm text-neutral-500">Phases 2 &amp; 3 paid separately as you progress.</p>
       </div>
 
@@ -574,8 +574,8 @@ function StepPay({
           </div>
         ))}
         <div className="border-t-2 border-violet-100 flex items-center justify-between px-5 py-4">
-          <p className="text-sm font-bold text-neutral-800">Total due now</p>
-          <p className="text-[18px] font-black text-violet-600">{fmt(total)}</p>
+          <p className="text-sm font-semibold text-neutral-800">Total due now</p>
+          <p className="text-[18px] font-semibold text-violet-600">{fmt(total)}</p>
         </div>
       </div>
 
@@ -587,7 +587,7 @@ function StepPay({
           </svg>
         </div>
         <div>
-          <p className="text-sm font-bold text-violet-700">Secured by Mamo Pay</p>
+          <p className="text-sm font-semibold text-violet-700">Secured by Mamo Pay</p>
           <p className="mt-0.5 text-xs leading-relaxed text-neutral-500">
             Clicking &quot;Confirm&quot; will redirect you to Mamo Pay&apos;s secure checkout. Your card
             details are never stored by MoonTech.
@@ -606,7 +606,7 @@ function StepPay({
           </p>
           <button
             onClick={onAddBilling}
-            className="shrink-0 rounded-xl bg-red-500 hover:bg-red-600 px-4 py-2 text-sm font-bold text-white transition active:scale-[0.98]"
+            className="shrink-0 rounded-xl bg-red-500 hover:bg-red-600 px-4 py-2 text-sm font-semibold text-white transition active:scale-[0.98]"
           >
             Add now →
           </button>
@@ -615,7 +615,7 @@ function StepPay({
 
       {/* Confirm checkboxes */}
       <div>
-        <p className="text-sm font-bold text-neutral-800 mb-3">Before you pay, please confirm</p>
+        <p className="text-sm font-semibold text-neutral-800 mb-3">Before you pay, please confirm</p>
         <div className="space-y-3">
           {[
             {
@@ -668,7 +668,7 @@ function StepPay({
         <button
           onClick={canPay ? onPay : undefined}
           disabled={!canPay}
-          className={`w-full flex items-center justify-center gap-2 rounded-2xl py-4 text-[15px] font-bold text-white transition active:scale-[0.98] ${
+          className={`w-full flex items-center justify-center gap-2 rounded-2xl py-4 text-[15px] font-semibold text-white transition active:scale-[0.98] ${
             canPay
               ? "bg-violet-600 shadow-lg shadow-violet-200 hover:bg-violet-700"
               : "bg-violet-300 cursor-not-allowed"
@@ -880,14 +880,14 @@ export default function NewCampaign() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
               </svg>
             </div>
-            <h2 className="text-[17px] font-bold text-neutral-900">Discard campaign?</h2>
+            <h2 className="text-[17px] font-semibold text-neutral-900">Discard campaign?</h2>
             <p className="mt-1.5 text-sm leading-relaxed text-neutral-500">
               You&apos;ll lose all the details you&apos;ve entered so far. This can&apos;t be undone.
             </p>
             <div className="mt-6 flex flex-col gap-2.5">
               <button
                 onClick={() => router.back()}
-                className="w-full rounded-2xl bg-red-500 py-3.5 text-sm font-bold text-white hover:bg-red-600 active:scale-[0.98] transition"
+                className="w-full rounded-2xl bg-red-500 py-3.5 text-sm font-semibold text-white hover:bg-red-600 active:scale-[0.98] transition"
               >
                 Discard &amp; close
               </button>
@@ -915,7 +915,7 @@ export default function NewCampaign() {
                 </button>
                 <p className="flex-1" />
                 <button onClick={handleNext}
-                  className="shrink-0 rounded-xl bg-violet-600 px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-violet-200 hover:bg-violet-700 active:scale-[0.98] transition"
+                  className="shrink-0 rounded-xl bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-violet-200 hover:bg-violet-700 active:scale-[0.98] transition"
                 >
                   Accept &amp; pay Phase 1 →
                 </button>
@@ -932,7 +932,7 @@ export default function NewCampaign() {
                 </p>
                 <button onClick={handleNext}
                   disabled={step === "type" && !data.name.trim()}
-                  className={`shrink-0 rounded-xl px-5 py-2.5 text-sm font-bold text-white shadow-md transition active:scale-[0.98] ${
+                  className={`shrink-0 rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-md transition active:scale-[0.98] ${
                     isLowConfidence
                       ? "bg-violet-400 shadow-violet-100 cursor-not-allowed"
                       : "bg-violet-600 shadow-violet-200 hover:bg-violet-700"

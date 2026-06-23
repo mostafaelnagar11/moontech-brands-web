@@ -40,7 +40,7 @@ export default function Sidebar({ collapsed, activeNav, onNavChange }: SidebarPr
       {/* Logo */}
       <div className={`mb-4 ${collapsed ? "flex justify-center" : "px-2"}`}>
         {collapsed
-          ? <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-700 flex items-center justify-center text-white text-[10px] font-black shadow-md">M</div>
+          ? <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-700 flex items-center justify-center text-white text-[10px] font-medium shadow-md">M</div>
           : <Image src="/logo.svg" alt="MoonTech" width={110} height={20} />
         }
       </div>
@@ -53,7 +53,7 @@ export default function Sidebar({ collapsed, activeNav, onNavChange }: SidebarPr
             className="flex w-full items-center gap-2.5 rounded-xl border border-neutral-100 bg-neutral-50 px-3 py-2 transition hover:bg-neutral-100"
           >
             <div
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[11px] font-black text-white shadow-sm"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[11px] font-medium text-white shadow-sm"
               style={{ backgroundColor: activeBrand.color }}
             >
               {activeBrand.initials}
@@ -72,7 +72,7 @@ export default function Sidebar({ collapsed, activeNav, onNavChange }: SidebarPr
 
           {brandMenuOpen && (
             <div className="absolute top-full left-0 right-0 z-50 mt-1 overflow-hidden rounded-xl border border-neutral-100 bg-white shadow-xl shadow-neutral-200/60">
-              <p className="px-3 pb-1 pt-2.5 text-[9px] font-bold uppercase tracking-widest text-neutral-400">
+              <p className="px-3 pb-1 pt-2.5 text-[9px] font-medium uppercase tracking-widest font-medium text-neutral-400">
                 Switch brand
               </p>
               {BRANDS.map((b) => (
@@ -82,7 +82,7 @@ export default function Sidebar({ collapsed, activeNav, onNavChange }: SidebarPr
                   className={`flex w-full items-center gap-2.5 px-3 py-2.5 text-left transition hover:bg-neutral-50 ${activeBrand.id === b.id ? "bg-indigo-50/60" : ""}`}
                 >
                   <div
-                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[10px] font-black text-white"
+                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[10px] font-medium text-white"
                     style={{ backgroundColor: b.color }}
                   >
                     {b.initials}
@@ -109,7 +109,7 @@ export default function Sidebar({ collapsed, activeNav, onNavChange }: SidebarPr
       )}
 
       {/* Nav */}
-      {!collapsed && <p className="px-2 mb-2 text-[9px] font-bold uppercase tracking-widest text-neutral-300">Menu</p>}
+      {!collapsed && <p className="px-2 mb-2 text-[9px] font-medium uppercase tracking-widest text-neutral-300">Menu</p>}
       <nav className="flex flex-col gap-1 mb-6 w-full">
         {NAV_MENU.map((item) => (
           <button key={item.label} onClick={() => onNavChange(item.label)} title={collapsed ? item.label : undefined}
