@@ -4,13 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
-  AppleLogo,
   ArrowLeft,
   ArrowSquareOut,
   CaretRight,
   CheckCircle,
   CircleNotch,
-  GoogleLogo,
   Translate,
   WarningCircle,
 } from "@phosphor-icons/react";
@@ -81,8 +79,6 @@ function ShowcasePanel() {
       {/* Background */}
       <div className="absolute inset-0" style={{ backgroundImage: "linear-gradient(-20deg, #e9defa 0%, #fbfcdb 100%)" }} />
 
-      {/* Cards */}
-
       {/* LIVE campaign — top left */}
       <div className="absolute left-[6%] top-[7%] animate-float-a">
         <div className="w-48 overflow-hidden rounded-2xl shadow-xl shadow-indigo-200/60">
@@ -99,6 +95,7 @@ function ShowcasePanel() {
           </div>
         </div>
       </div>
+
       {/* Analytics card — top right */}
       <div className="absolute right-[6%] top-[5%] animate-float-b">
         <div className="w-56 rounded-2xl border border-white/90 bg-white/95 p-5 shadow-xl shadow-indigo-100/80">
@@ -147,7 +144,7 @@ function ShowcasePanel() {
         </div>
       </div>
 
-      {/* ── CENTER: video card only ── */}
+      {/* CENTER: video card */}
       <div className="absolute inset-0 flex items-center justify-center" style={{ marginTop: '-30px' }}>
         <div className="animate-float-d drop-shadow-2xl">
           <div className="w-44 overflow-hidden rounded-3xl shadow-2xl shadow-indigo-300/50">
@@ -169,7 +166,7 @@ function ShowcasePanel() {
         </div>
       </div>
 
-      {/* ── Tagline — bottom left ── */}
+      {/* Tagline — bottom left */}
       <div className="absolute bottom-16 left-8">
         <h2 className="text-[32px] xl:text-[48px] font-black leading-tight tracking-tight text-indigo-950">
           Create. Match. Convert.
@@ -229,7 +226,7 @@ function ShowcasePanel() {
         <span className="text-[10px] font-semibold text-violet-600">⚡ 1,240 Influencers</span>
       </div>
 
-      {/* Floating emojis — 3D PNGs + text fallbacks */}
+      {/* Floating emojis */}
       <div className="absolute left-[48%] top-[8%] animate-float-a">
         <img src="/emojis/Selfie.png" alt="" className="h-[90px] w-[90px]" />
       </div>
@@ -259,11 +256,12 @@ function ShowcasePanel() {
 
 function EmailStep({ email, setEmail, onNext }: { email: string; setEmail: (v: string) => void; onNext: () => void }) {
   const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  const router = useRouter();
 
   return (
     <form onSubmit={(e) => { e.preventDefault(); if (valid) onNext(); }} className="animate-fade-in">
       <h1 className="text-[22px] font-bold tracking-tight text-[#1e1b4b]">Let&apos;s Get Started!</h1>
-      <p className="mt-1 text-sm text-neutral-500">Enter your work email to sign in or create an account</p>
+      <p className="mt-1 text-sm text-neutral-500">Enter your work email to sign in</p>
 
       <div className="mt-6 space-y-1.5">
         <label className="block text-[11px] font-semibold uppercase tracking-widest text-neutral-400">Work Email</label>
@@ -273,24 +271,24 @@ function EmailStep({ email, setEmail, onNext }: { email: string; setEmail: (v: s
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@company.com"
-          className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-800 placeholder:text-neutral-400 transition focus:border-indigo-400 focus:bg-white focus:ring-2 focus:ring-indigo-500/10"
+          className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-800 placeholder:text-neutral-400 transition focus:border-indigo-400 focus:bg-white focus:ring-2 focus:ring-indigo-500/10 focus:outline-none"
         />
       </div>
 
       <PrimaryButton type="submit" disabled={!valid} className="mt-4">Continue</PrimaryButton>
 
-      <div className="my-5 flex items-center gap-3">
-        <span className="h-px flex-1 bg-neutral-100" />
-        <span className="text-xs font-medium text-neutral-400">or continue with</span>
-        <span className="h-px flex-1 bg-neutral-100" />
-      </div>
+      <p className="mt-5 text-center text-xs text-neutral-500">
+        Don&apos;t have an account?{" "}
+        <button
+          type="button"
+          onClick={() => router.push("/signup")}
+          className="font-semibold text-indigo-500 hover:underline"
+        >
+          Sign up
+        </button>
+      </p>
 
-      <div className="grid grid-cols-2 gap-3">
-        <SocialButton icon={<GoogleLogo size={17} weight="bold" />} label="Google" />
-        <SocialButton icon={<AppleLogo size={17} weight="fill" />} label="Apple" />
-      </div>
-
-      <p className="mt-6 text-center text-xs text-neutral-400">
+      <p className="mt-3 text-center text-xs text-neutral-400">
         By continuing you agree to our{" "}
         <span className="cursor-pointer text-indigo-500 hover:underline">Terms</span>{" "}
         &amp; <span className="cursor-pointer text-indigo-500 hover:underline">Privacy Policy</span>
@@ -474,11 +472,6 @@ function BrandRow({ brand, selected, onSelect }: { brand: Brand; selected: boole
 }
 
 /* ------------------------------------------------------------------ */
-/* Step 4 — Done                                                       */
-/* ------------------------------------------------------------------ */
-
-
-/* ------------------------------------------------------------------ */
 /* Shared primitives                                                   */
 /* ------------------------------------------------------------------ */
 
@@ -491,14 +484,6 @@ function PrimaryButton({ children, disabled, className = "", ...props }: React.B
       } ${className}`}
     >
       {children}
-    </button>
-  );
-}
-
-function SocialButton({ icon, label }: { icon: React.ReactNode; label: string }) {
-  return (
-    <button type="button" className="flex items-center justify-center gap-2 rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm font-medium text-neutral-700 shadow-sm transition hover:border-neutral-300 hover:shadow-md active:scale-[0.98]">
-      {icon}{label}
     </button>
   );
 }
