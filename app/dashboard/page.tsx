@@ -524,7 +524,7 @@ export default function Dashboard() {
             </div>
             <div className="flex items-center gap-3 self-start sm:self-auto">
               {/* Live badge */}
-              <div className="flex items-center gap-1.5 rounded-xl bg-white border border-neutral-100 px-3 py-1.5 text-[12px] font-semibold text-[#1e1b4b] shadow-sm">
+              <div className="flex items-center gap-1.5 text-[12px] font-semibold text-[#1e1b4b]">
                 <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />2 live campaigns
               </div>
               {/* Date filter */}
