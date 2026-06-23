@@ -437,12 +437,17 @@ function PhaseTracker() {
 /* ------------------------------------------------------------------ */
 /* Page                                                                 */
 /* ------------------------------------------------------------------ */
+const DATE_FILTERS = ["Today", "Yesterday", "This week", "Last week", "Last 30 days", "All time"] as const;
+type DateFilter = typeof DATE_FILTERS[number];
+
 export default function Dashboard() {
   const router = useRouter();
   const [activeNav, setActiveNav]       = useState("Dashboard");
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [collapsed, setCollapsed]       = useState(false);
   const [mobileOpen, setMobileOpen]     = useState(false);
+  const [dateFilter, setDateFilter]     = useState<DateFilter>("Last 30 days");
+  const [filterOpen, setFilterOpen]     = useState(false);
 
   return (
     <div className="flex h-screen bg-[#fafafa] overflow-hidden"
@@ -517,8 +522,44 @@ export default function Dashboard() {
               <h2 className="text-[16px] sm:text-[18px] font-semibold text-[#1e1b4b]">Welcome back, Mostafa 👋</h2>
               <p className="text-[12px] sm:text-[13px] text-neutral-500 mt-0.5">Wednesday, 18 June 2026 · Here&apos;s what&apos;s happening today</p>
             </div>
-            <div className="flex items-center gap-1.5 self-start sm:self-auto rounded-xl bg-white/60 border border-white/80 backdrop-blur-sm px-3 py-1.5 text-[12px] font-semibold text-[#1e1b4b]">
-              <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />2 live campaigns
+            <div className="flex items-center gap-3 self-start sm:self-auto">
+              {/* Live badge */}
+              <div className="flex items-center gap-1.5 rounded-xl bg-white border border-neutral-100 px-3 py-1.5 text-[12px] font-semibold text-[#1e1b4b] shadow-sm">
+                <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />2 live campaigns
+              </div>
+              {/* Date filter */}
+              <div className="relative">
+                <button
+                  onClick={() => setFilterOpen(o => !o)}
+                  className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-[#1e1b4b] shadow-sm hover:border-violet-300 hover:text-violet-600 transition-colors"
+                >
+                  <svg className="h-3.5 w-3.5 text-neutral-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <rect x="3" y="4" width="18" height="18" rx="2" strokeLinecap="round" />
+                    <path strokeLinecap="round" d="M16 2v4M8 2v4M3 10h18" />
+                  </svg>
+                  {dateFilter}
+                  <svg className={`h-3 w-3 text-neutral-400 transition-transform ${filterOpen ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </button>
+                {filterOpen && (
+                  <div className="absolute right-0 top-full z-30 mt-2 w-44 overflow-hidden rounded-2xl border border-neutral-100 bg-white shadow-xl shadow-neutral-200/60">
+                    {DATE_FILTERS.map((f) => (
+                      <button key={f} onClick={() => { setDateFilter(f); setFilterOpen(false); }}
+                        className={`flex w-full items-center justify-between px-4 py-2.5 text-[13px] transition hover:bg-violet-50 ${
+                          dateFilter === f ? "font-semibold text-violet-600 bg-violet-50/60" : "font-medium text-neutral-600"
+                        }`}>
+                        {f}
+                        {dateFilter === f && (
+                          <svg className="h-3.5 w-3.5 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
