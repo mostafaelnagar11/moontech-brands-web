@@ -163,13 +163,13 @@ function RevenueOverTimeChart() {
 /* Revenue per campaign chart                                          */
 /* ------------------------------------------------------------------ */
 function RevenueByCampaignChart() {
-  const W = 480, H = 180, PL = 54, PT = 10, PB = 8;
-  const cW = W - PL, cH = H - PT - PB;
+  const W = 700, H = 180, PL = 54, PR = 10, PT = 10, PB = 8;
+  const cW = W - PL - PR, cH = H - PT - PB;
   const maxVal = 22000;
   const n = REV_CAMPAIGNS.length;
   const groupW = cW / n;
-  const barW = Math.min(groupW * 0.32, 28);
-  const gap = 5;
+  const barW = Math.min(groupW * 0.22, 32);
+  const gap = 6;
   const r = barW / 2;
 
   const bH  = (v: number) => Math.max((v / maxVal) * cH, v > 0 ? r * 2 : 0);
@@ -183,7 +183,7 @@ function RevenueByCampaignChart() {
           const y = PT + (i / (yLabels.length - 1)) * cH;
           return (
             <g key={l}>
-              <line x1={PL} y1={y} x2={W} y2={y} stroke="#f0f0f0" strokeWidth="1" />
+              <line x1={PL} y1={y} x2={W - PR} y2={y} stroke="#f0f0f0" strokeWidth="1" />
               <text x={PL - 6} y={y + 4} textAnchor="end" fontSize="10" fill="#bbb">{l}</text>
             </g>
           );
