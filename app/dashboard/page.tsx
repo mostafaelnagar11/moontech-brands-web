@@ -512,8 +512,7 @@ export default function Dashboard() {
         <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
 
           {/* Welcome banner */}
-          <div className="rounded-2xl px-4 sm:px-6 py-4 sm:py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm border border-[#e9defa]/60"
-            style={{ backgroundImage: "linear-gradient(-20deg, #e9defa 0%, #fbfcdb 100%)" }}>
+          <div className="px-2 sm:px-1 py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h2 className="text-[16px] sm:text-[18px] font-semibold text-[#1e1b4b]">Welcome back, Mostafa 👋</h2>
               <p className="text-[12px] sm:text-[13px] text-neutral-500 mt-0.5">Wednesday, 18 June 2026 · Here&apos;s what&apos;s happening today</p>
