@@ -224,15 +224,9 @@ export default function CampaignsPage() {
         <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 sm:py-6">
 
           {/* Page heading */}
-          <div className="flex items-start justify-between gap-4 mb-5">
-            <div>
-              <h2 className="text-[22px] font-bold text-[#1e1b4b]">Campaigns</h2>
-              <p className="text-xs text-neutral-500 mt-0.5">All your campaigns in one place</p>
-            </div>
-            <button onClick={() => router.push("/campaigns/new")}
-              className="hidden sm:flex shrink-0 items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-violet-200 hover:from-violet-700 hover:to-indigo-700 transition-all">
-              <Plus size={14} weight="bold" /> New campaign
-            </button>
+          <div className="mb-5">
+            <h2 className="text-[22px] font-bold text-[#1e1b4b]">Campaigns</h2>
+            <p className="text-xs text-neutral-500 mt-0.5">All your campaigns in one place</p>
           </div>
 
           {/* Status filter tabs */}
