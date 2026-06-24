@@ -259,9 +259,9 @@ function KeyAverages() {
     },
   ];
   return (
-    <div className="space-y-3">
+    <div className="flex flex-col flex-1 gap-3">
       {items.map((item) => (
-        <div key={item.label} className="rounded-2xl bg-neutral-50 border border-neutral-100 p-4">
+        <div key={item.label} className="flex-1 rounded-2xl bg-neutral-50 border border-neutral-100 p-4">
           <div className="flex items-start justify-between gap-2">
             <p className="text-[10px] font-medium uppercase tracking-widest text-neutral-400">{item.label}</p>
             <span className={`shrink-0 rounded-full border px-2.5 py-0.5 text-[10px] font-medium ${item.badgeCls}`}>{item.badge}</span>
@@ -597,9 +597,9 @@ export default function Dashboard() {
           {/* Row 1: Campaign cards + Key averages */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {RUNNING.map((c) => <CampaignCard key={c.name} c={c} />)}
-            <div className="rounded-2xl bg-white border border-neutral-100 p-5 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex flex-col rounded-2xl bg-white border border-neutral-100 p-5 shadow-sm hover:shadow-md transition-shadow">
               <h3 className="text-[14px] font-semibold text-[#1e1b4b]">Key averages</h3>
-              <p className="text-xs text-neutral-500 mt-0.5 mb-4">Across all completed phases</p> 
+              <p className="text-xs text-neutral-500 mt-0.5 mb-4">Across all completed phases</p>
               <KeyAverages />
             </div>
           </div>
