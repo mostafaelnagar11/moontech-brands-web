@@ -99,7 +99,7 @@ function CampaignCard({ c }: { c: typeof CAMPAIGNS[0] }) {
   const isLive = c.status === "Live";
   return (
     <div className={`rounded-2xl bg-white p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col gap-4 ${
-      isLive ? "border-2 border-violet-500" : "border border-neutral-100"
+      isLive ? "border-2 border-green-400" : "border border-neutral-100"
     }`}>
       {/* Header */}
       <div className="flex items-start justify-between gap-2">
