@@ -621,11 +621,11 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Row 3: How you compare — full width */}
-          <HowYouCompare />
-
           {/* Phase tracker */}
           <PhaseTracker />
+
+          {/* How you compare — bottom */}
+          <HowYouCompare />
 
         </main>
       </div>
