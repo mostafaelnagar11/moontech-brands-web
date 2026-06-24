@@ -9,8 +9,8 @@ import {
 } from "@phosphor-icons/react";
 
 const NAV_MENU = [
-  { icon: <House size={16} weight="bold" />,     label: "Dashboard" },
-  { icon: <Megaphone size={16} weight="bold" />, label: "Campaigns" },
+  { icon: <House size={16} weight="bold" />,     label: "Dashboard",  href: "/dashboard" },
+  { icon: <Megaphone size={16} weight="bold" />, label: "Campaigns",  href: "/campaigns" },
 ];
 const NAV_OTHERS = [
   { icon: <Gear size={16} weight="bold" />,     label: "Settings" },
@@ -110,7 +110,7 @@ function SidebarContent({
       {!collapsed && <p className="px-2 mb-2 text-[9px] font-medium uppercase tracking-widest text-neutral-300">Menu</p>}
       <nav className="flex flex-col gap-1 mb-6 w-full">
         {NAV_MENU.map((item) => (
-          <button key={item.label} onClick={() => { onNavChange(item.label); onMobileClose?.(); }}
+          <button key={item.label} onClick={() => { onNavChange(item.label); router.push(item.href); onMobileClose?.(); }}
             title={collapsed ? item.label : undefined}
             className={`flex items-center rounded-xl py-2.5 text-[13px] font-medium transition-all text-left ${collapsed ? "justify-center px-0" : "gap-3 px-3"} ${
               activeNav === item.label
