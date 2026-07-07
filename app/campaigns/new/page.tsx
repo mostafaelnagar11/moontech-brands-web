@@ -47,6 +47,15 @@ const STEP_NUM: Record<Step, number> = { type: 1, basics: 2, budget: 3, building
 const fieldCls = "w-full rounded-xl border border-black/[0.09] bg-white px-4 py-3 text-sm text-neutral-800 placeholder:text-neutral-400 outline-none focus:border-[#4D2FB0]/50 focus:ring-2 focus:ring-[#4D2FB0]/10 transition";
 const labelCls = "mb-1.5 block text-sm font-medium text-neutral-600";
 
+function StepIntro({ title, sub }: { title: string; sub: string }) {
+  return (
+    <div className="mb-1">
+      <h2 className="text-[22px] font-semibold tracking-tight" style={{ color: INK }}>{title}</h2>
+      <p className="mt-1 text-sm text-neutral-400">{sub}</p>
+    </div>
+  );
+}
+
 /* ------------------------------------------------------------------ */
 /* DatePicker                                                          */
 /* ------------------------------------------------------------------ */
@@ -202,6 +211,7 @@ function getConfidence(budget: number, roas: number) {
 function StepType({ data, onChange }: { data: CampaignData; onChange: (d: Partial<CampaignData>) => void }) {
   return (
     <div className="space-y-5">
+      <StepIntro title="Create your campaign" sub="Give it a name and choose how it should run." />
       <div>
         <label className={labelCls}>Campaign name</label>
         <input value={data.name} onChange={(e) => onChange({ name: e.target.value })}
@@ -267,6 +277,7 @@ function StepBasics({ data, onChange }: { data: CampaignData; onChange: (d: Part
   const fileRef = useRef<HTMLInputElement>(null);
   return (
     <div className="space-y-5">
+      <StepIntro title="Campaign details" sub="Set your audience, schedule, and creative brief." />
       <div>
         <label className={labelCls}>Start date</label>
         <DatePicker value={data.startDate} onChange={(v) => onChange({ startDate: v })} placeholder="Select start date" />
@@ -352,9 +363,12 @@ function StepBasics({ data, onChange }: { data: CampaignData; onChange: (d: Part
 function StepBudget({ data, onChange }: { data: CampaignData; onChange: (d: Partial<CampaignData>) => void }) {
   const confidence = getConfidence(data.budget, data.roas);
   const projectedSales = data.budget * data.roas;
+  const phase1 = Math.round(data.budget * 0.1);
 
   return (
     <div className="space-y-8">
+      <StepIntro title="Budget & target ROAS" sub="Drag to shape your plan — your first three phases are guaranteed." />
+
       {/* Budget slider */}
       <div>
         <div className="flex items-baseline justify-between mb-4">
@@ -407,6 +421,23 @@ function StepBudget({ data, onChange }: { data: CampaignData; onChange: (d: Part
         </div>
         <p className={`text-[15px] font-semibold ${confidence.text}`}>{confidence.level}</p>
         <p className="mt-1 text-sm text-neutral-400">{confidence.desc}</p>
+      </div>
+
+      {/* What this builds */}
+      <div className="rounded-2xl bg-[#4D2FB0]/[0.05] p-5">
+        <p className="text-[13px] font-medium text-neutral-500 mb-3">What this builds</p>
+        <div className="grid grid-cols-3 divide-x divide-black/[0.06]">
+          {[
+            { label: "Projected revenue", value: `$${projectedSales.toLocaleString()}` },
+            { label: "Guaranteed phases", value: "3" },
+            { label: "Phase 1 to start",  value: `$${phase1.toLocaleString()}` },
+          ].map((m, i) => (
+            <div key={m.label} className={i === 0 ? "pr-4" : "px-4 last:pl-4 last:pr-0"}>
+              <p className="text-[20px] font-semibold tracking-tight tabular-nums leading-none" style={{ color: INK }}>{m.value}</p>
+              <p className="mt-1.5 text-[11px] font-medium text-neutral-400">{m.label}</p>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -943,15 +974,19 @@ export default function NewCampaign() {
           </button>
           <h1 className="text-base font-semibold" style={{ color: INK }}>New campaign</h1>
           <div className="ml-auto text-right">
-            <div className="h-1.5 w-36 overflow-hidden rounded-full bg-neutral-100">
-              <div
-                className="h-full rounded-full bg-[#4D2FB0] transition-all duration-500"
-                style={{ width: `${(stepNum / TOTAL_STEPS) * 100}%` }}
-              />
+            <div className="flex items-center justify-end gap-1.5">
+              {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
+                <span
+                  key={i}
+                  className={`h-1.5 rounded-full transition-all duration-500 ${
+                    i < stepNum ? "w-6 bg-[#4D2FB0]" : "w-3 bg-neutral-200"
+                  }`}
+                />
+              ))}
             </div>
-            <p className="mt-1 text-xs text-neutral-400">
-              Step <span className="font-semibold text-neutral-500">{stepNum}</span> of {TOTAL_STEPS} ·{" "}
-              <span className="font-semibold text-neutral-500">{STEP_LABELS[step]}</span>
+            <p className="mt-1.5 text-xs text-neutral-400">
+              Step <span className="font-semibold text-neutral-600">{stepNum}</span> of {TOTAL_STEPS} ·{" "}
+              <span className="font-semibold text-neutral-600">{STEP_LABELS[step]}</span>
             </p>
           </div>
         </header>
