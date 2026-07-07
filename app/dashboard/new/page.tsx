@@ -194,23 +194,25 @@ export default function NewBrandDashboard() {
           </section>
 
           {/* How it works */}
-          <section className="px-8 py-10">
-            <h2 className="mb-6 text-lg font-bold text-neutral-800">How MoonTech works</h2>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {[
-                { num: "01", title: "Set your budget & ROAS goal", desc: "Use our calculator to lock in a guaranteed return on ad spend across phased campaigns." },
-                { num: "02", title: "We match you with creators", desc: "Vetted micro-influencers and community leaders, selected for your exact audience and product category." },
-                { num: "03", title: "Track every sale in real time", desc: "Unique tracking links per creator. Revenue, orders, and ROAS live in your dashboard from day one." },
-                { num: "04", title: "Guaranteed or we make it right", desc: "If a committed phase misses its target, MoonTech covers the difference. No fine print." },
-              ].map((step) => (
-                <div key={step.num} className="rounded-2xl border border-neutral-100 bg-white p-5 shadow-sm">
-                  <p className="mb-3 text-3xl font-bold text-indigo-100">{step.num}</p>
-                  <p className="mb-1.5 text-sm font-semibold text-neutral-800">{step.title}</p>
-                  <p className="text-xs leading-relaxed text-neutral-500">{step.desc}</p>
-                </div>
-              ))}
-            </div>
-          </section>
+          {eligible && (
+            <section className="px-8 py-10">
+              <h2 className="mb-6 text-lg font-bold text-neutral-800">How MoonTech works</h2>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {[
+                  { num: "01", title: "Set your budget & ROAS goal", desc: "Use our calculator to lock in a guaranteed return on ad spend across phased campaigns." },
+                  { num: "02", title: "We match you with creators", desc: "Vetted micro-influencers and community leaders, selected for your exact audience and product category." },
+                  { num: "03", title: "Track every sale in real time", desc: "Unique tracking links per creator. Revenue, orders, and ROAS live in your dashboard from day one." },
+                  { num: "04", title: "Guaranteed or we make it right", desc: "If a committed phase misses its target, MoonTech covers the difference. No fine print." },
+                ].map((step) => (
+                  <div key={step.num} className="rounded-2xl border border-neutral-100 bg-white p-5 shadow-sm">
+                    <p className="mb-3 text-3xl font-bold text-indigo-100">{step.num}</p>
+                    <p className="mb-1.5 text-sm font-semibold text-neutral-800">{step.title}</p>
+                    <p className="text-xs leading-relaxed text-neutral-500">{step.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
         </div>
       </div>
     </div>
