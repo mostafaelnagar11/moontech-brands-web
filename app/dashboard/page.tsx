@@ -6,18 +6,26 @@ import { Bell, MagnifyingGlass, List, Plus, SignOut } from "@phosphor-icons/reac
 import Sidebar from "../components/Sidebar";
 
 /* ------------------------------------------------------------------ */
+/* Design tokens                                                       */
+/* ------------------------------------------------------------------ */
+const BRAND = "#4D2FB0";
+const BRAND_DARK = "#3F2596";
+const INK = "#191234";
+const card = "rounded-2xl bg-white border border-black/[0.06] shadow-[0_1px_2px_rgba(16,12,40,0.04)]";
+
+/* ------------------------------------------------------------------ */
 /* Data                                                                 */
 /* ------------------------------------------------------------------ */
 
 const STATS = [
-  { label: "Total Revenue",      value: "$34,940", change: "+12%",  sub: "vs last period", hero: true },
-  { label: "Total Orders",       value: "11,317",  change: "+8%",   sub: "vs last period" },
+  { label: "Total revenue",      value: "$34,940", change: "+12%",  sub: "vs last period", hero: true },
+  { label: "Total orders",       value: "11,317",  change: "+8%",   sub: "vs last period" },
   { label: "Avg ROAS",           value: "5.8×",    change: "+0.4×", sub: "vs last period" },
-  { label: "Goal Completion",    value: "97%",      change: "+3%",   sub: "vs last period" },
-  { label: "Total Spend",        value: "$6,025",  change: null,    sub: "Across 4 campaigns" },
-  { label: "Budget Utilization", value: "92%",      change: null,    sub: "$6,025 of $6,550 committed" },
-  { label: "Active Influencers", value: "24",       change: null,    sub: "86 worked with lifetime" },
-  { label: "Content Live",       value: "89",       change: null,    sub: "Across all running campaigns" },
+  { label: "Goal completion",    value: "97%",      change: "+3%",   sub: "vs last period" },
+  { label: "Total spend",        value: "$6,025",  change: null,    sub: "Across 4 campaigns" },
+  { label: "Budget utilization", value: "92%",      change: null,    sub: "$6,025 of $6,550 committed" },
+  { label: "Active influencers", value: "24",       change: null,    sub: "86 worked with lifetime" },
+  { label: "Content live",       value: "89",       change: null,    sub: "Across all running campaigns" },
 ];
 
 const REV_TIME = [
@@ -48,7 +56,7 @@ const RUNNING = [
     phase: "Phase 1 · Warm-up",
     dates: "Apr 1 – May 30, 2026",
     rev: 840,  revTarget: 1000, revPct: 84,
-    threshold: "✓ 80% threshold reached — Phase 2 unlocks soon",
+    threshold: "80% threshold reached — Phase 2 unlocks soon",
     thresholdGreen: true,
     remaining: "$160",
     adsLive: 125, adsTotal: 200, adsPct: 62.5,
@@ -60,7 +68,7 @@ const RUNNING = [
     phase: "Phase 2 · Scale",
     dates: "Mar 10 – Apr 20, 2026",
     rev: 3840, revTarget: 5000, revPct: 77,
-    threshold: "⏰ On pace — 80% unlock target 3 days away",
+    threshold: "On pace — 80% unlock target 3 days away",
     thresholdGreen: false,
     remaining: "$1,160",
     adsLive: 96,  adsTotal: 150, adsPct: 64,
@@ -80,22 +88,30 @@ const PHASE_TRACKER = [
 /* Revenue over time chart                                             */
 /* ------------------------------------------------------------------ */
 function RevenueOverTimeChart() {
-  const W = 700, H = 210, PL = 58, PR = 52, PT = 12, PB = 8;
+  const W = 700, H = 210, PL = 46, PR = 46, PT = 14, PB = 8;
   const cW = W - PL - PR, cH = H - PT - PB;
   const maxRev = 20000, maxOrd = 5000;
   const n = REV_TIME.length;
   const colW = cW / n;
   const barW = Math.min(colW * 0.52, 26);
   const r = barW / 2;
+  const peak = REV_TIME.reduce((best, d, i) => (d.rev > REV_TIME[best].rev ? i : best), 0);
 
   const ordY  = (v: number) => PT + cH - (v / maxOrd) * cH;
   const cx    = (i: number) => PL + (i + 0.5) * colW;
 
-  const dots  = REV_TIME.map((d, i) => ({ x: cx(i), y: ordY(d.orders) }));
-  const line  = dots.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
+  const dots = REV_TIME.map((d, i) => ({ x: cx(i), y: ordY(d.orders) }));
+  const line = dots
+    .map((p, i, a) => {
+      if (i === 0) return `M${p.x},${p.y}`;
+      const q = a[i - 1];
+      const mx = (q.x + p.x) / 2;
+      return `C${mx},${q.y} ${mx},${p.y} ${p.x},${p.y}`;
+    })
+    .join(" ");
 
-  const yLeft  = ["$20k","$18k","$16k","$14k","$12k","$10k","$8k","$6k","$4k","$2k"];
-  const yRight = ["5000","4500","4000","3500","3000","2500","2000","1500","1000","500"];
+  const yLeft  = ["$20k","$16k","$12k","$8k","$4k","$0"];
+  const yRight = ["5,000","4,000","3,000","2,000","1,000","0"];
 
   return (
     <div>
@@ -105,52 +121,61 @@ function RevenueOverTimeChart() {
           const y = PT + (i / (yLeft.length - 1)) * cH;
           return (
             <g key={l}>
-              <line x1={PL} y1={y} x2={W - PR} y2={y} stroke="#f0f0f0" strokeWidth="1" />
-              <text x={PL - 6} y={y + 4} textAnchor="end" fontSize="10" fill="#bbb">{l}</text>
+              <line x1={PL} y1={y} x2={W - PR} y2={y} stroke="#f4f4f6" strokeWidth="1" />
+              <text x={PL - 8} y={y + 3.5} textAnchor="end" fontSize="9.5" fill="#b3b3bb">{l}</text>
             </g>
           );
         })}
         {/* Right labels */}
         {yRight.map((l, i) => {
           const y = PT + (i / (yRight.length - 1)) * cH;
-          return <text key={l} x={W - PR + 6} y={y + 4} textAnchor="start" fontSize="10" fill="#bbb">{l}</text>;
+          return <text key={l} x={W - PR + 8} y={y + 3.5} textAnchor="start" fontSize="9.5" fill="#b3b3bb">{l}</text>;
         })}
 
-        {/* Bars (pill-shaped: revenue) */}
+        {/* Revenue bars */}
         {REV_TIME.map((d, i) => {
-          const bH = Math.max((d.rev / maxRev) * cH, r * 2);
+          const bH = Math.max((d.rev / maxRev) * cH, 4);
           const y  = PT + cH - bH;
+          const rx = Math.min(r, bH / 2);
           return (
-            <rect key={i} x={cx(i) - r} y={y} width={barW} height={bH}
-              rx={r} ry={r} fill="#e8e4ff" stroke="#9b87f5" strokeWidth="1.5" />
+            <g key={i}>
+              <title>{`${d.month} — $${d.rev.toLocaleString()} revenue · ${d.orders.toLocaleString()} orders`}</title>
+              <rect x={cx(i) - r} y={y} width={barW} height={bH} rx={rx} ry={rx}
+                fill={i === peak ? BRAND : "#EDE9FB"} />
+            </g>
           );
         })}
 
-        {/* Dashed orders line */}
-        <path d={line} fill="none" stroke="#7c5af5" strokeWidth="2" strokeDasharray="6 4" />
+        {/* Peak value callout */}
+        <text x={cx(peak)} y={PT + cH - (REV_TIME[peak].rev / maxRev) * cH - 8}
+          textAnchor="middle" fontSize="10" fontWeight="600" fill={BRAND}>
+          {`$${(REV_TIME[peak].rev / 1000).toFixed(1)}k`}
+        </text>
 
-        {/* Dots */}
+        {/* Orders curve */}
+        <path d={line} fill="none" stroke="#A78BFA" strokeWidth="2" strokeLinecap="round" />
         {dots.map((p, i) => (
           <g key={i}>
-            <circle cx={p.x} cy={p.y} r="5.5" fill="white" stroke="#7c5af5" strokeWidth="2" />
-            <circle cx={p.x} cy={p.y} r="2.5" fill="#7c5af5" />
+            <title>{`${REV_TIME[i].month} — ${REV_TIME[i].orders.toLocaleString()} orders`}</title>
+            <circle cx={p.x} cy={p.y} r="2.5" fill="#A78BFA" />
           </g>
         ))}
 
         {/* X-axis month labels */}
         {REV_TIME.map((d, i) => (
-          <text key={d.month} x={cx(i)} y={H + 22} textAnchor="middle" fontSize="10" fill="#bbb">{d.month}</text>
+          <text key={d.month} x={cx(i)} y={H + 22} textAnchor="middle" fontSize="10"
+            fontWeight={i === peak ? 600 : 400} fill={i === peak ? BRAND : "#b3b3bb"}>{d.month}</text>
         ))}
       </svg>
 
-      <div className="mt-2 flex items-center gap-6 text-xs font-medium text-neutral-500">
+      <div className="mt-2 flex items-center gap-5 text-xs text-neutral-500">
         <span className="flex items-center gap-2">
-          <span className="h-3 w-3 rounded-sm bg-violet-200 border border-violet-400" />Revenue
+          <span className="h-2.5 w-2.5 rounded-[3px] bg-[#EDE9FB] border border-[#ddd4f5]" />Revenue
         </span>
         <span className="flex items-center gap-2">
           <svg width="20" height="10" viewBox="0 0 20 10">
-            <line x1="0" y1="5" x2="20" y2="5" stroke="#7c5af5" strokeWidth="2" strokeDasharray="5 3" />
-            <circle cx="10" cy="5" r="3" fill="white" stroke="#7c5af5" strokeWidth="1.5" />
+            <line x1="0" y1="5" x2="20" y2="5" stroke="#A78BFA" strokeWidth="2" strokeLinecap="round" />
+            <circle cx="10" cy="5" r="2.5" fill="#A78BFA" />
           </svg>
           Orders
         </span>
@@ -163,7 +188,7 @@ function RevenueOverTimeChart() {
 /* Revenue per campaign chart                                          */
 /* ------------------------------------------------------------------ */
 function RevenueByCampaignChart() {
-  const W = 700, H = 180, PL = 54, PR = 10, PT = 10, PB = 8;
+  const W = 700, H = 180, PL = 46, PR = 10, PT = 10, PB = 8;
   const cW = W - PL - PR, cH = H - PT - PB;
   const maxVal = 22000;
   const n = REV_CAMPAIGNS.length;
@@ -172,7 +197,7 @@ function RevenueByCampaignChart() {
   const gap = 6;
   const r = barW / 2;
 
-  const bH  = (v: number) => Math.max((v / maxVal) * cH, v > 0 ? r * 2 : 0);
+  const bH  = (v: number) => Math.max((v / maxVal) * cH, v > 0 ? 4 : 0);
   const cx  = (i: number) => PL + (i + 0.5) * groupW;
   const yLabels = ["$20k","$16k","$12k","$8k","$4k","$0"];
 
@@ -183,8 +208,8 @@ function RevenueByCampaignChart() {
           const y = PT + (i / (yLabels.length - 1)) * cH;
           return (
             <g key={l}>
-              <line x1={PL} y1={y} x2={W - PR} y2={y} stroke="#f0f0f0" strokeWidth="1" />
-              <text x={PL - 6} y={y + 4} textAnchor="end" fontSize="10" fill="#bbb">{l}</text>
+              <line x1={PL} y1={y} x2={W - PR} y2={y} stroke="#f4f4f6" strokeWidth="1" />
+              <text x={PL - 8} y={y + 3.5} textAnchor="end" fontSize="9.5" fill="#b3b3bb">{l}</text>
             </g>
           );
         })}
@@ -192,30 +217,42 @@ function RevenueByCampaignChart() {
           const revBH = bH(d.rev);
           const tarBH = bH(d.target);
           const x = cx(i);
+          const pct = Math.round((d.rev / d.target) * 100);
           return (
             <g key={i}>
-              {d.rev > 0 && (
-                <rect x={x - barW - gap / 2} y={PT + cH - revBH}
-                  width={barW} height={revBH} rx={r} ry={r} fill="#6854e8" />
+              <title>{`${d.name} — $${d.rev.toLocaleString()} of $${d.target.toLocaleString()} target (${pct}%)`}</title>
+              {d.rev > 0 ? (
+                <>
+                  <rect x={x - barW - gap / 2} y={PT + cH - revBH}
+                    width={barW} height={revBH} rx={Math.min(r, revBH / 2)} ry={Math.min(r, revBH / 2)} fill={BRAND} />
+                  <text x={x - gap / 2 - barW / 2} y={PT + cH - revBH - 7}
+                    textAnchor="middle" fontSize="9.5" fontWeight="600" fill={BRAND}>
+                    {`${pct}%`}
+                  </text>
+                </>
+              ) : (
+                <text x={x - gap / 2 - barW / 2} y={PT + cH - 7}
+                  textAnchor="middle" fontSize="9.5" fontWeight="500" fill="#b3b3bb">
+                  0%
+                </text>
               )}
               <rect x={x + gap / 2} y={PT + cH - tarBH}
-                width={barW} height={tarBH} rx={r} ry={r}
-                fill="#eceaff" stroke="#c4baf5" strokeWidth="1.5" />
+                width={barW} height={tarBH} rx={Math.min(r, tarBH / 2)} ry={Math.min(r, tarBH / 2)}
+                fill="#EDE9FB" />
             </g>
           );
         })}
         {REV_CAMPAIGNS.map((d, i) => (
-          <text key={d.name} x={cx(i)} y={H + 30}
-            textAnchor="middle" fontSize="10" fill="#aaa"
-            transform={`rotate(-20,${cx(i)},${H + 30})`}>{d.name}</text>
+          <text key={d.name} x={cx(i)} y={H + 26}
+            textAnchor="middle" fontSize="10.5" fontWeight="500" fill="#71717a">{d.name}</text>
         ))}
       </svg>
-      <div className="mt-1 flex items-center gap-5 text-xs font-medium text-neutral-500">
+      <div className="mt-1 flex items-center gap-5 text-xs text-neutral-500">
         <span className="flex items-center gap-2">
-          <span className="h-3 w-3 rounded-sm bg-violet-600" />Revenue
+          <span className="h-2.5 w-2.5 rounded-[3px] bg-[#4D2FB0]" />Revenue
         </span>
         <span className="flex items-center gap-2">
-          <span className="h-3 w-3 rounded-sm bg-violet-100 border border-violet-300" />Target
+          <span className="h-2.5 w-2.5 rounded-[3px] bg-[#EDE9FB] border border-[#ddd4f5]" />Target
         </span>
       </div>
     </div>
@@ -228,49 +265,39 @@ function RevenueByCampaignChart() {
 function KeyAverages() {
   const items = [
     {
-      label: "AVG ROAS",
+      label: "Avg ROAS",
       value: "5.8×",
-      color: "text-violet-600",
-      bar: "bg-violet-600",
-      pct: 75,
-      badge: "▲ +0.4× vs last",
-      badgeCls: "bg-green-50 text-green-600 border-green-100",
-      desc: "For every $1 spent, campaigns return $5.80 on average — above the 5× target.",
+      color: "text-[#4D2FB0]",
+      badge: "+0.4× vs last",
+      desc: "Campaigns return $5.80 per $1 spent — above the 5× target.",
     },
     {
-      label: "GOAL COMPLETION RATE",
+      label: "Goal completion rate",
       value: "97%",
-      color: "text-green-500",
-      bar: "bg-green-500",
-      pct: 97,
-      badge: "▲ +3% vs last",
-      badgeCls: "bg-green-50 text-green-600 border-green-100",
+      color: "text-green-600",
+      badge: "+3% vs last",
       desc: "97% of committed phases hit their revenue target.",
     },
     {
-      label: "AVG PHASE DURATION",
+      label: "Avg phase duration",
       value: "6.2 days",
-      color: "text-[#1e1b4b]",
-      bar: "bg-violet-600",
-      pct: 52,
-      badge: "▼ 1.1d faster",
-      badgeCls: "bg-green-50 text-green-600 border-green-100",
-      desc: "Phases completing 1.1 days faster — stronger creator performance.",
+      color: "",
+      badge: "1.1d faster",
+      desc: "Phases completing faster — stronger creator performance.",
     },
   ];
   return (
-    <div className="flex flex-col flex-1 gap-3">
+    <div className="flex flex-col flex-1 divide-y divide-black/[0.05]">
       {items.map((item) => (
-        <div key={item.label} className="flex-1 rounded-2xl bg-neutral-50 border border-neutral-100 p-4">
-          <div className="flex items-start justify-between gap-2">
-            <p className="text-[10px] font-medium uppercase tracking-widest text-neutral-400">{item.label}</p>
-            <span className={`shrink-0 rounded-full border px-2.5 py-0.5 text-[10px] font-medium ${item.badgeCls}`}>{item.badge}</span>
+        <div key={item.label} className="flex flex-1 items-center justify-between gap-4 py-4 first:pt-1 last:pb-1">
+          <div className="min-w-0">
+            <p className="text-[13px] font-medium text-neutral-600">{item.label}</p>
+            <p className="mt-0.5 text-xs leading-relaxed text-neutral-400">{item.desc}</p>
           </div>
-          <p className={`mt-1 text-2xl font-bold leading-none ${item.color}`}>{item.value}</p>
-          <div className="mt-2.5 h-1.5 w-full rounded-full bg-neutral-100">
-            <div className={`h-full rounded-full ${item.bar}`} style={{ width: `${item.pct}%` }} />
+          <div className="shrink-0 text-right">
+            <p className={`text-xl font-semibold tracking-tight tabular-nums ${item.color}`} style={item.color ? undefined : { color: INK }}>{item.value}</p>
+            <p className="mt-0.5 text-xs font-medium text-green-600">↑ {item.badge}</p>
           </div>
-          <p className="mt-2 text-xs leading-relaxed text-neutral-400">{item.desc}</p>
         </div>
       ))}
     </div>
@@ -283,37 +310,42 @@ function KeyAverages() {
 function HowYouCompare() {
   const items = [
     {
-      label: "AVG ROAS",
-      value: "5.8×", valueCls: "text-violet-600",
+      label: "Avg ROAS",
+      value: "5.8×", valueCls: "text-[#4D2FB0]",
       vs: "vs 4.1× category avg",
-      note: "▲ Top 18% of brands", noteCls: "text-green-600",
+      note: "Top 18% of brands", noteCls: "text-green-600", up: true,
     },
     {
-      label: "GOAL COMPLETION",
-      value: "97%", valueCls: "text-violet-600",
+      label: "Goal completion",
+      value: "97%", valueCls: "text-[#4D2FB0]",
       vs: "vs 84% category avg",
-      note: "▲ Phases reliably hit target", noteCls: "text-green-600",
+      note: "Phases reliably hit target", noteCls: "text-green-600", up: true,
     },
     {
-      label: "REPEAT-PURCHASE RATE",
+      label: "Repeat-purchase rate",
       value: "11%", valueCls: "text-amber-500",
       vs: "vs 16% category avg",
-      note: "▼ Opportunity — retention", noteCls: "text-amber-600",
+      note: "Opportunity — retention", noteCls: "text-amber-600", up: false,
     },
   ];
   return (
-    <div className="rounded-2xl bg-violet-50 border border-violet-100 p-6 shadow-sm">
-      <h3 className="text-[15px] font-semibold text-violet-800">How you compare — Fashion &amp; Apparel, GCC</h3>
-      <p className="text-xs text-neutral-500 mt-0.5 mb-4">Benchmarked against anonymized MoonTech brands in your category &amp; region</p> 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+    <div className={`${card} p-6`}>
+      <div className="flex flex-wrap items-center gap-2.5">
+        <h3 className="text-[15px] font-semibold" style={{ color: INK }}>How you compare</h3>
+        <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-[11px] font-medium text-neutral-500">
+          Fashion &amp; Apparel · GCC
+        </span>
+      </div>
+      <p className="text-xs text-neutral-400 mt-1">Benchmarked against anonymized MoonTech brands in your category &amp; region</p>
+      <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-black/[0.05]">
         {items.map((item) => (
-          <div key={item.label} className="rounded-2xl bg-white border border-neutral-100 p-4 shadow-sm">
-            <p className="text-[10px] font-medium uppercase tracking-widest text-neutral-400">{item.label}</p>
-            <div className="mt-1 flex items-baseline gap-2 flex-wrap">
-              <p className={`text-2xl font-bold ${item.valueCls}`}>{item.value}</p>
+          <div key={item.label} className="py-4 sm:py-1 sm:px-6 first:sm:pl-0 last:sm:pr-0">
+            <p className="text-[13px] font-medium text-neutral-500">{item.label}</p>
+            <div className="mt-1.5 flex items-baseline gap-2 flex-wrap">
+              <p className={`text-[26px] font-semibold tracking-tight tabular-nums ${item.valueCls}`}>{item.value}</p>
               <p className="text-xs text-neutral-400">{item.vs}</p>
             </div>
-            <p className={`mt-1 text-[12px] font-semibold ${item.noteCls}`}>{item.note}</p>
+            <p className={`mt-1 text-xs font-medium ${item.noteCls}`}>{item.up ? "↑" : "↓"} {item.note}</p>
           </div>
         ))}
       </div>
@@ -327,61 +359,58 @@ function HowYouCompare() {
 function CampaignCard({ c }: { c: typeof RUNNING[0] }) {
   const fmt = (n: number) => `$${n.toLocaleString()}`;
   return (
-    <div className="rounded-2xl bg-white border border-neutral-100 shadow-sm hover:shadow-md transition-shadow p-5 space-y-4">
+    <div className={`${card} p-5 flex flex-col transition-colors hover:border-black/[0.12]`}>
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <h3 className="text-[15px] font-semibold text-[#1e1b4b]">{c.name}</h3>
-            <span className="flex items-center gap-1.5 rounded-full border border-green-200 bg-green-50 px-2.5 py-0.5 text-[11px] font-semibold text-green-600">
+            <h3 className="text-[15px] font-semibold" style={{ color: INK }}>{c.name}</h3>
+            <span className="flex items-center gap-1.5 rounded-full bg-green-50 px-2 py-0.5 text-[11px] font-medium text-green-600">
               <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-live" />Live
             </span>
           </div>
-          <p className="text-xs text-neutral-400 mt-0.5">{c.phase} · {c.dates}</p>
+          <p className="text-xs text-neutral-400 mt-1">{c.phase} · {c.dates}</p>
         </div>
-        <button className="shrink-0 rounded-xl px-4 py-2 text-[12px] font-semibold text-[#1e1b4b] hover:bg-[#1e1b4b]/5 transition-colors">
+        <button className="shrink-0 rounded-lg px-2.5 py-1.5 text-[13px] font-medium text-neutral-400 hover:text-[#4D2FB0] hover:bg-[#4D2FB0]/[0.06] transition-colors">
           View →
         </button>
       </div>
 
       {/* Revenue progress */}
-      <div className="rounded-2xl bg-violet-50 border border-violet-100 p-4">
-        <div className="flex items-start justify-between gap-2">
-          <p className="text-[10px] font-medium uppercase tracking-widest text-violet-700">Revenue Generated vs. Budget</p>
-          <div className="shrink-0 text-right">
-            <p className="text-xl font-bold text-violet-600 leading-none">{c.revPct}%</p>
-            <p className="text-[10px] font-medium text-violet-400">of target reached</p>
-          </div>
+      <div className="mt-6">
+        <div className="flex items-baseline justify-between gap-2">
+          <p className="text-[26px] font-semibold tracking-tight tabular-nums leading-none" style={{ color: INK }}>
+            {fmt(c.rev)}{" "}
+            <span className="text-sm font-normal tracking-normal text-neutral-400">of {fmt(c.revTarget)} target</span>
+          </p>
+          <p className="text-sm font-semibold tabular-nums text-[#4D2FB0]">{c.revPct}%</p>
         </div>
-        <p className="mt-1.5 text-xl font-bold text-[#1e1b4b]">
-          {fmt(c.rev)}{" "}
-          <span className="text-[13px] font-normal text-neutral-400">of {fmt(c.revTarget)} budget</span>
-        </p>
-        <div className="mt-3 h-2 w-full rounded-full bg-violet-200">
-          <div className="h-full rounded-full bg-violet-600 transition-all" style={{ width: `${c.revPct}%` }} />
+        <div className="mt-3.5 h-2 w-full rounded-full bg-[#EFEBFA]">
+          <div className="h-full rounded-full bg-[#4D2FB0] transition-all" style={{ width: `${c.revPct}%` }} />
         </div>
-        <div className="mt-2 flex items-start justify-between gap-2">
-          <p className={`text-xs font-semibold ${c.thresholdGreen ? "text-green-600" : "text-amber-600"}`}>{c.threshold}</p>
-          <p className="shrink-0 text-xs text-neutral-400 text-right">{c.remaining}<br />remaining</p>
+        <div className="mt-2.5 flex items-baseline justify-between gap-2">
+          <p className={`text-xs font-medium ${c.thresholdGreen ? "text-green-600" : "text-amber-600"}`}>
+            {c.thresholdGreen ? "✓" : "◷"} {c.threshold}
+          </p>
+          <p className="shrink-0 text-xs text-neutral-400">{c.remaining} remaining</p>
         </div>
       </div>
 
-      {/* Metric rows */}
-      {[
-        { label: "ADS LIVE",           value: c.adsLive,     suffix: `/${c.adsTotal}`, note: `${c.adsPct}% of plan`,  pct: c.adsPct,        bar: "bg-violet-600" },
-        { label: "ACTIVE INFLUENCERS", value: c.influencers, suffix: "",               note: c.influencerNote,         pct: c.influencerPct, bar: "bg-green-500" },
-        { label: "CONTENT POSTED",     value: c.content,     suffix: "",               note: c.contentNote,            pct: c.contentPct,    bar: "bg-amber-400" },
-      ].map((m) => (
-        <div key={m.label} className="rounded-2xl bg-white border border-neutral-100 p-4 shadow-sm">
-          <p className="text-[10px] font-medium uppercase tracking-widest text-neutral-400">{m.label}</p>
-          <p className="mt-1 text-xl font-bold text-[#1e1b4b]">
-            {m.value}<span className="text-[14px] font-normal text-neutral-400">{m.suffix}</span>
-          </p>
-          <div className="mt-2 h-1.5 w-full rounded-full bg-neutral-100">
-            <div className={`h-full rounded-full ${m.bar}`} style={{ width: `${Math.min(m.pct, 100)}%` }} />
+      {/* Metric row */}
+      <div className="mt-6 grid grid-cols-3 gap-4 border-t border-black/[0.05] pt-4">
+        {[
+          { label: "Ads live",    value: `${c.adsLive}`, suffix: `/${c.adsTotal}`, note: `${c.adsPct}% of plan` },
+          { label: "Influencers", value: `${c.influencers}`, suffix: "",           note: c.influencerNote },
+          { label: "Content",     value: `${c.content}`,     suffix: "",           note: c.contentNote },
+        ].map((m) => (
+          <div key={m.label}>
+            <p className="text-[11px] font-medium text-neutral-400">{m.label}</p>
+            <p className="mt-1 text-[17px] font-semibold tracking-tight tabular-nums" style={{ color: INK }}>
+              {m.value}<span className="text-[13px] font-normal text-neutral-400">{m.suffix}</span>
+            </p>
+            <p className="mt-0.5 text-[11px] text-neutral-400 truncate">{m.note}</p>
           </div>
-          <p className="mt-1.5 text-xs text-neutral-400">{m.note}</p>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
@@ -390,41 +419,51 @@ function CampaignCard({ c }: { c: typeof RUNNING[0] }) {
 /* Phase completion tracker                                            */
 /* ------------------------------------------------------------------ */
 function PhaseTracker() {
-  const phaseCls = (v: string) =>
-    v === "Done"   ? "bg-violet-100 text-violet-600 border border-violet-200" :
-    v === "Active" ? "bg-amber-50 text-amber-600 border border-amber-200" :
-                     "bg-neutral-50 text-neutral-400 border border-neutral-200";
+  const phaseDot = (v: string) =>
+    v === "Done"   ? "bg-[#4D2FB0]" :
+    v === "Active" ? "bg-amber-400" :
+                     "bg-neutral-300";
+  const phaseText = (v: string) =>
+    v === "Done"   ? "text-neutral-700" :
+    v === "Active" ? "text-amber-600" :
+                     "text-neutral-400";
 
   const statusCls = (v: string) =>
-    v === "Live"   ? "bg-green-50 text-green-600 border border-green-200" :
-    v === "Ready"  ? "bg-amber-50 text-amber-600 border border-amber-200" :
-                     "bg-neutral-100 text-neutral-500 border border-neutral-200";
+    v === "Live"   ? "bg-green-50 text-green-600" :
+    v === "Ready"  ? "bg-amber-50 text-amber-600" :
+                     "bg-neutral-100 text-neutral-500";
 
   return (
-    <div className="rounded-2xl bg-white border border-neutral-100 shadow-sm hover:shadow-md transition-shadow p-6 overflow-x-auto">
-      <h3 className="text-[15px] font-semibold text-[#1e1b4b]">Phase completion tracker</h3>
-      <p className="text-xs text-neutral-400 mt-0.5 mb-5">Status of each phase across all campaigns</p>
+    <div className={`${card} p-6 overflow-x-auto`}>
+      <h3 className="text-[15px] font-semibold" style={{ color: INK }}>Phase completion tracker</h3>
+      <p className="text-xs text-neutral-400 mt-1 mb-4">Status of each phase across all campaigns</p>
       <table className="w-full min-w-[560px] text-[13px]">
         <thead>
-          <tr className="border-b border-neutral-100">
+          <tr className="border-b border-black/[0.05]">
             {["Campaign","Phase 1","Phase 2","Phase 3","Revenue","ROAS","Status"].map((h) => (
-              <th key={h} className="pb-3 text-left text-[10px] font-medium uppercase tracking-widest text-neutral-400">{h}</th>
+              <th key={h} className="pb-3 text-left text-xs font-medium text-neutral-400">{h}</th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-neutral-50">
+        <tbody className="divide-y divide-black/[0.04]">
           {PHASE_TRACKER.map((row) => (
-            <tr key={row.name} className="hover:bg-violet-50/30 transition-colors">
-              <td className="py-3.5 font-semibold text-[#1e1b4b] pr-4">{row.name}</td>
+            <tr key={row.name} className="hover:bg-neutral-50/60 transition-colors">
+              <td className="py-4 font-medium pr-4" style={{ color: INK }}>{row.name}</td>
               {[row.p1, row.p2, row.p3].map((p, i) => (
-                <td key={i} className="py-3.5 pr-3">
-                  <span className={`rounded-full px-3 py-1 text-xs font-semibold ${phaseCls(p)}`}>{p}</span>
+                <td key={i} className="py-4 pr-3">
+                  <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${phaseText(p)}`}>
+                    <span className={`h-1.5 w-1.5 rounded-full ${phaseDot(p)}`} />
+                    {p}
+                  </span>
                 </td>
               ))}
-              <td className="py-3.5 font-semibold text-neutral-700 pr-3">{row.rev}</td>
-              <td className="py-3.5 font-semibold text-violet-600 pr-3">{row.roas}</td>
-              <td className="py-3.5">
-                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusCls(row.status)}`}>{row.status}</span>
+              <td className="py-4 font-medium tabular-nums text-neutral-700 pr-3">{row.rev}</td>
+              <td className="py-4 font-semibold tabular-nums text-[#4D2FB0] pr-3">{row.roas}</td>
+              <td className="py-4">
+                <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${statusCls(row.status)}`}>
+                  {row.status === "Live" && <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-live" />}
+                  {row.status}
+                </span>
               </td>
             </tr>
           ))}
@@ -450,7 +489,7 @@ export default function Dashboard() {
   const [filterOpen, setFilterOpen]     = useState(false);
 
   return (
-    <div className="flex h-screen bg-[#fafafa] overflow-hidden"
+    <div className="flex h-screen bg-[#F7F7F8] overflow-hidden"
       style={{ fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>
 
       <Sidebar
@@ -464,7 +503,7 @@ export default function Dashboard() {
       <div className="flex flex-1 flex-col overflow-hidden min-w-0">
 
         {/* Top bar */}
-        <header className="flex items-center gap-3 bg-white/80 backdrop-blur-sm border-b border-neutral-100 px-4 py-3 sticky top-0 z-20">
+        <header className="flex items-center gap-3 bg-white/80 backdrop-blur-sm border-b border-black/[0.06] px-4 py-3 sticky top-0 z-20">
           {/* Hamburger: toggles drawer on mobile, collapses sidebar on desktop */}
           <button
             onClick={() => {
@@ -474,37 +513,38 @@ export default function Dashboard() {
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-neutral-400 hover:bg-neutral-100 transition-colors">
             <List size={18} />
           </button>
-          <h1 className="text-[15px] font-semibold text-[#1e1b4b] shrink-0">Dashboard</h1>
+          <h1 className="text-[15px] font-semibold shrink-0" style={{ color: INK }}>Dashboard</h1>
 
           {/* Search — hidden on small screens */}
-          <div className="hidden sm:flex flex-1 items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-2.5 max-w-sm mx-auto">
+          <div className="hidden sm:flex flex-1 items-center gap-2 rounded-xl border border-black/[0.07] bg-neutral-50 px-3.5 py-2 max-w-sm mx-auto transition focus-within:border-[#4D2FB0]/40 focus-within:bg-white focus-within:ring-2 focus-within:ring-[#4D2FB0]/10">
             <MagnifyingGlass size={14} className="text-neutral-400 shrink-0" />
             <input placeholder="Search anything…" className="bg-transparent text-[13px] text-neutral-600 placeholder:text-neutral-400 outline-none w-full" />
+            <kbd className="hidden lg:block shrink-0 rounded-md border border-black/[0.08] bg-white px-1.5 py-0.5 text-[10px] font-medium text-neutral-400">⌘K</kbd>
           </div>
 
           <div className="flex items-center gap-2 ml-auto shrink-0">
             <button onClick={() => router.push("/campaigns/new")}
-              className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-3 sm:px-4 py-2 text-[12px] font-semibold text-white shadow-sm shadow-violet-200 hover:shadow-violet-300 hover:from-violet-700 hover:to-indigo-700 transition-all">
+              className="flex items-center gap-2 rounded-xl bg-[#4D2FB0] px-3 sm:px-4 py-2 text-[12px] font-semibold text-white hover:bg-[#3F2596] transition-colors">
               <Plus size={13} weight="bold" />
               <span className="hidden sm:inline">New Campaign</span>
             </button>
-            <button className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-neutral-200 bg-white text-neutral-500 hover:bg-neutral-50 transition-colors shadow-sm">
+            <button className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-black/[0.07] bg-white text-neutral-500 hover:bg-neutral-50 transition-colors">
               <Bell size={16} />
-              <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-medium text-white">2</span>
+              <span className="absolute -right-0.5 -top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-red-500 text-[9px] font-medium text-white ring-2 ring-white">2</span>
             </button>
             <div className="relative">
               <button onClick={() => setUserMenuOpen((o) => !o)}
-                className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 text-white text-xs font-medium shadow-md shadow-violet-200">
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-[#4D2FB0] text-white text-xs font-medium">
                 ME
               </button>
               {userMenuOpen && (
-                <div className="absolute right-0 top-full mt-2 w-36 rounded-2xl border border-neutral-100 bg-white shadow-xl z-50 overflow-hidden">
-                  <div className="px-4 pt-3 pb-2 border-b border-neutral-50">
+                <div className="absolute right-0 top-full mt-2 w-40 rounded-xl border border-black/[0.06] bg-white shadow-lg shadow-black/[0.06] z-50 overflow-hidden">
+                  <div className="px-4 pt-3 pb-2 border-b border-black/[0.05]">
                     <p className="text-xs font-semibold text-neutral-700">Mostafa Elnagar</p>
-                    <p className="text-[10px] text-neutral-400">Admin</p>
+                    <p className="text-[11px] text-neutral-400">Admin</p>
                   </div>
                   <button onClick={() => router.push("/")}
-                    className="flex w-full items-center gap-2 px-4 py-3 text-[12px] font-semibold text-red-500 hover:bg-red-50 transition-colors">
+                    className="flex w-full items-center gap-2 px-4 py-3 text-[12px] font-medium text-red-500 hover:bg-red-50 transition-colors">
                     <SignOut size={13} weight="bold" />Sign out
                   </button>
                 </div>
@@ -514,24 +554,26 @@ export default function Dashboard() {
         </header>
 
         {/* Body */}
-        <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
+        <main className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-7 space-y-6">
 
           {/* Welcome banner */}
-          <div className="px-2 sm:px-1 py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
             <div>
-              <h2 className="text-[16px] sm:text-[18px] font-semibold text-[#1e1b4b]">Welcome back, Mostafa 👋</h2>
-              <p className="text-[12px] sm:text-[13px] text-neutral-500 mt-0.5">Wednesday, 18 June 2026 · Here&apos;s what&apos;s happening today</p>
+              <h2 className="text-[20px] sm:text-[24px] font-semibold tracking-tight" style={{ color: INK }}>Welcome back, Mostafa</h2>
+              <p className="text-[13px] text-neutral-400 mt-1" suppressHydrationWarning>
+                {new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+              </p>
             </div>
-            <div className="flex items-center gap-3 self-start sm:self-auto">
+            <div className="flex items-center gap-2.5 self-start sm:self-auto">
               {/* Live badge */}
-              <div className="flex items-center gap-1.5 text-[12px] font-semibold text-[#1e1b4b]">
-                <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />2 live campaigns
-              </div>
+              <span className="flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1.5 text-[12px] font-medium text-green-700">
+                <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />2 live campaigns
+              </span>
               {/* Date filter */}
               <div className="relative">
                 <button
                   onClick={() => setFilterOpen(o => !o)}
-                  className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-[#1e1b4b] shadow-sm hover:border-violet-300 hover:text-violet-600 transition-colors"
+                  className="flex items-center gap-2 rounded-full border border-black/[0.08] bg-white px-3.5 py-1.5 text-[12px] font-medium text-neutral-600 hover:border-[#4D2FB0]/30 hover:text-[#4D2FB0] transition-colors"
                 >
                   <svg className="h-3.5 w-3.5 text-neutral-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <rect x="3" y="4" width="18" height="18" rx="2" strokeLinecap="round" />
@@ -543,15 +585,15 @@ export default function Dashboard() {
                   </svg>
                 </button>
                 {filterOpen && (
-                  <div className="absolute right-0 top-full z-30 mt-2 w-44 overflow-hidden rounded-2xl border border-neutral-100 bg-white shadow-xl shadow-neutral-200/60">
+                  <div className="absolute right-0 top-full z-30 mt-2 w-44 overflow-hidden rounded-xl border border-black/[0.06] bg-white shadow-lg shadow-black/[0.06]">
                     {DATE_FILTERS.map((f) => (
                       <button key={f} onClick={() => { setDateFilter(f); setFilterOpen(false); }}
-                        className={`flex w-full items-center justify-between px-4 py-2.5 text-[13px] transition hover:bg-violet-50 ${
-                          dateFilter === f ? "font-semibold text-violet-600 bg-violet-50/60" : "font-medium text-neutral-600"
+                        className={`flex w-full items-center justify-between px-4 py-2.5 text-[13px] transition hover:bg-neutral-50 ${
+                          dateFilter === f ? "font-medium text-[#4D2FB0]" : "text-neutral-600"
                         }`}>
                         {f}
                         {dateFilter === f && (
-                          <svg className="h-3.5 w-3.5 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                          <svg className="h-3.5 w-3.5 text-[#4D2FB0]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                             <polyline points="20 6 9 17 4 12" />
                           </svg>
                         )}
@@ -564,59 +606,63 @@ export default function Dashboard() {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {STATS.map((s) => (
               <div key={s.label}
-                className={`rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow ${
-                  s.hero ? "bg-[#eef0fb] border border-[#dde0f5]" : "bg-white border border-neutral-100"
+                className={`rounded-2xl p-4 sm:p-5 transition-colors ${
+                  s.hero
+                    ? "bg-[#4D2FB0]"
+                    : "bg-white border border-black/[0.06] shadow-[0_1px_2px_rgba(16,12,40,0.04)] hover:border-black/[0.12]"
                 }`}>
-                <p className="text-[10px] font-medium uppercase tracking-widest text-neutral-400 mb-3">{s.label}</p>
-                <p className={`text-[22px] sm:text-[26px] font-bold leading-none ${s.hero ? "text-[#1e1b4b]" : "text-[#1e1b4b]"}`}>{s.value}</p>
-                <div className="mt-2.5">
+                <p className={`text-[13px] font-medium ${s.hero ? "text-white/60" : "text-neutral-500"}`}>{s.label}</p>
+                <p className={`mt-2 text-[24px] sm:text-[28px] font-semibold tracking-tight tabular-nums leading-none ${s.hero ? "text-white" : ""}`}
+                  style={s.hero ? undefined : { color: INK }}>
+                  {s.value}
+                </p>
+                <p className="mt-2.5 text-xs">
                   {s.change ? (
-                    <span className="flex items-center gap-1 text-xs font-semibold text-green-600">
-                      <svg viewBox="0 0 10 10" className="h-2.5 w-2.5 shrink-0" fill="currentColor">
-                        <polygon points="5,1 9,9 1,9" />
-                      </svg>
-                      {s.change} {s.sub}
-                    </span>
+                    <>
+                      <span className={`font-medium ${s.hero ? "text-white" : "text-green-600"}`}>↑ {s.change.replace("+", "")}</span>{" "}
+                      <span className={s.hero ? "text-white/50" : "text-neutral-400"}>{s.sub}</span>
+                    </>
                   ) : (
-                    <span className="text-xs text-neutral-500">{s.sub}</span>
+                    <span className="text-neutral-400">{s.sub}</span>
                   )}
-                </div>
+                </p>
               </div>
             ))}
           </div>
 
-          {/* Running Campaigns header */}
-          <div>
-            <h2 className="text-[15px] sm:text-[16px] font-semibold text-[#1e1b4b]">Running Campaigns</h2>
-            <p className="text-xs text-neutral-400 mt-0.5">Live performance · updated in real time</p>
+          {/* Running Campaigns */}
+          <div className="pt-2">
+            <h2 className="text-[16px] font-semibold tracking-tight" style={{ color: INK }}>Running campaigns</h2>
+            <p className="text-[13px] text-neutral-400 mt-0.5">Live performance · updated in real time</p>
           </div>
 
-          {/* Row 1: Campaign cards + Key averages */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {RUNNING.map((c) => <CampaignCard key={c.name} c={c} />)}
-            <div className="flex flex-col rounded-2xl bg-white border border-neutral-100 p-5 shadow-sm hover:shadow-md transition-shadow">
-              <h3 className="text-[14px] font-semibold text-[#1e1b4b]">Key averages</h3>
-              <p className="text-xs text-neutral-500 mt-0.5 mb-4">Across all completed phases</p>
+            <div className={`${card} p-5 flex flex-col`}>
+              <h3 className="text-[15px] font-semibold" style={{ color: INK }}>Key averages</h3>
+              <p className="text-xs text-neutral-400 mt-1 mb-3">Across all completed phases</p>
               <KeyAverages />
             </div>
           </div>
 
-          {/* Performance Overview heading */}
-          <h2 className="text-[15px] sm:text-[16px] font-semibold text-[#1e1b4b]">Performance Overview</h2>
+          {/* Performance Overview */}
+          <div className="pt-2">
+            <h2 className="text-[16px] font-semibold tracking-tight" style={{ color: INK }}>Performance overview</h2>
+            <p className="text-[13px] text-neutral-400 mt-0.5">Revenue trends across months and campaigns</p>
+          </div>
 
-          {/* Row 2: Two charts side by side */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="rounded-2xl bg-white border border-neutral-100 p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
-              <h3 className="text-[14px] font-semibold text-[#1e1b4b]">Revenue over time</h3>
-              <p className="text-xs text-neutral-500 mt-0.5 mb-4">Monthly revenue generated across all campaigns</p> 
+            <div className={`${card} p-5`}>
+              <h3 className="text-[15px] font-semibold" style={{ color: INK }}>Revenue over time</h3>
+              <p className="text-xs text-neutral-400 mt-1 mb-4">Monthly revenue generated across all campaigns</p>
               <RevenueOverTimeChart />
             </div>
-            <div className="rounded-2xl bg-white border border-neutral-100 p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
-              <h3 className="text-[14px] font-semibold text-[#1e1b4b]">Revenue per campaign</h3>
-              <p className="text-xs text-neutral-500 mt-0.5 mb-4">How each campaign contributed to total revenue vs. target</p> 
+            <div className={`${card} p-5`}>
+              <h3 className="text-[15px] font-semibold" style={{ color: INK }}>Revenue per campaign</h3>
+              <p className="text-xs text-neutral-400 mt-1 mb-4">How each campaign contributed to total revenue vs. target</p>
               <RevenueByCampaignChart />
             </div>
           </div>

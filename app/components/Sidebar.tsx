@@ -49,7 +49,7 @@ function SidebarContent({
       {/* Logo + mobile close */}
       <div className={`mb-4 flex items-center ${collapsed ? "justify-center" : "justify-between px-2"}`}>
         {collapsed
-          ? <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-700 flex items-center justify-center text-white text-[10px] font-medium shadow-md">M</div>
+          ? <div className="h-8 w-8 rounded-xl bg-[#4D2FB0] flex items-center justify-center text-white text-[10px] font-medium shadow-md">M</div>
           : <Image src="/logo.svg" alt="MoonTech" width={110} height={20} />
         }
         {!collapsed && onMobileClose && (
@@ -82,19 +82,19 @@ function SidebarContent({
               <p className="px-3 pb-1 pt-2.5 text-[9px] font-medium uppercase tracking-widest text-neutral-400">Switch brand</p>
               {BRANDS.map((b) => (
                 <button key={b.id} onClick={() => { setActiveBrand(b); setBrandMenuOpen(false); }}
-                  className={`flex w-full items-center gap-2.5 px-3 py-2.5 text-left transition hover:bg-neutral-50 ${activeBrand.id === b.id ? "bg-indigo-50/60" : ""}`}>
+                  className={`flex w-full items-center gap-2.5 px-3 py-2.5 text-left transition hover:bg-neutral-50 ${activeBrand.id === b.id ? "bg-violet-50/60" : ""}`}>
                   <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[10px] font-medium text-white"
                     style={{ backgroundColor: b.color }}>{b.initials}</div>
                   <span className="flex-1 text-[12px] font-medium text-neutral-700">{b.name}</span>
                   {activeBrand.id === b.id && (
-                    <svg className="h-3.5 w-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <svg className="h-3.5 w-3.5 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   )}
                 </button>
               ))}
               <div className="border-t border-neutral-100 px-3 py-2.5">
-                <button className="flex w-full items-center gap-2 text-[12px] font-semibold text-indigo-600 hover:text-indigo-700 transition">
+                <button className="flex w-full items-center gap-2 text-[12px] font-semibold text-violet-600 hover:text-violet-700 transition">
                   <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
                   </svg>
@@ -114,7 +114,7 @@ function SidebarContent({
             title={collapsed ? item.label : undefined}
             className={`flex items-center rounded-xl py-2.5 text-[13px] font-medium transition-all text-left ${collapsed ? "justify-center px-0" : "gap-3 px-3"} ${
               activeNav === item.label
-                ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md shadow-violet-200"
+                ? "bg-[#4D2FB0] text-white shadow-md shadow-violet-200"
                 : "text-neutral-500 hover:bg-neutral-50 hover:text-neutral-800"
             }`}>
             {item.icon}
