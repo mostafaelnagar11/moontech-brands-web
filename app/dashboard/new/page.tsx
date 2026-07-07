@@ -153,12 +153,12 @@ export default function NewBrandDashboard() {
                     </button>
                   ) : (
                     <div className="mt-6">
-                      <button
-                        disabled
-                        className="flex items-center gap-2 rounded-xl bg-neutral-200 px-6 py-3 text-sm font-semibold text-neutral-500 cursor-not-allowed"
+                      <a
+                        href="mailto:support@moontech.com"
+                        className="flex w-fit items-center gap-2 rounded-xl border border-neutral-300 bg-white px-6 py-3 text-sm font-semibold text-neutral-700 shadow-sm transition hover:bg-neutral-50 active:scale-[0.98]"
                       >
-                        Create your first campaign →
-                      </button>
+                        Think something&apos;s wrong? Contact us
+                      </a>
                       <p className="mt-2 text-xs text-neutral-400">
                         We&apos;ll re-check automatically once your traffic crosses 5,000 monthly visitors.
                       </p>
