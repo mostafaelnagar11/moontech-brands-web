@@ -697,13 +697,29 @@ function BackButton({ onClick }: { onClick: () => void }) {
 /* Eligibility check                                                   */
 /* ------------------------------------------------------------------ */
 
-const ELIGIBILITY_ITEMS = [
-  { label: "E-commerce website detected", key: "website" },
-  { label: "Analyzing your website", key: "analyze" },
-  { label: "Monthly unique visitors", value: "280,000" },
-  { label: "Minimum threshold (5,000+)", value: "✓ Passed" },
-  { label: "Brand classification", value: "New brand — eligible" },
-];
+function getEligibilityItems(eligible: boolean) {
+  return [
+    { label: "E-commerce website detected", key: "website" },
+    { label: "Analyzing your website", key: "analyze" },
+    { label: "Monthly unique visitors", value: eligible ? "280,000" : "3,200" },
+    { label: "Minimum threshold (5,000+)", value: eligible ? "✓ Passed" : "✗ Not met" },
+    { label: "Brand classification", value: eligible ? "New brand — eligible" : "New brand — not yet eligible" },
+  ];
+}
+
+// Alternates true/false on every signup (persisted per browser) so the team
+// can reliably see both the eligible and not-eligible flows.
+function getNextEligibility(): boolean {
+  if (typeof window === "undefined") return true;
+  try {
+    const last = window.localStorage.getItem("moontech_last_eligibility");
+    const next = last === null ? true : last !== "1";
+    window.localStorage.setItem("moontech_last_eligibility", next ? "1" : "0");
+    return next;
+  } catch {
+    return true;
+  }
+}
 
 function EligibilityStep({
   website,
@@ -714,6 +730,17 @@ function EligibilityStep({
 }) {
   const [revealed, setRevealed] = useState(0);
   const [analyzing, setAnalyzing] = useState(false);
+  const [eligible, setEligible] = useState(true);
+  const items = getEligibilityItems(eligible);
+
+  // Computed in an effect (guarded against React Strict Mode's dev-only
+  // double-invoke) so the localStorage toggle flips exactly once per mount.
+  const computedEligibility = useRef(false);
+  useEffect(() => {
+    if (computedEligibility.current) return;
+    computedEligibility.current = true;
+    setEligible(getNextEligibility());
+  }, []);
 
   useEffect(() => {
     const t: ReturnType<typeof setTimeout>[] = [];
@@ -730,7 +757,13 @@ function EligibilityStep({
   function itemValue(idx: number): string {
     if (idx === 0) return website;
     if (idx === 1) return analyzing ? "Scanning..." : "Complete";
-    return ELIGIBILITY_ITEMS[idx].value ?? "";
+    return items[idx].value ?? "";
+  }
+
+  // The threshold and classification rows should read as a failure (red),
+  // not a pass (green), when the brand isn't eligible.
+  function isFailRow(idx: number): boolean {
+    return !eligible && (idx === 3 || idx === 4);
   }
 
   return (
@@ -747,14 +780,15 @@ function EligibilityStep({
       </p>
 
       <div className="mt-6 w-full overflow-hidden rounded-2xl border border-neutral-100 bg-white shadow-sm">
-        {ELIGIBILITY_ITEMS.map((item, i) => {
+        {items.map((item, i) => {
           const checked = i < revealed && !(i === 1 && analyzing);
           const active = i < revealed;
+          const bad = checked && isFailRow(i);
           return (
             <div
               key={i}
               className={`flex items-center gap-3 px-4 py-3.5 transition-opacity duration-500 ${
-                i < ELIGIBILITY_ITEMS.length - 1 ? "border-b border-neutral-100" : ""
+                i < items.length - 1 ? "border-b border-neutral-100" : ""
               } ${active ? "opacity-100" : "opacity-30"}`}
             >
               {i === 1 && analyzing ? (
@@ -762,15 +796,19 @@ function EligibilityStep({
                   <span className="text-[11px] font-black tracking-widest text-neutral-400">···</span>
                 </div>
               ) : (
-                <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors duration-500 ${checked ? "bg-green-100" : "bg-neutral-100"}`}>
-                  <svg className={`h-4 w-4 transition-colors duration-500 ${checked ? "text-green-600" : "text-neutral-300"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors duration-500 ${checked ? (bad ? "bg-red-100" : "bg-green-100") : "bg-neutral-100"}`}>
+                  <svg className={`h-4 w-4 transition-colors duration-500 ${checked ? (bad ? "text-red-600" : "text-green-600") : "text-neutral-300"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    {bad ? (
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    ) : (
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    )}
                   </svg>
                 </div>
               )}
               <div className="flex-1">
                 <p className={`text-sm font-medium transition-colors duration-500 ${active ? "text-neutral-700" : "text-neutral-400"}`}>{item.label}</p>
-                <p className={`text-xs font-semibold transition-colors duration-500 ${checked ? "text-green-600" : "text-neutral-400"}`}>
+                <p className={`text-xs font-semibold transition-colors duration-500 ${checked ? (bad ? "text-red-600" : "text-green-600") : "text-neutral-400"}`}>
                   {itemValue(i)}
                 </p>
               </div>
