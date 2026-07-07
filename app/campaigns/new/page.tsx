@@ -4,6 +4,12 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 /* ------------------------------------------------------------------ */
+/* Design tokens                                                       */
+/* ------------------------------------------------------------------ */
+const BRAND = "#4D2FB0";
+const INK = "#191234";
+
+/* ------------------------------------------------------------------ */
 /* Types                                                               */
 /* ------------------------------------------------------------------ */
 type Step = "type" | "basics" | "budget" | "building" | "review" | "pay" | "processing";
@@ -38,7 +44,7 @@ const STEP_NUM: Record<Step, number> = { type: 1, basics: 2, budget: 3, building
 /* ------------------------------------------------------------------ */
 /* Shared primitives                                                   */
 /* ------------------------------------------------------------------ */
-const fieldCls = "w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-800 placeholder:text-neutral-400 outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-500/10 transition";
+const fieldCls = "w-full rounded-xl border border-black/[0.09] bg-white px-4 py-3 text-sm text-neutral-800 placeholder:text-neutral-400 outline-none focus:border-[#4D2FB0]/50 focus:ring-2 focus:ring-[#4D2FB0]/10 transition";
 const labelCls = "mb-1.5 block text-sm font-medium text-neutral-600";
 
 /* ------------------------------------------------------------------ */
@@ -92,13 +98,13 @@ function DatePicker({ value, onChange, placeholder }: { value: string; onChange:
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 z-50 mt-2 w-72 rounded-2xl border border-neutral-100 bg-white p-4 shadow-xl shadow-neutral-200/50">
+        <div className="absolute top-full left-0 z-50 mt-2 w-72 rounded-2xl border border-black/[0.06] bg-white p-4 shadow-lg shadow-black/[0.08]">
           {/* Month nav */}
           <div className="mb-4 flex items-center justify-between">
             <button onClick={prevMonth} className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-400 hover:bg-neutral-100 transition">
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><polyline points="15 18 9 12 15 6" /></svg>
             </button>
-            <p className="text-sm font-semibold text-[#1e1b4b]">{MONTHS[viewMonth]} {viewYear}</p>
+            <p className="text-sm font-semibold" style={{ color: INK }}>{MONTHS[viewMonth]} {viewYear}</p>
             <button onClick={nextMonth} className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-400 hover:bg-neutral-100 transition">
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><polyline points="9 18 15 12 9 6" /></svg>
             </button>
@@ -123,10 +129,10 @@ function DatePicker({ value, onChange, placeholder }: { value: string; onChange:
                 <button key={day} onClick={() => selectDay(day)}
                   className={`h-8 w-full rounded-lg text-sm transition ${
                     isSelected
-                      ? "bg-violet-600 font-semibold text-white"
+                      ? "bg-[#4D2FB0] font-semibold text-white"
                       : isToday
-                      ? "border border-violet-300 text-violet-600 font-semibold"
-                      : "text-neutral-700 hover:bg-violet-50 hover:text-violet-600"
+                      ? "border border-[#4D2FB0]/40 text-[#4D2FB0] font-semibold"
+                      : "text-neutral-700 hover:bg-[#4D2FB0]/[0.06] hover:text-[#4D2FB0]"
                   }`}>
                   {day}
                 </button>
@@ -146,10 +152,10 @@ function PillToggle<T extends string>({
     <div className="flex flex-wrap gap-2">
       {options.map((o) => (
         <button key={o.value} onClick={() => onChange(o.value)}
-          className={`rounded-xl border px-4 py-2 text-sm font-semibold transition ${
+          className={`rounded-xl border px-4 py-2 text-sm font-medium transition ${
             value === o.value
-              ? "border-violet-600 bg-violet-50 text-violet-700"
-              : "border-neutral-200 bg-white text-neutral-500 hover:border-violet-300 hover:text-violet-600"
+              ? "border-[#4D2FB0] bg-[#4D2FB0]/[0.06] text-[#4D2FB0]"
+              : "border-black/[0.09] bg-white text-neutral-500 hover:border-[#4D2FB0]/40 hover:text-[#4D2FB0]"
           }`}
         >{o.label}</button>
       ))}
@@ -212,8 +218,8 @@ function StepType({ data, onChange }: { data: CampaignData; onChange: (d: Partia
             const selected = data.type === opt.value;
             return (
               <button key={opt.value} onClick={() => onChange({ type: opt.value })}
-                className={`w-full flex items-start justify-between rounded-2xl border-2 p-4 text-left transition ${
-                  selected ? "border-violet-600 bg-violet-50/60" : "border-neutral-200 bg-white hover:border-neutral-300"
+                className={`w-full flex items-start justify-between rounded-2xl border p-4 text-left transition ${
+                  selected ? "border-[#4D2FB0] bg-[#4D2FB0]/[0.05]" : "border-black/[0.09] bg-white hover:border-black/20"
                 }`}
               >
                 <div>
@@ -221,7 +227,7 @@ function StepType({ data, onChange }: { data: CampaignData; onChange: (d: Partia
                   <p className="mt-0.5 text-xs text-neutral-500">{opt.desc}</p>
                 </div>
                 <div className={`mt-0.5 ml-3 h-5 w-5 shrink-0 rounded-full border-2 flex items-center justify-center transition ${
-                  selected ? "border-violet-600 bg-violet-600" : "border-neutral-300 bg-white"
+                  selected ? "border-[#4D2FB0] bg-[#4D2FB0]" : "border-neutral-300 bg-white"
                 }`}>
                   {selected && <div className="h-2 w-2 rounded-full bg-white" />}
                 </div>
@@ -232,16 +238,16 @@ function StepType({ data, onChange }: { data: CampaignData; onChange: (d: Partia
       </div>
 
       <div className="mt-auto pt-8 space-y-4">
-        <div className="flex items-start gap-3 rounded-2xl border border-violet-100 bg-violet-50/50 p-4">
-          <span className="mt-0.5 shrink-0 text-violet-500 text-sm">✦</span>
-          <p className="text-sm leading-relaxed text-violet-800">
+        <div className="flex items-start gap-3 rounded-2xl border border-[#4D2FB0]/15 bg-[#4D2FB0]/[0.05] p-4">
+          <span className="mt-0.5 shrink-0 text-[#4D2FB0] text-sm">✦</span>
+          <p className="text-sm leading-relaxed text-neutral-700">
             As a new brand, you&apos;ll start with our{" "}
-            <strong className="text-violet-700">warm-up program</strong> — three phased campaigns that
+            <strong className="text-[#4D2FB0]">warm-up program</strong> — three phased campaigns that
             help our engine learn your audience before scaling.
           </p>
         </div>
-        <div className="rounded-2xl bg-[#eeeeff] p-4">
-          <p className="mb-3 text-[10px] font-medium uppercase tracking-widest text-violet-800">Why brands trust MoonTech</p>
+        <div className="rounded-2xl bg-[#4D2FB0]/[0.06] p-4">
+          <p className="mb-3 text-xs font-medium text-[#4D2FB0]">Why brands trust MoonTech</p>
           <div className="flex items-start gap-3">
             <span className="text-xl shrink-0">🎯</span>
             <p className="text-sm leading-relaxed text-neutral-700">
@@ -286,9 +292,9 @@ function StepBasics({ data, onChange }: { data: CampaignData; onChange: (d: Part
       </div>
 
       <div className="flex items-center gap-3 py-1">
-        <div className="flex-1 h-px bg-neutral-200" />
-        <span className="text-xs font-semibold text-neutral-400">Campaign brief</span>
-        <div className="flex-1 h-px bg-neutral-200" />
+        <div className="flex-1 h-px bg-black/[0.07]" />
+        <span className="text-xs font-medium text-neutral-400">Campaign brief</span>
+        <div className="flex-1 h-px bg-black/[0.07]" />
       </div>
 
       <div>
@@ -304,7 +310,7 @@ function StepBasics({ data, onChange }: { data: CampaignData; onChange: (d: Part
 
       <div>
         <label className={labelCls}>Brand guideline link <span className="font-normal text-neutral-400">· optional</span></label>
-        <div className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-white px-4 py-3 focus-within:border-violet-400 focus-within:ring-2 focus-within:ring-violet-500/10 transition">
+        <div className="flex items-center gap-3 rounded-xl border border-black/[0.09] bg-white px-4 py-3 focus-within:border-[#4D2FB0]/50 focus-within:ring-2 focus-within:ring-[#4D2FB0]/10 transition">
           <span className="text-neutral-400 shrink-0">🔗</span>
           <input value={data.guidelineLink} onChange={(e) => onChange({ guidelineLink: e.target.value })}
             placeholder="Paste a link to your brand guidelines"
@@ -315,7 +321,7 @@ function StepBasics({ data, onChange }: { data: CampaignData; onChange: (d: Part
 
       <div>
         <label className={labelCls}>Attach assets <span className="font-normal text-neutral-400">· optional</span></label>
-        <label className="flex cursor-pointer flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-neutral-200 bg-white px-4 py-8 transition hover:border-violet-300 hover:bg-violet-50/20">
+        <label className="flex cursor-pointer flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-black/[0.1] bg-white px-4 py-8 transition hover:border-[#4D2FB0]/40 hover:bg-[#4D2FB0]/[0.04]">
           <input ref={fileRef} type="file" accept=".pdf,image/*" className="sr-only"
             onChange={(e) => onChange({ assetName: e.target.files?.[0]?.name ?? null })} />
           {data.assetName ? (
@@ -327,7 +333,7 @@ function StepBasics({ data, onChange }: { data: CampaignData; onChange: (d: Part
             </>
           ) : (
             <>
-              <svg className="h-7 w-7 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+              <svg className="h-7 w-7 text-[#4D2FB0]/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
               </svg>
               <p className="text-sm font-semibold text-neutral-700">Upload PDF or images</p>
@@ -353,7 +359,7 @@ function StepBudget({ data, onChange }: { data: CampaignData; onChange: (d: Part
       <div>
         <div className="flex items-baseline justify-between mb-4">
           <p className="text-sm text-neutral-600">Total campaign budget</p>
-          <p className="text-3xl font-bold text-violet-600 leading-none">
+          <p className="text-3xl font-semibold tracking-tight tabular-nums text-[#4D2FB0] leading-none">
             ${data.budget.toLocaleString()}
           </p>
         </div>
@@ -362,7 +368,7 @@ function StepBudget({ data, onChange }: { data: CampaignData; onChange: (d: Part
           value={data.budget}
           onChange={(e) => onChange({ budget: Number(e.target.value) })}
           className="w-full h-2 rounded-full appearance-none cursor-pointer"
-          style={{ accentColor: "#7c3aed" }}
+          style={{ accentColor: BRAND }}
         />
         <div className="flex justify-between mt-2 text-xs text-neutral-400 font-medium">
           <span>$1,000</span><span>$80,000</span>
@@ -374,7 +380,7 @@ function StepBudget({ data, onChange }: { data: CampaignData; onChange: (d: Part
         <div className="flex items-start justify-between mb-4">
           <p className="text-sm text-neutral-600 mt-1">Target ROAS</p>
           <div className="text-right">
-            <p className="text-3xl font-bold text-violet-600 leading-none">{data.roas}×</p>
+            <p className="text-3xl font-semibold tracking-tight tabular-nums text-[#4D2FB0] leading-none">{data.roas}×</p>
             <p className="text-xs text-neutral-400 mt-1">= ${projectedSales.toLocaleString()} in sales</p>
           </div>
         </div>
@@ -383,7 +389,7 @@ function StepBudget({ data, onChange }: { data: CampaignData; onChange: (d: Part
           value={data.roas}
           onChange={(e) => onChange({ roas: Number(e.target.value) })}
           className="w-full h-2 rounded-full appearance-none cursor-pointer"
-          style={{ accentColor: "#7c3aed" }}
+          style={{ accentColor: BRAND }}
         />
         <div className="flex justify-between mt-2 text-xs text-neutral-400 font-medium">
           <span>1×</span><span>12×</span>
@@ -391,8 +397,8 @@ function StepBudget({ data, onChange }: { data: CampaignData; onChange: (d: Part
       </div>
 
       {/* Confidence score */}
-      <div className="rounded-2xl border border-neutral-100 bg-white p-5 shadow-sm">
-        <p className="text-[10px] font-medium uppercase tracking-widest text-neutral-400 mb-3">Confidence Score</p>
+      <div className="rounded-2xl border border-black/[0.06] bg-white p-5 shadow-[0_1px_2px_rgba(16,12,40,0.04)]">
+        <p className="text-[13px] font-medium text-neutral-500 mb-3">Confidence score</p>
         <div className="h-2 w-full overflow-hidden rounded-full bg-neutral-100 mb-3">
           <div
             className={`h-full rounded-full transition-all duration-500 ${confidence.bar}`}
@@ -462,10 +468,10 @@ function StepReview({ data }: { data: CampaignData }) {
   return (
     <div className="space-y-5">
       {/* Hero card */}
-      <div className="rounded-2xl bg-violet-600 p-5 text-white">
-        <p className="mb-2 text-[10px] font-medium uppercase tracking-widest text-violet-200">Your plan</p>
+      <div className="rounded-2xl bg-[#4D2FB0] p-5 text-white">
+        <p className="mb-2 text-xs font-medium text-white/60">Your plan</p>
         <h2 className="text-xl font-semibold leading-snug mb-3">Your 4-phase campaign plan</h2>
-        <p className="text-sm leading-relaxed text-violet-100">
+        <p className="text-sm leading-relaxed text-white/80">
           Targeting <strong className="text-white">{data.roas}× ROAS</strong> on a{" "}
           <strong className="text-white">{fmt(data.budget)}</strong> budget. Your first three phases
           are fully guaranteed — if a phase misses its target, we make it right. The estimated phase
@@ -475,9 +481,9 @@ function StepReview({ data }: { data: CampaignData }) {
 
       {/* Committed phases */}
       <div className="flex items-center gap-3">
-        <div className="flex-1 h-px bg-neutral-200" />
-        <span className="text-[10px] font-medium uppercase tracking-widest text-neutral-400">Committed</span>
-        <div className="flex-1 h-px bg-neutral-200" />
+        <div className="flex-1 h-px bg-black/[0.07]" />
+        <span className="text-xs font-medium text-neutral-400">Committed</span>
+        <div className="flex-1 h-px bg-black/[0.07]" />
       </div>
 
       <div className="space-y-3">
@@ -485,25 +491,25 @@ function StepReview({ data }: { data: CampaignData }) {
           <div key={p.num} className="flex items-stretch gap-3">
             {/* Number + connector */}
             <div className="flex flex-col items-center">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-violet-600 text-sm font-semibold text-white shadow-md shadow-violet-200">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#4D2FB0] text-sm font-semibold text-white">
                 {p.num}
               </div>
-              {i < committed.length - 1 && <div className="flex-1 w-px bg-violet-200 my-1" />}
+              {i < committed.length - 1 && <div className="flex-1 w-px bg-[#4D2FB0]/25 my-1" />}
             </div>
             {/* Card */}
-            <div className="flex-1 rounded-2xl border border-neutral-100 bg-white p-4 shadow-sm" style={{ borderLeft: "3px solid #7c3aed" }}>
+            <div className="flex-1 rounded-2xl border border-black/[0.06] bg-white p-4 shadow-[0_1px_2px_rgba(16,12,40,0.04)]" style={{ borderLeft: `3px solid ${BRAND}` }}>
               <div className="flex items-start justify-between">
                 <p className="text-sm font-semibold text-neutral-700">{p.label}</p>
-                <span className="rounded-full bg-green-50 border border-green-200 px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-green-600">
+                <span className="rounded-full bg-green-50 px-2.5 py-0.5 text-[11px] font-medium text-green-600">
                   Committed
                 </span>
               </div>
               <div className="mt-1.5 flex items-center justify-between">
                 <p className="text-xs text-neutral-400">
-                  Budget: <strong className="text-neutral-600">{fmt(p.budget)}</strong> · ROAS:{" "}
-                  <strong className="text-neutral-600">{p.roas}×</strong>
+                  Budget: <strong className="text-neutral-600 tabular-nums">{fmt(p.budget)}</strong> · ROAS:{" "}
+                  <strong className="text-neutral-600 tabular-nums">{p.roas}×</strong>
                 </p>
-                <p className="text-xs text-neutral-400">≈{fmt(p.revenue)}</p>
+                <p className="text-xs text-neutral-400 tabular-nums">≈{fmt(p.revenue)}</p>
               </div>
             </div>
           </div>
@@ -512,28 +518,28 @@ function StepReview({ data }: { data: CampaignData }) {
 
       {/* Estimated phases */}
       <div className="flex items-center gap-3">
-        <div className="flex-1 h-px bg-neutral-200" />
-        <span className="text-[10px] font-medium uppercase tracking-widest text-neutral-400">Estimated phases</span>
-        <div className="flex-1 h-px bg-neutral-200" />
+        <div className="flex-1 h-px bg-black/[0.07]" />
+        <span className="text-xs font-medium text-neutral-400">Estimated phase</span>
+        <div className="flex-1 h-px bg-black/[0.07]" />
       </div>
 
       <div className="flex items-stretch gap-3">
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-dashed border-amber-400 text-amber-500 text-sm font-semibold">
           ~
         </div>
-        <div className="flex-1 rounded-2xl border border-neutral-100 bg-white p-4 shadow-sm" style={{ borderLeft: "3px solid #f59e0b" }}>
+        <div className="flex-1 rounded-2xl border border-black/[0.06] bg-white p-4 shadow-[0_1px_2px_rgba(16,12,40,0.04)]" style={{ borderLeft: "3px solid #f59e0b" }}>
           <div className="flex items-start justify-between">
             <p className="text-sm font-semibold text-neutral-700">Phase 4 · Growth</p>
-            <span className="rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-500">
+            <span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-medium text-amber-500">
               Estimated
             </span>
           </div>
           <div className="mt-1.5 flex items-center justify-between">
             <p className="text-xs text-neutral-400">
-              Budget: <strong className="text-neutral-600">{fmt(p4b)}</strong> · ROAS:{" "}
-              <strong className="text-neutral-600">{p4roas}×</strong>
+              Budget: <strong className="text-neutral-600 tabular-nums">{fmt(p4b)}</strong> · ROAS:{" "}
+              <strong className="text-neutral-600 tabular-nums">{p4roas}×</strong>
             </p>
-            <p className="text-xs text-neutral-400">≈{fmt(p4r)}</p>
+            <p className="text-xs text-neutral-400 tabular-nums">≈{fmt(p4r)}</p>
           </div>
         </div>
       </div>
@@ -542,24 +548,24 @@ function StepReview({ data }: { data: CampaignData }) {
       <div className="rounded-2xl border border-green-200 bg-green-50 p-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[10px] font-medium uppercase tracking-widest text-green-700">Total projected revenue</p>
+            <p className="text-xs font-medium text-green-700">Total projected revenue</p>
             <p className="mt-0.5 text-xs text-green-600">Across all 4 phases · {fmt(data.budget)} spend</p>
           </div>
           <div className="text-right">
-            <p className="text-2xl font-bold text-green-600 leading-none">{fmt(totalTarget)}</p>
-            <p className="mt-1 text-xs font-semibold text-green-500">✓ matches your {data.roas}× goal</p>
+            <p className="text-2xl font-semibold tracking-tight tabular-nums text-green-600 leading-none">{fmt(totalTarget)}</p>
+            <p className="mt-1 text-xs font-medium text-green-500">✓ matches your {data.roas}× goal</p>
           </div>
         </div>
       </div>
 
       {/* Before you launch accordion */}
-      <div className="rounded-2xl border border-neutral-100 bg-white shadow-sm overflow-hidden">
+      <div className="rounded-2xl border border-black/[0.06] bg-white shadow-[0_1px_2px_rgba(16,12,40,0.04)] overflow-hidden">
         <button
           onClick={() => setKnowOpen((o) => !o)}
           className="flex w-full items-center gap-3 px-4 py-4 text-left"
         >
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-violet-50">
-            <svg className="h-4 w-4 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#4D2FB0]/[0.08]">
+            <svg className="h-4 w-4 text-[#4D2FB0]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <circle cx="12" cy="12" r="10" /><path strokeLinecap="round" d="M12 8v4M12 16h.01" />
             </svg>
           </div>
@@ -569,7 +575,7 @@ function StepReview({ data }: { data: CampaignData }) {
           </svg>
         </button>
         {knowOpen && (
-          <div className="border-t border-neutral-100 divide-y divide-neutral-50">
+          <div className="border-t border-black/[0.05] divide-y divide-black/[0.04]">
             {KNOW_ITEMS.map((item, i) => (
               <div key={i} className="flex items-start gap-3 px-4 py-4">
                 <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-lg ${item.bg}`}>
@@ -585,7 +591,7 @@ function StepReview({ data }: { data: CampaignData }) {
             {/* Tracker best practices */}
             <div className="px-4 py-4">
               <div className="flex items-center gap-3 mb-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-lg">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#4D2FB0]/[0.08] text-lg">
                   💡
                 </div>
                 <p className="text-sm font-semibold text-neutral-700">Tracker best practices</p>
@@ -645,11 +651,11 @@ function StepPay({
   return (
     <div className="space-y-5">
       {/* Due today card */}
-      <div className="rounded-2xl bg-violet-50 border border-violet-100 p-5">
-        <p className="text-[11px] font-medium uppercase tracking-widest text-violet-600 mb-2">
+      <div className="rounded-2xl bg-[#4D2FB0]/[0.06] p-5">
+        <p className="text-[11px] font-medium uppercase tracking-wide text-[#4D2FB0] mb-2">
           Due today — Phase 1 only
         </p>
-        <p className="text-4xl font-bold text-violet-600 leading-none">{fmt(p1Budget)}</p>
+        <p className="text-4xl font-semibold tracking-tight tabular-nums text-[#4D2FB0] leading-none">{fmt(p1Budget)}</p>
         <p className="mt-2 text-sm text-neutral-500">Phases 2 &amp; 3 paid separately as you progress.</p>
       </div>
 
@@ -664,28 +670,28 @@ function StepPay({
       </div>
 
       {/* Line items */}
-      <div className="rounded-2xl border border-neutral-100 bg-white shadow-sm overflow-hidden">
+      <div className="rounded-2xl border border-black/[0.06] bg-white shadow-[0_1px_2px_rgba(16,12,40,0.04)] overflow-hidden">
         {rows.map((r, i) => (
-          <div key={r.label} className={`flex items-center justify-between px-5 py-3.5 ${i < rows.length - 1 ? "border-b border-neutral-50" : ""}`}>
+          <div key={r.label} className={`flex items-center justify-between px-5 py-3.5 ${i < rows.length - 1 ? "border-b border-black/[0.04]" : ""}`}>
             <p className="text-sm text-neutral-400">{r.label}</p>
-            <p className="text-sm font-semibold text-neutral-700">{r.value}</p>
+            <p className="text-sm font-medium tabular-nums text-neutral-700">{r.value}</p>
           </div>
         ))}
-        <div className="border-t-2 border-violet-100 flex items-center justify-between px-5 py-4">
+        <div className="border-t border-[#4D2FB0]/15 flex items-center justify-between px-5 py-4">
           <p className="text-sm font-semibold text-neutral-700">Total due now</p>
-          <p className="text-[18px] font-semibold text-violet-600">{fmt(total)}</p>
+          <p className="text-[18px] font-semibold tabular-nums text-[#4D2FB0]">{fmt(total)}</p>
         </div>
       </div>
 
       {/* Secured by Mamo Pay */}
-      <div className="rounded-2xl bg-violet-50 border border-violet-100 p-4 flex items-start gap-4">
+      <div className="rounded-2xl bg-[#4D2FB0]/[0.06] p-4 flex items-start gap-4">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm">
-          <svg className="h-5 w-5 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+          <svg className="h-5 w-5 text-[#4D2FB0]/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
             <rect x="3" y="11" width="18" height="11" rx="2" /><path strokeLinecap="round" d="M7 11V7a5 5 0 0110 0v4" />
           </svg>
         </div>
         <div>
-          <p className="text-sm font-semibold text-violet-700">Secured by Mamo Pay</p>
+          <p className="text-sm font-semibold text-[#4D2FB0]">Secured by Mamo Pay</p>
           <p className="mt-0.5 text-xs leading-relaxed text-neutral-500">
             Clicking &quot;Confirm&quot; will redirect you to Mamo Pay&apos;s secure checkout. Your card
             details are never stored by MoonTech.
@@ -733,7 +739,7 @@ function StepPay({
               text: (
                 <>
                   I accept the{" "}
-                  <span className="font-semibold text-violet-600">Campaign Policy</span> for this
+                  <span className="font-semibold text-[#4D2FB0]">Campaign Policy</span> for this
                   campaign and agree to the campaign terms.
                 </>
               ),
@@ -743,11 +749,11 @@ function StepPay({
               key={i}
               onClick={() => item.set((v) => !v)}
               className={`w-full flex items-start gap-3 rounded-2xl border p-4 text-left transition ${
-                item.checked ? "border-violet-300 bg-violet-50/50" : "border-neutral-200 bg-white"
+                item.checked ? "border-[#4D2FB0]/40 bg-[#4D2FB0]/[0.05]" : "border-black/[0.09] bg-white"
               }`}
             >
               <div className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition ${
-                item.checked ? "border-violet-600 bg-violet-600" : "border-neutral-300 bg-white"
+                item.checked ? "border-[#4D2FB0] bg-[#4D2FB0]" : "border-neutral-300 bg-white"
               }`}>
                 {item.checked && (
                   <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
@@ -768,8 +774,8 @@ function StepPay({
           disabled={!canPay}
           className={`w-full flex items-center justify-center gap-2 rounded-2xl py-4 text-[15px] font-semibold text-white transition active:scale-[0.98] ${
             canPay
-              ? "bg-violet-600 shadow-lg shadow-violet-200 hover:bg-violet-700"
-              : "bg-violet-300 cursor-not-allowed"
+              ? "bg-[#4D2FB0] hover:bg-[#3F2596]"
+              : "bg-[#4D2FB0]/40 cursor-not-allowed"
           }`}
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -804,9 +810,9 @@ function BuildingScreen({ onDone }: { onDone: () => void }) {
 
       <div className="mt-10 w-full max-w-xs space-y-3">
         {[100, 80, 88].map((w, i) => (
-          <div key={i} className="h-3 rounded-full bg-violet-100 overflow-hidden">
+          <div key={i} className="h-3 rounded-full bg-[#4D2FB0]/[0.12] overflow-hidden">
             <div
-              className="h-full rounded-full bg-violet-200 animate-pulse"
+              className="h-full rounded-full bg-[#4D2FB0]/40 animate-pulse"
               style={{ width: `${w}%`, animationDelay: `${i * 0.2}s` }}
             />
           </div>
@@ -815,7 +821,7 @@ function BuildingScreen({ onDone }: { onDone: () => void }) {
 
       <div className="mt-8 flex items-center gap-2">
         {[0, 1, 2].map((i) => (
-          <div key={i} className="h-2 w-2 rounded-full bg-violet-300 animate-bounce"
+          <div key={i} className="h-2 w-2 rounded-full bg-[#4D2FB0]/50 animate-bounce"
             style={{ animationDelay: `${i * 0.15}s` }} />
         ))}
       </div>
@@ -833,7 +839,7 @@ function ProcessingScreen({ onDone }: { onDone: () => void }) {
   }, [onDone]);
 
   return (
-    <div className="fixed inset-0 z-40 flex flex-col items-center justify-center bg-[#f8f8fc] text-center px-6">
+    <div className="fixed inset-0 z-40 flex flex-col items-center justify-center bg-[#F7F7F8] text-center px-6">
       <div className="text-[72px] mb-8 drop-shadow-md" style={{ animation: "float-a 3s ease-in-out infinite" }}>
         💳
       </div>
@@ -843,7 +849,7 @@ function ProcessingScreen({ onDone }: { onDone: () => void }) {
         {[0, 1, 2].map((i) => (
           <div
             key={i}
-            className="h-2.5 w-2.5 rounded-full bg-violet-400 animate-bounce"
+            className="h-2.5 w-2.5 rounded-full bg-[#4D2FB0]/60 animate-bounce"
             style={{ animationDelay: `${i * 0.18}s` }}
           />
         ))}
@@ -923,23 +929,23 @@ export default function NewCampaign() {
   const isLowConfidence = step === "budget" && confidence.color === "red";
 
   return (
-    <div className="min-h-screen bg-[#f8f8fc]" style={{ fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>
+    <div className="min-h-screen bg-[#F7F7F8]" style={{ fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>
 
       {/* ── Sticky header ── */}
       {!isBuilding && !isProcessing && (
-        <header className="sticky top-0 z-20 flex items-center gap-3 bg-white px-5 py-4 shadow-sm">
+        <header className="sticky top-0 z-20 flex items-center gap-3 bg-white/80 backdrop-blur-sm border-b border-black/[0.06] px-5 py-4">
           <button onClick={() => setShowCloseConfirm(true)}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-neutral-200 text-neutral-500 transition hover:bg-neutral-50"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-black/[0.08] text-neutral-500 transition hover:bg-neutral-50"
           >
             <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           </button>
-          <h1 className="text-base font-semibold text-[#1e1b4b]">New campaign</h1>
+          <h1 className="text-base font-semibold" style={{ color: INK }}>New campaign</h1>
           <div className="ml-auto text-right">
             <div className="h-1.5 w-36 overflow-hidden rounded-full bg-neutral-100">
               <div
-                className="h-full rounded-full bg-violet-600 transition-all duration-500"
+                className="h-full rounded-full bg-[#4D2FB0] transition-all duration-500"
                 style={{ width: `${(stepNum / TOTAL_STEPS) * 100}%` }}
               />
             </div>
@@ -991,7 +997,7 @@ export default function NewCampaign() {
               </button>
               <button
                 onClick={() => setShowCloseConfirm(false)}
-                className="w-full rounded-2xl border border-neutral-200 bg-neutral-50 py-3.5 text-sm font-semibold text-neutral-700 hover:bg-neutral-100 active:scale-[0.98] transition"
+                className="w-full rounded-2xl border border-black/[0.08] bg-neutral-50 py-3.5 text-sm font-semibold text-neutral-700 hover:bg-neutral-100 active:scale-[0.98] transition"
               >
                 Keep editing
               </button>
@@ -1002,7 +1008,7 @@ export default function NewCampaign() {
 
       {/* ── Sticky bottom bar ── */}
       {!isBuilding && !isPay && !isProcessing && (
-        <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-neutral-100 bg-white px-5 py-4 shadow-[0_-4px_16px_rgba(0,0,0,0.06)]">
+        <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-black/[0.06] bg-white px-5 py-4">
           <div className="mx-auto max-w-2xl">
             {isReview ? (
               <div className="flex items-center gap-4">
@@ -1013,7 +1019,7 @@ export default function NewCampaign() {
                 </button>
                 <p className="flex-1" />
                 <button onClick={handleNext}
-                  className="shrink-0 rounded-xl bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-violet-200 hover:bg-violet-700 active:scale-[0.98] transition"
+                  className="shrink-0 rounded-xl bg-[#4D2FB0] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#3F2596] active:scale-[0.98] transition"
                 >
                   Accept &amp; pay Phase 1 →
                 </button>
@@ -1031,10 +1037,10 @@ export default function NewCampaign() {
                 <div className="flex-1 sm:flex-none" />
                 <button onClick={handleNext}
                   disabled={step === "type" && !data.name.trim()}
-                  className={`shrink-0 rounded-xl px-4 sm:px-5 py-2.5 text-sm font-semibold text-white shadow-md transition active:scale-[0.98] ${
+                  className={`shrink-0 rounded-xl px-4 sm:px-5 py-2.5 text-sm font-semibold text-white transition active:scale-[0.98] ${
                     isLowConfidence
-                      ? "bg-violet-400 shadow-violet-100 cursor-not-allowed"
-                      : "bg-violet-600 shadow-violet-200 hover:bg-violet-700"
+                      ? "bg-[#4D2FB0]/40 cursor-not-allowed"
+                      : "bg-[#4D2FB0] hover:bg-[#3F2596]"
                   }`}
                 >
                   <span className="hidden sm:inline">{nextLabel} →</span>
