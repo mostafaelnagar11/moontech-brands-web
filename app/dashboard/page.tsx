@@ -9,7 +9,6 @@ import Sidebar from "../components/Sidebar";
 /* Design tokens                                                       */
 /* ------------------------------------------------------------------ */
 const BRAND = "#4D2FB0";
-const BRAND_DARK = "#3F2596";
 const INK = "#191234";
 const card = "rounded-2xl bg-white border border-black/[0.06] shadow-[0_1px_2px_rgba(16,12,40,0.04)]";
 
