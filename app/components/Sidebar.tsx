@@ -1,16 +1,18 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import {
-  House, Megaphone,
+  House, Megaphone, UsersThree,
   Gear, Question, SignOut, X,
 } from "@phosphor-icons/react";
 
-const NAV_MENU = [
-  { icon: <House size={16} weight="bold" />,     label: "Dashboard",  href: "/dashboard" },
-  { icon: <Megaphone size={16} weight="bold" />, label: "Campaigns",  href: "/campaigns" },
+type NavItem = { icon: ReactNode; label: string; href: string; badge?: string };
+const NAV_MENU: NavItem[] = [
+  { icon: <House size={16} weight="bold" />,      label: "Dashboard", href: "/dashboard" },
+  { icon: <Megaphone size={16} weight="bold" />,  label: "Campaigns", href: "/campaigns" },
+  { icon: <UsersThree size={16} weight="bold" />, label: "Creators",  href: "/creators", badge: "8" },
 ];
 const NAV_OTHERS = [
   { icon: <Gear size={16} weight="bold" />,     label: "Settings" },
@@ -118,7 +120,12 @@ function SidebarContent({
                 : "text-neutral-500 hover:bg-neutral-50 hover:text-neutral-800"
             }`}>
             {item.icon}
-            {!collapsed && item.label}
+            {!collapsed && <span className="flex-1 truncate">{item.label}</span>}
+            {!collapsed && item.badge && (
+              <span className={`shrink-0 rounded-md px-1.5 py-0.5 text-[11px] font-semibold ${
+                activeNav === item.label ? "bg-white/20 text-white" : "bg-neutral-100 text-neutral-500"
+              }`}>{item.badge}</span>
+            )}
           </button>
         ))}
       </nav>
