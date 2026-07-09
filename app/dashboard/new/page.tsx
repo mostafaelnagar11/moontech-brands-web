@@ -54,12 +54,12 @@ export default function NewBrandDashboard() {
             </button>
             <div className="relative">
               <button onClick={() => setUserMenuOpen((o) => !o)} className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 text-white text-xs font-medium shadow-md shadow-violet-200">
-                V
+                O
               </button>
               {userMenuOpen && (
                 <div className="absolute right-0 top-full mt-2 w-36 rounded-2xl border border-neutral-100 bg-white shadow-xl z-50 overflow-hidden">
                   <div className="px-4 pt-3 pb-2 border-b border-neutral-50">
-                    <p className="text-[12px] font-semibold text-neutral-800">Vogacloset</p>
+                    <p className="text-[12px] font-semibold text-neutral-800">Ounass</p>
                   </div>
                   <button onClick={() => router.push("/")} className="flex w-full items-center gap-2 px-4 py-3 text-[12px] font-semibold text-red-500 hover:bg-red-50 transition-colors">
                     <SignOut size={13} weight="bold" /> Sign out

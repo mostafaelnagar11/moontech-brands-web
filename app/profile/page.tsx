@@ -102,7 +102,7 @@ export default function BusinessProfile() {
                 type="text"
                 value={legalName}
                 onChange={(e) => setLegalName(e.target.value)}
-                placeholder="e.g. Vogacloset Trading LLC"
+                placeholder="e.g. Ounass Trading LLC"
                 className={fieldCls}
               />
             </div>

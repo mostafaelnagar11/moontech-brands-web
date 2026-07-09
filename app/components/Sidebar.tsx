@@ -20,7 +20,7 @@ const NAV_OTHERS = [
 ];
 
 const BRANDS = [
-  { id: "voga",  name: "Vogacloset",  initials: "V", color: "#6d28d9" },
+  { id: "ounass", name: "Ounass",     initials: "O", color: "#4D2FB0" },
   { id: "luna",  name: "Luna Beauty", initials: "L", color: "#0891b2" },
   { id: "fresh", name: "FreshGrocer", initials: "F", color: "#059669" },
 ];

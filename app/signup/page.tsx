@@ -24,9 +24,9 @@ export default function SignupPage() {
   const [step, setStep] = useState<Step>("signup");
   const [signupData, setSignupData] = useState<SignupData>({
     fullName: "Sarah Al-Hamdan",
-    email: "sarah@vogacloset.com",
-    brandName: "Vogacloset",
-    website: "vogacloset.com",
+    email: "sarah@ounass.com",
+    brandName: "Ounass",
+    website: "ounass.com",
     country: "UAE",
     industry: "Fashion",
     phone: "+971 50 123 4567",
@@ -83,7 +83,7 @@ export default function SignupPage() {
             )}
             {step === "eligibility" && (
               <EligibilityStep
-                website={signupData.website || "vogacloset.com"}
+                website={signupData.website || "ounass.com"}
                 onComplete={() => router.push("/dashboard/new")}
               />
             )}
