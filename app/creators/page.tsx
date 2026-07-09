@@ -248,9 +248,11 @@ function Detail({
               ))}
             </div>
           </div>
-          <div className="space-y-2.5">
-            <SignalCard label="Brand fit" value={`${fit}%`} valueColor={fitColor}
-              track={fitTrack} bar={fitColor} width={fit} />
+          <div className="grid grid-cols-2 gap-2.5">
+            <div className="col-span-2">
+              <SignalCard label="Brand fit" value={`${fit}%`} valueColor={fitColor}
+                track={fitTrack} bar={fitColor} width={fit} />
+            </div>
             <SignalCard label="Content quality" value={c.contentQuality} valueColor={cqColor}
               track={`${cqColor}22`} bar={cqColor} width={cqPct} />
             <SignalCard label="Post frequency" value={c.postFreq} valueColor={INK}
@@ -272,7 +274,7 @@ function Detail({
                   <img src={p.img} alt="post" loading="lazy" className="h-full w-full object-cover" />
                   <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
                   <div className="absolute left-1.5 top-1.5 rounded bg-black/50 px-1.5 py-0.5 text-[9px] font-bold text-white">{p.type}</div>
-                  <div className="absolute inset-x-0 bottom-2 flex items-center justify-end gap-2 px-2 text-[12px] font-bold text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.95)]">
+                  <div className="absolute inset-x-0 bottom-2 flex items-center justify-start gap-2 px-2 text-[12px] font-bold text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.95)]">
                     <span className="flex items-center gap-1">
                       <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true" className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]">
                         <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
@@ -319,9 +321,9 @@ function SignalCard({ label, value, valueColor, track, bar, width }: {
 }) {
   return (
     <div className="rounded-2xl border border-black/[0.06] bg-neutral-50/70 p-4">
-      <div className="flex items-baseline justify-between gap-2">
-        <span className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">{label}</span>
-        <span className="text-[16px] font-bold" style={{ color: valueColor }}>{value}</span>
+      <div className="flex items-center justify-between gap-2">
+        <span className="min-w-0 text-[10px] font-bold uppercase leading-tight tracking-wide text-neutral-400">{label}</span>
+        <span className="shrink-0 whitespace-nowrap text-[16px] font-bold" style={{ color: valueColor }}>{value}</span>
       </div>
       <div className="mt-2.5 h-[3px] overflow-hidden rounded-full" style={{ background: track }}>
         <div className="h-full rounded-full" style={{ width: `${width}%`, background: bar }} />
