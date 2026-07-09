@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import {
-  List, MagnifyingGlass, ArrowLeft, ArrowRight, CheckCircle, ArrowUpRight,
+  List, MagnifyingGlass, ArrowLeft, ArrowRight, CheckCircle, ArrowUpRight, MapPin,
   ThumbsUp, ThumbsDown, InstagramLogo, TiktokLogo, YoutubeLogo, type Icon,
 } from "@phosphor-icons/react";
 import Sidebar from "../components/Sidebar";
@@ -126,6 +126,7 @@ function Detail({
   const hasPrev = idx > 0, hasNext = idx >= 0 && idx < pendingList.length - 1;
 
   const insights = [
+    { ok: true, text: `Top countries: ${c.topCountries}` },
     { ok: c.contentQuality !== "Medium", text: `${c.contentQuality} content quality` },
     { ok: c.brandConflict === "None", text: c.brandConflict === "None" ? "No brand conflicts detected" : `Brand conflict: ${c.brandConflict}` },
     { ok: true, text: `Active since ${c.activeSince} · ${c.postFreq}` },
@@ -180,7 +181,9 @@ function Detail({
                     </a>
                   );
                 })}
-                <span className="text-xs text-neutral-400">📍 {c.location}</span>
+                <span className="inline-flex items-center gap-1 text-xs text-neutral-400">
+                  <MapPin size={12} weight="fill" /> {c.location}
+                </span>
               </div>
               <div className="mb-2.5 text-xs text-neutral-400">{c.handle} · {c.niche}</div>
               <div className="inline-flex items-start gap-2 rounded-xl border border-[#4D2FB0]/12 bg-[#4D2FB0]/[0.05] px-3 py-2">
@@ -213,9 +216,9 @@ function Detail({
         <div className="mb-5 px-7">
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
             {[
-              { lbl: "Match score", val: `${c.score}`, sub: scoreLabel, color: scoreColor, subCls: "text-neutral-400" },
-              { lbl: "Avg views", val: fmt(c.avgViews), sub: "per post", color: INK, subCls: "text-neutral-400" },
+              { lbl: "Match score", val: `${c.score}%`, sub: scoreLabel, color: scoreColor, subCls: "text-neutral-400" },
               { lbl: "Avg. followers", val: fmt(c.followers), sub: "across platforms", color: INK, subCls: "text-neutral-400" },
+              { lbl: "Avg views", val: fmt(c.avgViews), sub: "per post", color: INK, subCls: "text-neutral-400" },
               { lbl: "Total posts", val: c.totalPosts.toLocaleString(), sub: `since ${c.activeSince}`, color: INK, subCls: "text-neutral-400" },
             ].map((m) => (
               <div key={m.lbl} className="rounded-2xl border border-black/[0.06] bg-neutral-50/70 p-4">
