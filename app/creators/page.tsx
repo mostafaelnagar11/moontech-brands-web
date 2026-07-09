@@ -230,7 +230,7 @@ function Detail({
           </div>
         </div>
 
-        {/* Why we recommend + Audience */}
+        {/* Why we recommend + signals */}
         <div className="mb-5 grid grid-cols-1 gap-3 px-7 lg:grid-cols-2">
           <div className="rounded-2xl border border-[#4D2FB0]/12 bg-[#4D2FB0]/[0.04] p-4">
             <div className="mb-3 flex items-center gap-1.5">
@@ -248,26 +248,11 @@ function Detail({
               ))}
             </div>
           </div>
-          <div className="rounded-2xl border border-black/[0.06] bg-neutral-50/70 p-4">
-            <div className="mb-3 text-[11px] font-bold uppercase tracking-wide text-neutral-400">Audience</div>
-            {[
-              { k: "Top countries", v: c.topCountries },
-              { k: "Age", v: c.audienceAge },
-              { k: "Gender", v: c.audienceGender },
-            ].map((row, i) => (
-              <div key={row.k} className={`flex items-center justify-between gap-3 py-2.5 ${i < 2 ? "border-b border-black/[0.05]" : ""}`}>
-                <span className="text-xs text-neutral-400">{row.k}</span>
-                <span className="text-right text-[11px] font-medium text-neutral-700">{row.v}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Signal bars */}
-        <div className="mb-5 px-7">
-          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
-            <SignalCard label="Brand fit" value={`${fit}%`} valueColor={fitColor}
-              track={fitTrack} bar={fitColor} width={fit} />
+          <div className="grid grid-cols-2 gap-2.5">
+            <div className="col-span-2">
+              <SignalCard label="Brand fit" value={`${fit}%`} valueColor={fitColor}
+                track={fitTrack} bar={fitColor} width={fit} />
+            </div>
             <SignalCard label="Content quality" value={c.contentQuality} valueColor={cqColor}
               track={`${cqColor}22`} bar={cqColor} width={cqPct} />
             <SignalCard label="Post frequency" value={c.postFreq} valueColor={INK}
