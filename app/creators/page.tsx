@@ -291,17 +291,17 @@ function Detail({
                   className="relative block aspect-[9/14] cursor-pointer overflow-hidden rounded-xl bg-neutral-200">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={p.img} alt="post" loading="lazy" className="h-full w-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                  <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
                   <div className="absolute left-1.5 top-1.5 rounded bg-black/50 px-1.5 py-0.5 text-[9px] font-bold text-white">{p.type}</div>
-                  <div className="absolute inset-x-0 bottom-1.5 flex items-center justify-center gap-2 text-[9px] font-bold text-white">
-                    <span className="flex items-center gap-0.5">
-                      <svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor" aria-hidden="true">
+                  <div className="absolute inset-x-0 bottom-1.5 flex items-center justify-end gap-2.5 px-2 text-[10px] font-semibold text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.95)]">
+                    <span className="flex items-center gap-1">
+                      <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true" className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]">
                         <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                       </svg>
                       {fmt(likes)}
                     </span>
-                    <span className="flex items-center gap-0.5">
-                      <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <span className="flex items-center gap-1">
+                      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]">
                         <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
                       </svg>
                       {fmt(comments)}
@@ -428,7 +428,6 @@ export default function CreatorsPage() {
           </button>
           <div className="flex flex-1 items-center gap-2">
             <span className="text-sm font-semibold" style={{ color: INK }}>Creators</span>
-            <span className="rounded-md bg-[#0F0F10] px-1.5 py-0.5 text-[10px] font-bold tracking-widest text-[#D4AF37]">OUNASS</span>
             <div className="ml-3 hidden items-center gap-2 sm:flex">
               <div className="h-1 w-[120px] overflow-hidden rounded-full bg-neutral-200">
                 <div className="h-full rounded-full bg-[#4D2FB0] transition-all duration-500" style={{ width: `${progPct}%` }} />
