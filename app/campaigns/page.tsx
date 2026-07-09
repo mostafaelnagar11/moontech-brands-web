@@ -20,7 +20,7 @@ const CAMPAIGNS = [
     orders: null,
     goalPct: null,
     phaseLabel: "Phase 1 · Ready to launch",
-    phaseColor: "text-violet-600",
+    phaseColor: "text-[#4D2FB0]",
     progress: 0,
     progressBar: "bg-neutral-200",
   },
@@ -33,9 +33,9 @@ const CAMPAIGNS = [
     orders: "287",
     goalPct: "82%",
     phaseLabel: "Phase 1 · In progress",
-    phaseColor: "text-violet-600",
+    phaseColor: "text-[#4D2FB0]",
     progress: 82,
-    progressBar: "bg-violet-600",
+    progressBar: "bg-[#4D2FB0]",
   },
   {
     id: "ramadan-flash",
@@ -59,7 +59,7 @@ const CAMPAIGNS = [
     orders: "4,820",
     goalPct: "97%",
     phaseLabel: "All phases complete",
-    phaseColor: "text-violet-600",
+    phaseColor: "text-[#4D2FB0]",
     progress: 97,
     progressBar: "bg-amber-400",
   },
@@ -104,7 +104,7 @@ function CampaignCard({ c }: { c: typeof CAMPAIGNS[0] }) {
       {/* Header */}
       <div className="flex items-start justify-between gap-2">
         <div>
-          <h3 className="text-[15px] font-semibold text-[#1e1b4b]">{c.name}</h3>
+          <h3 className="text-[15px] font-semibold text-[#191234]">{c.name}</h3>
           <p className="text-xs text-neutral-400 mt-0.5">{c.dates}</p>
         </div>
         <StatusBadge status={c.status} />
@@ -118,7 +118,7 @@ function CampaignCard({ c }: { c: typeof CAMPAIGNS[0] }) {
           { label: "Of goal",  value: c.goalPct  ?? "—" },
         ].map((m) => (
           <div key={m.label}>
-            <p className="text-[15px] font-bold text-[#1e1b4b] leading-none">{m.value}</p>
+            <p className="text-[15px] font-bold text-[#191234] leading-none">{m.value}</p>
             <p className="text-[11px] text-neutral-400 mt-1">{m.label}</p>
           </div>
         ))}
@@ -136,7 +136,7 @@ function CampaignCard({ c }: { c: typeof CAMPAIGNS[0] }) {
       </div>
 
       {/* Footer link */}
-      <p className="text-[12px] font-medium text-neutral-400 text-right hover:text-violet-600 cursor-pointer transition-colors">
+      <p className="text-[12px] font-medium text-neutral-400 text-right hover:text-[#4D2FB0] cursor-pointer transition-colors">
         Tap to view campaign details →
       </p>
     </div>
@@ -173,7 +173,7 @@ export default function CampaignsPage() {
       <div className="flex flex-1 flex-col overflow-hidden min-w-0">
 
         {/* Top bar */}
-        <header className="flex items-center gap-3 bg-white/80 backdrop-blur-sm border-b border-neutral-100 px-4 py-3 sticky top-0 z-20">
+        <header className="flex items-center gap-3 bg-white/80 backdrop-blur-sm border-b border-black/[0.06] px-4 py-3 sticky top-0 z-20">
           <button
             onClick={() => {
               if (window.innerWidth < 768) setMobileOpen((o) => !o);
@@ -182,36 +182,36 @@ export default function CampaignsPage() {
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-neutral-400 hover:bg-neutral-100 transition-colors">
             <List size={18} />
           </button>
-          <h1 className="text-[15px] font-semibold text-[#1e1b4b] shrink-0">Campaigns</h1>
+          <h1 className="text-[15px] font-semibold text-[#191234] shrink-0">Campaigns</h1>
 
-          <div className="hidden sm:flex flex-1 items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-2.5 max-w-sm mx-auto">
+          <div className="hidden sm:flex flex-1 items-center gap-2 rounded-xl border border-black/[0.07] bg-neutral-50 px-4 py-2.5 max-w-sm mx-auto transition focus-within:border-[#4D2FB0]/40 focus-within:bg-white focus-within:ring-2 focus-within:ring-[#4D2FB0]/10">
             <MagnifyingGlass size={14} className="text-neutral-400 shrink-0" />
             <input placeholder="Search campaigns…" className="bg-transparent text-[13px] text-neutral-600 placeholder:text-neutral-400 outline-none w-full" />
           </div>
 
           <div className="flex items-center gap-2 ml-auto shrink-0">
             <button onClick={() => router.push("/campaigns/new")}
-              className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-3 sm:px-4 py-2 text-[12px] font-semibold text-white shadow-sm shadow-violet-200 hover:from-violet-700 hover:to-indigo-700 transition-all">
+              className="flex items-center gap-2 rounded-xl bg-[#4D2FB0] px-3 sm:px-4 py-2 text-[12px] font-semibold text-white hover:bg-[#3F2596] transition-colors">
               <Plus size={13} weight="bold" />
               <span className="hidden sm:inline">New Campaign</span>
             </button>
-            <button className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-neutral-200 bg-white text-neutral-500 hover:bg-neutral-50 transition-colors shadow-sm">
+            <button className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-black/[0.07] bg-white text-neutral-500 hover:bg-neutral-50 transition-colors">
               <Bell size={16} />
-              <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-medium text-white">2</span>
+              <span className="absolute -right-0.5 -top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-red-500 text-[9px] font-medium text-white ring-2 ring-white">2</span>
             </button>
             <div className="relative">
               <button onClick={() => setUserMenuOpen((o) => !o)}
-                className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 text-white text-xs font-medium shadow-sm shadow-violet-200">
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-[#4D2FB0] text-white text-xs font-medium">
                 ME
               </button>
               {userMenuOpen && (
-                <div className="absolute right-0 top-full mt-2 w-36 rounded-2xl border border-neutral-100 bg-white shadow-xl z-50 overflow-hidden">
-                  <div className="px-4 pt-3 pb-2 border-b border-neutral-50">
+                <div className="absolute right-0 top-full mt-2 w-40 rounded-xl border border-black/[0.06] bg-white shadow-lg shadow-black/[0.06] z-50 overflow-hidden">
+                  <div className="px-4 pt-3 pb-2 border-b border-black/[0.05]">
                     <p className="text-xs font-semibold text-neutral-700">Mostafa Elnagar</p>
-                    <p className="text-[10px] text-neutral-400">Admin</p>
+                    <p className="text-[11px] text-neutral-400">Admin</p>
                   </div>
                   <button onClick={() => router.push("/")}
-                    className="flex w-full items-center gap-2 px-4 py-3 text-xs font-semibold text-red-500 hover:bg-red-50 transition-colors">
+                    className="flex w-full items-center gap-2 px-4 py-3 text-[12px] font-medium text-red-500 hover:bg-red-50 transition-colors">
                     <SignOut size={13} weight="bold" />Sign out
                   </button>
                 </div>
@@ -225,7 +225,7 @@ export default function CampaignsPage() {
 
           {/* Page heading */}
           <div className="mb-5">
-            <h2 className="text-[22px] font-bold text-[#1e1b4b]">Campaigns</h2>
+            <h2 className="text-[22px] font-bold text-[#191234]">Campaigns</h2>
             <p className="text-xs text-neutral-500 mt-0.5">All your campaigns in one place</p>
           </div>
 
@@ -235,12 +235,12 @@ export default function CampaignsPage() {
               <button key={f} onClick={() => setActiveFilter(f)}
                 className={`rounded-xl px-4 py-1.5 text-sm font-medium transition-colors ${
                   activeFilter === f
-                    ? "border border-violet-500 bg-violet-50 text-violet-700"
-                    : "border border-neutral-200 bg-white text-neutral-500 hover:border-neutral-300 hover:text-neutral-700"
+                    ? "border border-[#4D2FB0] bg-[#4D2FB0]/[0.06] text-[#4D2FB0]"
+                    : "border border-black/[0.09] bg-white text-neutral-500 hover:border-neutral-300 hover:text-neutral-700"
                 }`}>
                 {f}
                 {f !== "All" && (
-                  <span className={`ml-1.5 text-[11px] ${activeFilter === f ? "text-violet-500" : "text-neutral-400"}`}>
+                  <span className={`ml-1.5 text-[11px] ${activeFilter === f ? "text-[#4D2FB0]" : "text-neutral-400"}`}>
                     {CAMPAIGNS.filter(c => c.status === f).length}
                   </span>
                 )}
