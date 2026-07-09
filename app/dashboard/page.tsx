@@ -502,7 +502,7 @@ export default function Dashboard() {
       <div className="flex flex-1 flex-col overflow-hidden min-w-0">
 
         {/* Top bar */}
-        <header className="flex items-center gap-3 bg-white/80 backdrop-blur-sm border-b border-black/[0.06] px-4 py-3 sticky top-0 z-20">
+        <header className="flex h-[67px] shrink-0 items-center gap-3 bg-white/80 backdrop-blur-sm border-b border-black/[0.06] px-4 sticky top-0 z-20">
           {/* Hamburger: toggles drawer on mobile, collapses sidebar on desktop */}
           <button
             onClick={() => {
@@ -515,7 +515,7 @@ export default function Dashboard() {
           <h1 className="text-[15px] font-semibold shrink-0" style={{ color: INK }}>Dashboard</h1>
 
           {/* Search — hidden on small screens */}
-          <div className="hidden sm:flex flex-1 items-center gap-2 rounded-xl border border-black/[0.07] bg-neutral-50 px-3.5 py-2 max-w-sm mx-auto transition focus-within:border-[#4D2FB0]/40 focus-within:bg-white focus-within:ring-2 focus-within:ring-[#4D2FB0]/10">
+          <div className="hidden sm:flex flex-1 items-center gap-2 rounded-xl border border-black/[0.07] bg-neutral-50 px-4 py-2.5 max-w-sm mx-auto transition focus-within:border-[#4D2FB0]/40 focus-within:bg-white focus-within:ring-2 focus-within:ring-[#4D2FB0]/10">
             <MagnifyingGlass size={14} className="text-neutral-400 shrink-0" />
             <input placeholder="Search anything…" className="bg-transparent text-[13px] text-neutral-600 placeholder:text-neutral-400 outline-none w-full" />
             <kbd className="hidden lg:block shrink-0 rounded-md border border-black/[0.08] bg-white px-1.5 py-0.5 text-[10px] font-medium text-neutral-400">⌘K</kbd>

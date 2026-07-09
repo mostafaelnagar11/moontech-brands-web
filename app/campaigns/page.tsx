@@ -173,7 +173,7 @@ export default function CampaignsPage() {
       <div className="flex flex-1 flex-col overflow-hidden min-w-0">
 
         {/* Top bar */}
-        <header className="flex items-center gap-3 bg-white/80 backdrop-blur-sm border-b border-black/[0.06] px-4 py-3 sticky top-0 z-20">
+        <header className="flex h-[67px] shrink-0 items-center gap-3 bg-white/80 backdrop-blur-sm border-b border-black/[0.06] px-4 sticky top-0 z-20">
           <button
             onClick={() => {
               if (window.innerWidth < 768) setMobileOpen((o) => !o);
