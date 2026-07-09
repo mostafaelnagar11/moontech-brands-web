@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { List, MagnifyingGlass, ArrowLeft, ArrowRight, CheckCircle } from "@phosphor-icons/react";
+import {
+  List, MagnifyingGlass, ArrowLeft, ArrowRight, CheckCircle, ArrowUpRight,
+  InstagramLogo, TiktokLogo, YoutubeLogo, type Icon,
+} from "@phosphor-icons/react";
 import Sidebar from "../components/Sidebar";
 
 /* ------------------------------------------------------------------ */
@@ -80,10 +83,10 @@ const TABS: { key: Status; label: string }[] = [
   { key: "rejected", label: "Skipped" },
 ];
 
-const PLAT = {
-  Instagram: { icon: "📷", url: (s: string) => `https://instagram.com/${s}` },
-  TikTok:    { icon: "🎵", url: (s: string) => `https://tiktok.com/@${s}` },
-  YouTube:   { icon: "▶",  url: (s: string) => `https://youtube.com/@${s}` },
+const PLAT: Record<Platform, { Icon: Icon; url: (s: string) => string }> = {
+  Instagram: { Icon: InstagramLogo, url: (s: string) => `https://instagram.com/${s}` },
+  TikTok:    { Icon: TiktokLogo,    url: (s: string) => `https://tiktok.com/@${s}` },
+  YouTube:   { Icon: YoutubeLogo,   url: (s: string) => `https://youtube.com/@${s}` },
 };
 
 /* ------------------------------------------------------------------ */
@@ -174,7 +177,8 @@ function Detail({
                 <h2 className="text-[20px] font-bold tracking-tight" style={{ color: INK }}>{c.name}</h2>
                 <a href={platUrl} target="_blank" rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 rounded-md border border-black/[0.08] bg-neutral-50 px-2 py-0.5 text-[11px] font-medium text-neutral-600 no-underline transition hover:border-[#4D2FB0]/30 hover:text-[#4D2FB0]">
-                  {plat.icon} {c.platform} ↗
+                  <plat.Icon size={13} weight="fill" /> {c.platform}
+                  <ArrowUpRight size={10} weight="bold" className="opacity-60" />
                 </a>
                 <span className="text-xs text-neutral-400">📍 {c.location}</span>
               </div>
