@@ -215,7 +215,7 @@ function Detail({
             {[
               { lbl: "Match score", val: `${c.score}`, sub: scoreLabel, color: scoreColor, subCls: "text-neutral-400" },
               { lbl: "Avg views", val: fmt(c.avgViews), sub: "per post", color: INK, subCls: "text-neutral-400" },
-              { lbl: "GCC audience", val: `${c.gcAudience}%`, sub: c.gcAudience >= 60 ? "✓ Meets threshold" : "↓ Below 60%", color: INK, subCls: c.gcAudience >= 60 ? "text-green-600 font-semibold" : "text-amber-600 font-semibold" },
+              { lbl: "Avg. followers", val: fmt(c.followers), sub: "across platforms", color: INK, subCls: "text-neutral-400" },
               { lbl: "Total posts", val: c.totalPosts.toLocaleString(), sub: `since ${c.activeSince}`, color: INK, subCls: "text-neutral-400" },
             ].map((m) => (
               <div key={m.lbl} className="rounded-2xl border border-black/[0.06] bg-neutral-50/70 p-4">
