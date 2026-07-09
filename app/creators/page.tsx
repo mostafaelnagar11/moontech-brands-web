@@ -247,11 +247,9 @@ function Detail({
               ))}
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-2.5">
-            <div className="col-span-2">
-              <SignalCard label="Brand fit" value={`${fit}%`} valueColor={fitColor}
-                track={fitTrack} bar={fitColor} width={fit} />
-            </div>
+          <div className="space-y-2.5">
+            <SignalCard label="Brand fit" value={`${fit}%`} valueColor={fitColor}
+              track={fitTrack} bar={fitColor} width={fit} />
             <SignalCard label="Content quality" value={c.contentQuality} valueColor={cqColor}
               track={`${cqColor}22`} bar={cqColor} width={cqPct} />
             <SignalCard label="Post frequency" value={c.postFreq} valueColor={INK}
@@ -320,9 +318,11 @@ function SignalCard({ label, value, valueColor, track, bar, width }: {
 }) {
   return (
     <div className="rounded-2xl border border-black/[0.06] bg-neutral-50/70 p-4">
-      <div className="mb-2 text-[10px] font-bold uppercase tracking-wide text-neutral-400">{label}</div>
-      <div className="text-[16px] font-bold" style={{ color: valueColor }}>{value}</div>
-      <div className="mt-2 h-[3px] overflow-hidden rounded-full" style={{ background: track }}>
+      <div className="flex items-baseline justify-between gap-2">
+        <span className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">{label}</span>
+        <span className="text-[16px] font-bold" style={{ color: valueColor }}>{value}</span>
+      </div>
+      <div className="mt-2.5 h-[3px] overflow-hidden rounded-full" style={{ background: track }}>
         <div className="h-full rounded-full" style={{ width: `${width}%`, background: bar }} />
       </div>
     </div>
