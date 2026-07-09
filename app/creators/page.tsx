@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
-  List, MagnifyingGlass, ArrowLeft, ArrowRight, CheckCircle, ArrowUpRight, MapPin,
+  List, MagnifyingGlass, ArrowLeft, ArrowRight, CheckCircle, ArrowUpRight, MapPin, Bell, SignOut,
   ThumbsUp, ThumbsDown, InstagramLogo, TiktokLogo, YoutubeLogo, type Icon,
 } from "@phosphor-icons/react";
 import Sidebar from "../components/Sidebar";
@@ -333,9 +334,11 @@ function SignalCard({ label, value, valueColor, track, bar, width }: {
 /* Page                                                                */
 /* ------------------------------------------------------------------ */
 export default function CreatorsPage() {
+  const router = useRouter();
   const [activeNav, setActiveNav] = useState("Creators");
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   const [creators, setCreators] = useState<Creator[]>(CREATORS_SEED);
   const [tab, setTab] = useState<Status>("pending");
@@ -415,16 +418,40 @@ export default function CreatorsPage() {
               <span className="whitespace-nowrap text-[11px] text-neutral-400">{done} of {total} reviewed</span>
             </div>
           </div>
-          {/* Tabs */}
-          <div className="flex gap-0.5 rounded-lg bg-neutral-100 p-0.5">
-            {TABS.map((t) => (
-              <button key={t.key} onClick={() => switchTab(t.key)}
-                className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${
-                  tab === t.key ? "bg-[#4D2FB0] text-white" : "text-neutral-500 hover:text-neutral-700"
-                }`}>
-                {t.label} <span className={tab === t.key ? "opacity-70" : "opacity-50"}>{tabCount[t.key]}</span>
+          {/* Tabs + actions */}
+          <div className="flex items-center gap-2.5">
+            <div className="flex gap-0.5 rounded-lg bg-neutral-100 p-0.5">
+              {TABS.map((t) => (
+                <button key={t.key} onClick={() => switchTab(t.key)}
+                  className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${
+                    tab === t.key ? "bg-[#4D2FB0] text-white" : "text-neutral-500 hover:text-neutral-700"
+                  }`}>
+                  {t.label} <span className={tab === t.key ? "opacity-70" : "opacity-50"}>{tabCount[t.key]}</span>
+                </button>
+              ))}
+            </div>
+            <button className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-black/[0.07] bg-white text-neutral-500 hover:bg-neutral-50 transition-colors">
+              <Bell size={16} />
+              <span className="absolute -right-0.5 -top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-red-500 text-[9px] font-medium text-white ring-2 ring-white">2</span>
+            </button>
+            <div className="relative">
+              <button onClick={() => setUserMenuOpen((o) => !o)}
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-[#4D2FB0] text-white text-xs font-medium">
+                ME
               </button>
-            ))}
+              {userMenuOpen && (
+                <div className="absolute right-0 top-full mt-2 w-40 rounded-xl border border-black/[0.06] bg-white shadow-lg shadow-black/[0.06] z-50 overflow-hidden">
+                  <div className="px-4 pt-3 pb-2 border-b border-black/[0.05]">
+                    <p className="text-xs font-semibold text-neutral-700">Mostafa Elnagar</p>
+                    <p className="text-[11px] text-neutral-400">Admin</p>
+                  </div>
+                  <button onClick={() => router.push("/")}
+                    className="flex w-full items-center gap-2 px-4 py-3 text-[12px] font-medium text-red-500 hover:bg-red-50 transition-colors">
+                    <SignOut size={13} weight="bold" />Sign out
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
