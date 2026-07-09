@@ -84,6 +84,15 @@ function brandFit(c: Creator): number {
   return Math.round(c.score * 0.4);
 }
 
+// Platforms a creator is active on — primary first, plus a deterministic
+// set of others so profiles show as multi-platform.
+function platformsFor(c: Creator): Platform[] {
+  const others = (["Instagram", "TikTok", "YouTube"] as Platform[]).filter((p) => p !== c.platform);
+  if (c.id % 3 === 0) return [c.platform];
+  if (c.id % 2 === 0) return [c.platform, others[0]];
+  return [c.platform, others[0], others[1]];
+}
+
 const TABS: { key: Status; label: string }[] = [
   { key: "pending", label: "Pending" },
   { key: "approved", label: "Liked" },
@@ -136,6 +145,7 @@ function Detail({
   const slug = c.handle.replace("@", "");
   const plat = PLAT[c.platform];
   const platUrl = plat.url(slug);
+  const platforms = platformsFor(c);
   const isPending = c.status === "pending";
   const idx = pendingList.findIndex((x) => x.id === c.id);
   const hasPrev = idx > 0, hasNext = idx >= 0 && idx < pendingList.length - 1;
@@ -184,11 +194,16 @@ function Detail({
             <div className="min-w-0 flex-1">
               <div className="mb-1.5 flex flex-wrap items-center gap-2">
                 <h2 className="text-[20px] font-bold tracking-tight" style={{ color: INK }}>{c.name}</h2>
-                <a href={platUrl} target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 rounded-md border border-black/[0.08] bg-neutral-50 px-2 py-0.5 text-[11px] font-medium text-neutral-600 no-underline transition hover:border-[#4D2FB0]/30 hover:text-[#4D2FB0]">
-                  <plat.Icon size={13} weight="fill" /> {c.platform}
-                  <ArrowUpRight size={10} weight="bold" className="opacity-60" />
-                </a>
+                {platforms.map((pf) => {
+                  const P = PLAT[pf];
+                  return (
+                    <a key={pf} href={P.url(slug)} target="_blank" rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 rounded-md border border-black/[0.08] bg-neutral-50 px-2 py-0.5 text-[11px] font-medium text-neutral-600 no-underline transition hover:border-[#4D2FB0]/30 hover:text-[#4D2FB0]">
+                      <P.Icon size={13} weight="fill" /> {pf}
+                      <ArrowUpRight size={10} weight="bold" className="opacity-60" />
+                    </a>
+                  );
+                })}
                 <span className="text-xs text-neutral-400">📍 {c.location}</span>
               </div>
               <div className="mb-2.5 text-xs text-neutral-400">{c.handle} · {c.niche}</div>
