@@ -3,7 +3,7 @@
 import { useState } from "react";
 import {
   List, MagnifyingGlass, ArrowLeft, ArrowRight, CheckCircle, ArrowUpRight,
-  InstagramLogo, TiktokLogo, YoutubeLogo, type Icon,
+  ThumbsUp, ThumbsDown, InstagramLogo, TiktokLogo, YoutubeLogo, type Icon,
 } from "@phosphor-icons/react";
 import Sidebar from "../components/Sidebar";
 
@@ -331,12 +331,12 @@ function Detail({
             <div className="truncate text-xs text-neutral-500">Approval adds <strong className="text-neutral-700">{c.name}</strong> to your Ounass campaign pool</div>
           </div>
           <button onClick={() => onDecide(c.id, "rejected")}
-            className="shrink-0 rounded-xl border border-black/[0.1] bg-white px-5 py-2.5 text-sm font-semibold text-neutral-600 transition hover:bg-neutral-50 active:scale-[0.98]">
-            Reject
+            className="flex shrink-0 items-center gap-2 rounded-xl border border-black/[0.1] bg-white px-5 py-2.5 text-sm font-semibold text-neutral-600 transition hover:bg-neutral-50 active:scale-[0.98]">
+            <ThumbsDown size={16} weight="fill" /> Dislike
           </button>
           <button onClick={() => onDecide(c.id, "approved")}
             className="flex shrink-0 items-center gap-2 rounded-xl bg-[#4D2FB0] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#3F2596] active:scale-[0.98]">
-            <CheckCircle size={16} weight="fill" /> Approve profile
+            <ThumbsUp size={16} weight="fill" /> Like
           </button>
         </div>
       )}
