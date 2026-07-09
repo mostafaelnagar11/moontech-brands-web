@@ -86,8 +86,8 @@ function brandFit(c: Creator): number {
 
 const TABS: { key: Status; label: string }[] = [
   { key: "pending", label: "Pending" },
-  { key: "approved", label: "Approved" },
-  { key: "rejected", label: "Skipped" },
+  { key: "approved", label: "Liked" },
+  { key: "rejected", label: "Disliked" },
 ];
 
 const PLAT: Record<Platform, { Icon: Icon; url: (s: string) => string }> = {
@@ -160,7 +160,7 @@ function Detail({
         <div className="px-7 pt-6">
           <div className="mb-5 flex items-center justify-between">
             <div className="text-xs text-neutral-400">
-              {isPending && idx >= 0 ? `${idx + 1} of ${pendingList.length} pending` : `Viewing ${c.status === "rejected" ? "skipped" : c.status} profile`}
+              {isPending && idx >= 0 ? `${idx + 1} of ${pendingList.length} pending` : `Viewing ${c.status === "rejected" ? "disliked" : "liked"} profile`}
             </div>
             {isPending && (
               <div className="flex gap-1.5">
@@ -205,7 +205,7 @@ function Detail({
         {c.status === "approved" && (
           <div className="mx-7 mb-6 flex items-center gap-2.5 rounded-xl border border-green-200 bg-green-50 px-4 py-3">
             <CheckCircle size={16} weight="fill" className="text-green-600" />
-            <span className="flex-1 text-[13px] font-semibold text-green-800">Approved — eligible for Ounass campaigns</span>
+            <span className="flex-1 text-[13px] font-semibold text-green-800">Liked — eligible for Ounass campaigns</span>
             <button onClick={() => onDecide(c.id, "rejected")}
               className="rounded-lg border border-green-200 px-2.5 py-1 text-xs text-neutral-500 transition hover:bg-white">Revoke</button>
           </div>
@@ -213,9 +213,9 @@ function Detail({
         {c.status === "rejected" && (
           <div className="mx-7 mb-6 flex items-center gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
             <span className="text-red-600">✕</span>
-            <span className="flex-1 text-[13px] font-semibold text-red-800">Skipped — not assigned to any campaign</span>
+            <span className="flex-1 text-[13px] font-semibold text-red-800">Disliked — not assigned to any campaign</span>
             <button onClick={() => onDecide(c.id, "approved")}
-              className="rounded-lg border border-red-200 px-2.5 py-1 text-xs font-medium text-[#4D2FB0] transition hover:bg-white">Approve</button>
+              className="rounded-lg border border-red-200 px-2.5 py-1 text-xs font-medium text-[#4D2FB0] transition hover:bg-white">Like</button>
           </div>
         )}
 
