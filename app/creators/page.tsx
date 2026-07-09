@@ -128,7 +128,6 @@ function Detail({
   const insights = [
     { ok: true, text: `Top countries: ${c.topCountries}` },
     { ok: c.contentQuality !== "Medium", text: `${c.contentQuality} content quality` },
-    { ok: c.brandConflict === "None", text: c.brandConflict === "None" ? "No brand conflicts detected" : `Brand conflict: ${c.brandConflict}` },
     { ok: true, text: `Active since ${c.activeSince} · ${c.postFreq}` },
   ];
 
