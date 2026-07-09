@@ -65,6 +65,15 @@ function fmt(n: number) {
   return String(n);
 }
 
+// Parse a "22K" / "1.1M" style count back into a number.
+function parseCount(s: string): number {
+  const m = s.trim().match(/^([\d.]+)\s*([KM]?)$/i);
+  if (!m) return 0;
+  const v = parseFloat(m[1]);
+  const u = m[2].toUpperCase();
+  return u === "M" ? v * 1_000_000 : u === "K" ? v * 1000 : v;
+}
+
 const TABS: { key: Status; label: string }[] = [
   { key: "pending", label: "Pending" },
   { key: "approved", label: "Approved" },
@@ -270,16 +279,33 @@ function Detail({
         <div className={`px-7 ${isPending ? "mb-6" : "mb-8"}`}>
           <div className="mb-3 text-[11px] font-bold uppercase tracking-wide text-neutral-400">Last 5 posts</div>
           <div className="grid grid-cols-5 gap-2">
-            {c.posts.map((p, i) => (
-              <a key={i} href={platUrl} target="_blank" rel="noopener noreferrer"
-                className="relative block aspect-[9/14] cursor-pointer overflow-hidden rounded-xl bg-neutral-200">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={p.img} alt="post" loading="lazy" className="h-full w-full object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                <div className="absolute left-1.5 top-1.5 rounded bg-black/50 px-1.5 py-0.5 text-[9px] font-bold text-white">{p.type}</div>
-                <div className="absolute inset-x-0 bottom-1.5 text-center text-[10px] font-bold text-white">{p.views}</div>
-              </a>
-            ))}
+            {c.posts.map((p, i) => {
+              const likes = parseCount(p.views);
+              const comments = Math.max(1, Math.round(likes * 0.035));
+              return (
+                <a key={i} href={platUrl} target="_blank" rel="noopener noreferrer"
+                  className="relative block aspect-[9/14] cursor-pointer overflow-hidden rounded-xl bg-neutral-200">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={p.img} alt="post" loading="lazy" className="h-full w-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                  <div className="absolute left-1.5 top-1.5 rounded bg-black/50 px-1.5 py-0.5 text-[9px] font-bold text-white">{p.type}</div>
+                  <div className="absolute inset-x-0 bottom-1.5 flex items-center justify-center gap-2 text-[9px] font-bold text-white">
+                    <span className="flex items-center gap-0.5">
+                      <svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor" aria-hidden="true">
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                      </svg>
+                      {fmt(likes)}
+                    </span>
+                    <span className="flex items-center gap-0.5">
+                      <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                      </svg>
+                      {fmt(comments)}
+                    </span>
+                  </div>
+                </a>
+              );
+            })}
           </div>
         </div>
       </div>
