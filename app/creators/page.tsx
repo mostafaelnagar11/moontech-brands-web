@@ -390,7 +390,7 @@ export default function CreatorsPage() {
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         {/* Slim chrome */}
-        <header className="flex h-[52px] shrink-0 items-center gap-3 border-b border-black/[0.06] bg-white/90 px-4 backdrop-blur-sm">
+        <header className="flex h-[67px] shrink-0 items-center gap-3 border-b border-black/[0.06] bg-white/90 px-4 backdrop-blur-sm">
           <button
             onClick={() => { if (window.innerWidth < 768) setMobileOpen((o) => !o); else setCollapsed((o) => !o); }}
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-neutral-400 transition-colors hover:bg-neutral-100">
