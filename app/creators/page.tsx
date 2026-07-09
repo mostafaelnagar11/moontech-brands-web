@@ -106,31 +106,6 @@ const PLAT: Record<Platform, { Icon: Icon; url: (s: string) => string }> = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Match score ring                                                    */
-/* ------------------------------------------------------------------ */
-function ScoreRing({ score }: { score: number }) {
-  const r = 34, circ = 2 * Math.PI * r, dash = (score / 100) * circ;
-  const color = score >= 90 ? BRAND : score >= 80 ? "#059669" : "#D97706";
-  const label = score >= 90 ? "Excellent" : score >= 80 ? "Good" : "Fair";
-  return (
-    <div className="shrink-0 text-center">
-      <div className="relative h-[72px] w-[72px]">
-        <svg width="72" height="72" viewBox="0 0 80 80" style={{ transform: "rotate(-90deg)" }}>
-          <circle cx="40" cy="40" r={r} fill="none" stroke={`${color}20`} strokeWidth="6" />
-          <circle cx="40" cy="40" r={r} fill="none" stroke={color} strokeWidth="6"
-            strokeDasharray={`${dash.toFixed(1)} ${circ.toFixed(1)}`} strokeLinecap="round" />
-        </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <div className="text-[18px] font-bold leading-none" style={{ color }}>{score}</div>
-          <div className="text-[8px] font-bold uppercase tracking-wide opacity-70" style={{ color }}>{label}</div>
-        </div>
-      </div>
-      <div className="mt-1 text-[10px] text-neutral-400">Match score</div>
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
 /* Detail workspace                                                    */
 /* ------------------------------------------------------------------ */
 function Detail({
@@ -151,7 +126,6 @@ function Detail({
   const hasPrev = idx > 0, hasNext = idx >= 0 && idx < pendingList.length - 1;
 
   const insights = [
-    { ok: c.gcAudience >= 60, text: `${c.gcAudience}% GCC audience concentration` },
     { ok: c.contentQuality !== "Medium", text: `${c.contentQuality} content quality` },
     { ok: c.brandConflict === "None", text: c.brandConflict === "None" ? "No brand conflicts detected" : `Brand conflict: ${c.brandConflict}` },
     { ok: true, text: `Active since ${c.activeSince} · ${c.postFreq}` },
@@ -159,6 +133,8 @@ function Detail({
 
   const cqPct = c.contentQuality === "Premium" ? 100 : c.contentQuality === "High" ? 75 : 45;
   const cqColor = c.contentQuality === "Premium" ? BRAND : c.contentQuality === "High" ? "#059669" : "#D97706";
+  const scoreColor = c.score >= 90 ? BRAND : c.score >= 80 ? "#059669" : "#D97706";
+  const scoreLabel = c.score >= 90 ? "Excellent" : c.score >= 80 ? "Good" : "Fair";
   const fit = brandFit(c);
   const fitColor = fit >= 80 ? "#059669" : fit >= 55 ? "#D97706" : "#DC2626";
   const fitTrack = fit >= 80 ? "#DCFCE7" : fit >= 55 ? "#FEF3C7" : "#FEE2E2";
@@ -212,7 +188,6 @@ function Detail({
                 <span className="text-xs leading-relaxed text-neutral-600">{c.bio}</span>
               </div>
             </div>
-            <ScoreRing score={c.score} />
           </div>
         </div>
 
@@ -238,21 +213,15 @@ function Detail({
         <div className="mb-5 px-7">
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
             {[
-              { lbl: "Followers", val: fmt(c.followers), sub: c.platform },
-              { lbl: "Avg views", val: fmt(c.avgViews), sub: "per post" },
-              { lbl: "GCC audience", val: `${c.gcAudience}%`, meets: c.gcAudience >= 60 },
-              { lbl: "Total posts", val: c.totalPosts.toLocaleString(), sub: `since ${c.activeSince}` },
+              { lbl: "Match score", val: `${c.score}`, sub: scoreLabel, color: scoreColor, subCls: "text-neutral-400" },
+              { lbl: "Avg views", val: fmt(c.avgViews), sub: "per post", color: INK, subCls: "text-neutral-400" },
+              { lbl: "GCC audience", val: `${c.gcAudience}%`, sub: c.gcAudience >= 60 ? "✓ Meets threshold" : "↓ Below 60%", color: INK, subCls: c.gcAudience >= 60 ? "text-green-600 font-semibold" : "text-amber-600 font-semibold" },
+              { lbl: "Total posts", val: c.totalPosts.toLocaleString(), sub: `since ${c.activeSince}`, color: INK, subCls: "text-neutral-400" },
             ].map((m) => (
               <div key={m.lbl} className="rounded-2xl border border-black/[0.06] bg-neutral-50/70 p-4">
                 <div className="text-[10px] font-medium uppercase tracking-wide text-neutral-400">{m.lbl}</div>
-                <div className="mt-1.5 text-[24px] font-semibold tabular-nums leading-none" style={{ color: INK }}>{m.val}</div>
-                {"meets" in m ? (
-                  <div className={`mt-2 text-[11px] font-semibold ${m.meets ? "text-green-600" : "text-amber-600"}`}>
-                    {m.meets ? "✓ Meets threshold" : "↓ Below 60%"}
-                  </div>
-                ) : (
-                  <div className="mt-1.5 text-[11px] text-neutral-400">{m.sub}</div>
-                )}
+                <div className="mt-1.5 text-[24px] font-semibold tabular-nums leading-none" style={{ color: m.color }}>{m.val}</div>
+                <div className={`mt-1.5 text-[11px] ${m.subCls}`}>{m.sub}</div>
               </div>
             ))}
           </div>
@@ -317,15 +286,15 @@ function Detail({
                   <img src={p.img} alt="post" loading="lazy" className="h-full w-full object-cover" />
                   <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
                   <div className="absolute left-1.5 top-1.5 rounded bg-black/50 px-1.5 py-0.5 text-[9px] font-bold text-white">{p.type}</div>
-                  <div className="absolute inset-x-0 bottom-1.5 flex items-center justify-end gap-2.5 px-2 text-[10px] font-semibold text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.95)]">
+                  <div className="absolute inset-x-0 bottom-2 flex items-center justify-end gap-2 px-2 text-[12px] font-bold text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.95)]">
                     <span className="flex items-center gap-1">
-                      <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true" className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]">
+                      <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true" className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]">
                         <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                       </svg>
                       {fmt(likes)}
                     </span>
                     <span className="flex items-center gap-1">
-                      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]">
+                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]">
                         <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
                       </svg>
                       {fmt(comments)}
