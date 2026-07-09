@@ -77,6 +77,13 @@ function parseCount(s: string): number {
   return u === "M" ? v * 1_000_000 : u === "K" ? v * 1000 : v;
 }
 
+// Brand-fit score (higher = better) derived from conflict severity + match score.
+function brandFit(c: Creator): number {
+  if (c.brandConflict === "None") return Math.min(99, c.score + 4);
+  if (/^minor/i.test(c.brandConflict)) return Math.round(c.score * 0.75);
+  return Math.round(c.score * 0.4);
+}
+
 const TABS: { key: Status; label: string }[] = [
   { key: "pending", label: "Pending" },
   { key: "approved", label: "Approved" },
@@ -142,7 +149,9 @@ function Detail({
 
   const cqPct = c.contentQuality === "Premium" ? 100 : c.contentQuality === "High" ? 75 : 45;
   const cqColor = c.contentQuality === "Premium" ? BRAND : c.contentQuality === "High" ? "#059669" : "#D97706";
-  const conflictOk = c.brandConflict === "None";
+  const fit = brandFit(c);
+  const fitColor = fit >= 80 ? "#059669" : fit >= 55 ? "#D97706" : "#DC2626";
+  const fitTrack = fit >= 80 ? "#DCFCE7" : fit >= 55 ? "#FEF3C7" : "#FEE2E2";
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-white">
@@ -270,8 +279,8 @@ function Detail({
         {/* Signal bars */}
         <div className="mb-5 px-7">
           <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
-            <SignalCard label="Brand conflict" value={c.brandConflict} valueColor={conflictOk ? "#059669" : "#DC2626"}
-              track={conflictOk ? "#DCFCE7" : "#FEE2E2"} bar={conflictOk ? "#059669" : "#DC2626"} width={100} />
+            <SignalCard label="Brand fit" value={`${fit}%`} valueColor={fitColor}
+              track={fitTrack} bar={fitColor} width={fit} />
             <SignalCard label="Content quality" value={c.contentQuality} valueColor={cqColor}
               track={`${cqColor}22`} bar={cqColor} width={cqPct} />
             <SignalCard label="Post frequency" value={c.postFreq} valueColor={INK}
