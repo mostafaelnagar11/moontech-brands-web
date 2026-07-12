@@ -14,8 +14,8 @@ const NAV_MENU: NavItem[] = [
   { icon: <Megaphone size={16} weight="bold" />,  label: "Campaigns", href: "/campaigns" },
   { icon: <UsersThree size={16} weight="bold" />, label: "Creators",  href: "/creators", badge: "8" },
 ];
-const NAV_OTHERS = [
-  { icon: <Gear size={16} weight="bold" />,     label: "Settings" },
+const NAV_OTHERS: { icon: ReactNode; label: string; href?: string }[] = [
+  { icon: <Gear size={16} weight="bold" />,     label: "Settings", href: "/settings" },
   { icon: <Question size={16} weight="bold" />, label: "Help" },
 ];
 
@@ -134,8 +134,14 @@ function SidebarContent({
       <div className="mt-auto flex flex-col gap-1 w-full">
         <div className={`flex flex-col gap-1 w-full ${!collapsed ? "border-t border-neutral-100 pt-3" : ""}`}>
           {NAV_OTHERS.map((item) => (
-            <button key={item.label} onClick={() => onNavChange(item.label)} title={collapsed ? item.label : undefined}
-              className={`flex items-center rounded-xl py-2.5 text-[13px] font-medium text-neutral-500 hover:bg-neutral-50 hover:text-neutral-800 transition-all text-left ${collapsed ? "justify-center px-0" : "gap-3 px-3"}`}>
+            <button key={item.label}
+              onClick={() => { onNavChange(item.label); if (item.href) { router.push(item.href); onMobileClose?.(); } }}
+              title={collapsed ? item.label : undefined}
+              className={`flex items-center rounded-xl py-2.5 text-[13px] font-medium transition-all text-left ${collapsed ? "justify-center px-0" : "gap-3 px-3"} ${
+                activeNav === item.label
+                  ? "bg-[#4D2FB0] text-white shadow-md shadow-violet-200"
+                  : "text-neutral-500 hover:bg-neutral-50 hover:text-neutral-800"
+              }`}>
               {item.icon}{!collapsed && item.label}
             </button>
           ))}
