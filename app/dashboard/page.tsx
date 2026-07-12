@@ -89,7 +89,7 @@ const PHASE_TRACKER = [
 function RevenueOverTimeChart() {
   const W = 700, H = 210, PL = 46, PR = 46, PT = 14, PB = 8;
   const cW = W - PL - PR, cH = H - PT - PB;
-  const maxRev = 20000, maxOrd = 5000;
+  const maxRev = 20000, maxOrd = 7500;
   const n = REV_TIME.length;
   const colW = cW / n;
   const barW = Math.min(colW * 0.52, 26);
@@ -110,7 +110,7 @@ function RevenueOverTimeChart() {
     .join(" ");
 
   const yLeft  = ["$20k","$16k","$12k","$8k","$4k","$0"];
-  const yRight = ["5,000","4,000","3,000","2,000","1,000","0"];
+  const yRight = ["7,500","6,000","4,500","3,000","1,500","0"];
 
   return (
     <div>
