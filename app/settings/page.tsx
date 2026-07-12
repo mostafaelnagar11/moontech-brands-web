@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
-  List, Bell, SignOut, EnvelopeSimple, Info, Question, CaretRight, Camera,
+  List, Bell, SignOut, EnvelopeSimple, Info, Question, CaretRight, CaretDown, Camera,
 } from "@phosphor-icons/react";
 import Sidebar from "../components/Sidebar";
 
@@ -11,6 +11,9 @@ const INK = "#191234";
 const card = "rounded-2xl bg-white border border-black/[0.06] shadow-[0_1px_2px_rgba(16,12,40,0.04)]";
 const fieldCls = "w-full rounded-xl border border-black/[0.09] bg-white px-4 py-2.5 text-sm text-neutral-800 outline-none transition focus:border-[#4D2FB0]/50 focus:ring-2 focus:ring-[#4D2FB0]/10";
 const labelCls = "mb-1.5 block text-[13px] font-medium text-neutral-500";
+
+const INDUSTRIES = ["Fashion & Apparel", "Beauty & Cosmetics", "Food & Beverage", "Electronics", "Home & Living", "Health & Wellness", "Other"];
+const COUNTRIES = ["UAE", "Saudi Arabia", "Kuwait", "Qatar", "Bahrain", "Oman", "Egypt", "Other"];
 
 type Biz = { vat?: string; legalName?: string; city?: string; street?: string; country?: string; area?: string };
 
@@ -113,11 +116,9 @@ export default function SettingsPage() {
               {/* Profile card */}
               <div className={`${card} p-8 text-center`}>
                 <div className="relative mx-auto h-[72px] w-[72px]">
-                  <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-[#4D2FB0] text-[26px] font-bold text-white">
-                    {logo
-                      ? // eslint-disable-next-line @next/next/no-img-element
-                        <img src={logo} alt="Brand logo" className="h-full w-full object-cover" />
-                      : "O"}
+                  <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-white">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={logo ?? "/ounass-logo.jpeg"} alt="Ounass" className="h-full w-full object-cover" />
                   </div>
                   <label title="Change logo"
                     className="absolute bottom-0 right-0 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-[#4D2FB0] text-white shadow ring-2 ring-white transition-colors hover:bg-[#3F2596]">
@@ -153,11 +154,6 @@ export default function SettingsPage() {
                 ))}
               </div>
 
-              {/* Log out */}
-              <button onClick={() => router.push("/")}
-                className="flex items-center justify-center gap-2 rounded-2xl border border-red-100 bg-red-50 py-3.5 text-sm font-semibold text-red-500 transition hover:bg-red-100/70 active:scale-[0.99]">
-                <SignOut size={16} weight="bold" />Log out
-              </button>
             </div>
 
             {/* ── Right column ── */}
@@ -168,8 +164,24 @@ export default function SettingsPage() {
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div><label className={labelCls}>Brand name</label><input className={fieldCls} defaultValue="Ounass" /></div>
                   <div><label className={labelCls}>Website</label><input className={fieldCls} defaultValue="ounass.com" /></div>
-                  <div><label className={labelCls}>Industry</label><input className={fieldCls} defaultValue="Fashion & Apparel" /></div>
-                  <div><label className={labelCls}>Country</label><input className={fieldCls} defaultValue="UAE" /></div>
+                  <div>
+                    <label className={labelCls}>Industry</label>
+                    <div className="relative">
+                      <select className={`${fieldCls} appearance-none pr-9`} defaultValue="Fashion & Apparel">
+                        {INDUSTRIES.map((i) => <option key={i} value={i}>{i}</option>)}
+                      </select>
+                      <CaretDown size={14} className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className={labelCls}>Country</label>
+                    <div className="relative">
+                      <select className={`${fieldCls} appearance-none pr-9`} defaultValue="UAE">
+                        {COUNTRIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                      <CaretDown size={14} className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -194,7 +206,7 @@ export default function SettingsPage() {
                   ))}
                 </div>
                 <button onClick={() => router.push("/profile")}
-                  className="mt-5 rounded-xl bg-[#4D2FB0] px-5 py-2.5 text-[13px] font-semibold text-white transition hover:bg-[#3F2596] active:scale-[0.98]">
+                  className="mt-5 rounded-xl border border-black/[0.12] bg-white px-5 py-2.5 text-[13px] font-semibold text-neutral-700 transition hover:bg-neutral-50 active:scale-[0.98]">
                   Manage business details
                 </button>
               </div>
