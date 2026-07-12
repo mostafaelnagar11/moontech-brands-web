@@ -890,10 +890,270 @@ function ProcessingScreen({ onDone }: { onDone: () => void }) {
 }
 
 /* ------------------------------------------------------------------ */
+/* Mode choice — manual vs AI agent                                    */
+/* ------------------------------------------------------------------ */
+function ModeChoice({ onAgent, onManual }: { onAgent: () => void; onManual: () => void }) {
+  return (
+    <div className="mx-auto flex max-w-xl flex-col items-center px-5 py-12 text-center" style={{ minHeight: "calc(100vh - 65px)" }}>
+      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#4D2FB0] text-2xl text-white">✦</div>
+      <h1 className="mt-5 text-[24px] font-bold tracking-tight" style={{ color: INK }}>How do you want to set up your campaign?</h1>
+      <p className="mt-2 max-w-sm text-sm leading-relaxed text-neutral-500">Answer a few questions with our AI assistant, or fill in the details yourself.</p>
+
+      <div className="mt-8 w-full space-y-3 text-left">
+        <button onClick={onAgent}
+          className="w-full rounded-2xl border-2 border-[#4D2FB0] bg-[#4D2FB0]/[0.04] p-5 transition hover:bg-[#4D2FB0]/[0.08]">
+          <div className="flex items-start gap-3.5">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#4D2FB0] text-lg text-white">✦</div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <p className="text-[15px] font-semibold" style={{ color: INK }}>Build it with AI</p>
+                <span className="rounded-md bg-[#4D2FB0] px-1.5 py-0.5 text-[10px] font-bold text-white">Recommended</span>
+              </div>
+              <p className="mt-1 text-[13px] leading-relaxed text-neutral-500">Chat with our assistant — it asks the right questions and assembles your guaranteed-ROAS plan. About 2 minutes.</p>
+            </div>
+          </div>
+        </button>
+
+        <button onClick={onManual}
+          className="w-full rounded-2xl border border-black/[0.1] bg-white p-5 transition hover:border-black/20">
+          <div className="flex items-start gap-3.5">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-neutral-500">
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
+                <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" />
+                <line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <p className="text-[15px] font-semibold" style={{ color: INK }}>Set it up manually</p>
+              <p className="mt-1 text-[13px] leading-relaxed text-neutral-500">Fill in the details yourself — name, type, target audience, budget, and ROAS goal.</p>
+            </div>
+          </div>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* AI agent chat flow                                                  */
+/* ------------------------------------------------------------------ */
+type AiMsg = { role: "ai" | "user"; text: string };
+
+const AI_FLOW: { key: string; ask: string; chips: string[] }[] = [
+  { key: "name",   ask: "Hi! I'm your MoonTech campaign assistant ✦\nLet's set this up in a few quick questions. First — what should we call the campaign?", chips: ["Spring 2026", "Summer Sale", "Brand Launch", "Ramadan 2026"] },
+  { key: "type",   ask: "Got it! What's the goal for this campaign?", chips: ["Drive sales (ROAS guaranteed)", "Grow brand awareness"] },
+  { key: "geo",    ask: "Which markets should it run in?", chips: ["UAE", "KSA", "Kuwait", "All GCC"] },
+  { key: "gender", ask: "Who's your target audience?", chips: ["All genders", "Women only", "Men only"] },
+  { key: "age",    ask: "And the age range you're after?", chips: ["18–34", "25–44", "35–54", "All ages"] },
+  { key: "budget", ask: "What's your total budget? (USD)", chips: ["$2,000", "$5,000", "$10,000", "$20,000+"] },
+  { key: "roas",   ask: "What ROAS are you aiming for — revenue per $1 spent?", chips: ["2× ROAS", "3× ROAS", "5× ROAS", "10× ROAS"] },
+  { key: "brief",  ask: "Last one — anything creators should know? Any do's or don'ts?", chips: ["Keep it casual & authentic", "No competitor mentions", "Focus on product quality", "Skip for now"] },
+];
+
+function mapAnswers(a: Record<string, string>): Partial<CampaignData> {
+  const p: Partial<CampaignData> = {};
+  if (a.name) p.name = a.name;
+  if (a.type) p.type = /aware|brand/i.test(a.type) ? "awareness" : "roas";
+  if (a.geo) p.region = /ksa/i.test(a.geo) ? "ksa" : /kuwait/i.test(a.geo) ? "kuwait" : /gcc|all/i.test(a.geo) ? "gcc" : "uae";
+  if (a.gender) p.gender = /wom|female/i.test(a.gender) ? "female" : /\bmen|male/i.test(a.gender) ? "male" : "all";
+  if (a.age) p.age = a.age.includes("18") ? "18-34" : a.age.includes("25") ? "25-44" : a.age.includes("35") ? "35-54" : "all";
+  if (a.budget) { const n = parseInt(a.budget.replace(/[^0-9]/g, ""), 10) || 10000; p.budget = Math.min(80000, Math.max(1000, n)); }
+  if (a.roas) { const n = parseInt(a.roas.replace(/[^0-9]/g, ""), 10) || 5; p.roas = Math.min(12, Math.max(1, n)); }
+  if (a.brief && !/skip/i.test(a.brief)) p.brief = a.brief;
+  return p;
+}
+
+function AgentChat({ onComplete, onSwitchManual }: { onComplete: (patch: Partial<CampaignData>) => void; onSwitchManual: () => void }) {
+  const [messages, setMessages] = useState<AiMsg[]>([]);
+  const [stepIdx, setStepIdx] = useState(0);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [typing, setTyping] = useState(false);
+  const [inputVal, setInputVal] = useState("");
+  const [done, setDone] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  const pushAi = (text: string) => {
+    setTyping(true);
+    const t = setTimeout(() => {
+      setTyping(false);
+      setMessages((m) => [...m, { role: "ai", text }]);
+    }, 700);
+    timers.current.push(t);
+  };
+
+  useEffect(() => {
+    const t = setTimeout(() => pushAi(AI_FLOW[0].ask), 350);
+    timers.current.push(t);
+    const snapshot = timers.current;
+    return () => snapshot.forEach(clearTimeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+  }, [messages, typing]);
+
+  const current = stepIdx < AI_FLOW.length ? AI_FLOW[stepIdx] : null;
+
+  function answer(val: string) {
+    const v = val.trim();
+    if (!v || typing || done) return;
+    const q = AI_FLOW[stepIdx];
+    setMessages((m) => [...m, { role: "user", text: v }]);
+    const nextAnswers = { ...answers, [q.key]: v };
+    setAnswers(nextAnswers);
+    setInputVal("");
+    const next = stepIdx + 1;
+    setStepIdx(next);
+    if (next < AI_FLOW.length) {
+      pushAi(AI_FLOW[next].ask);
+    } else {
+      setDone(true);
+      const goalTxt = /aware|brand/i.test(nextAnswers.type || "") ? "Brand awareness" : "ROAS guaranteed";
+      const summary = `Perfect — here's your campaign:\n\n• Name — ${nextAnswers.name || "Campaign"}\n• Goal — ${goalTxt}\n• Market — ${nextAnswers.geo || "UAE"}\n• Audience — ${nextAnswers.gender || "All"}, ${nextAnswers.age || "18–34"}\n• Budget — ${nextAnswers.budget || "$10,000"} · ${nextAnswers.roas || "5×"}\n\nBuilding your guaranteed plan now…`;
+      pushAi(summary);
+      const t = setTimeout(() => onComplete(mapAnswers(nextAnswers)), 2600);
+      timers.current.push(t);
+    }
+  }
+
+  return (
+    <div className="mx-auto flex max-w-2xl flex-col" style={{ height: "calc(100vh - 65px)" }}>
+      <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto px-5 py-6">
+        {messages.map((m, i) => (
+          <div key={i} className={`flex ${m.role === "ai" ? "justify-start" : "justify-end"}`}>
+            {m.role === "ai" ? (
+              <div className="max-w-[85%] rounded-2xl rounded-tl-md border border-black/[0.06] bg-white px-4 py-3 shadow-sm">
+                <div className="mb-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-[#4D2FB0]">✦ MoonTech AI</div>
+                <p className="whitespace-pre-line text-sm leading-relaxed text-neutral-700">{m.text}</p>
+              </div>
+            ) : (
+              <div className="max-w-[85%] whitespace-pre-line rounded-2xl rounded-tr-md bg-[#4D2FB0] px-4 py-2.5 text-sm text-white">{m.text}</div>
+            )}
+          </div>
+        ))}
+        {typing && (
+          <div className="flex justify-start">
+            <div className="rounded-2xl rounded-tl-md border border-black/[0.06] bg-white px-4 py-3.5 shadow-sm">
+              <div className="flex gap-1">
+                {[0, 150, 300].map((d) => (
+                  <span key={d} className="h-1.5 w-1.5 animate-bounce rounded-full bg-neutral-300" style={{ animationDelay: `${d}ms` }} />
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {!done && (
+        <div className="border-t border-black/[0.06] bg-white px-4 py-3">
+          {!typing && current && (
+            <div className="mb-2.5 flex flex-wrap gap-2">
+              {current.chips.map((c) => (
+                <button key={c} onClick={() => answer(c)}
+                  className="rounded-full border border-[#4D2FB0]/25 bg-[#4D2FB0]/[0.05] px-3.5 py-1.5 text-[13px] font-medium text-[#4D2FB0] transition hover:bg-[#4D2FB0]/[0.12]">
+                  {c}
+                </button>
+              ))}
+            </div>
+          )}
+          <div className="flex items-end gap-2">
+            <textarea
+              value={inputVal}
+              onChange={(e) => setInputVal(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); answer(inputVal); } }}
+              rows={1}
+              placeholder="Type your answer…"
+              className="flex-1 resize-none rounded-xl border border-black/[0.09] bg-white px-4 py-2.5 text-sm text-neutral-800 outline-none transition focus:border-[#4D2FB0]/50 focus:ring-2 focus:ring-[#4D2FB0]/10"
+            />
+            <button onClick={() => answer(inputVal)} disabled={!inputVal.trim() || typing}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#4D2FB0] text-white transition hover:bg-[#3F2596] disabled:cursor-not-allowed disabled:opacity-40">
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
+              </svg>
+            </button>
+          </div>
+          <button onClick={onSwitchManual} className="mt-2 text-[12px] text-neutral-400 transition hover:text-neutral-600">Prefer to fill it in yourself? Switch to manual →</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AgentFlow({
+  data, onPatch, profileComplete, onAddBilling, onClose, onSwitchManual, onDone,
+}: {
+  data: CampaignData;
+  onPatch: (patch: Partial<CampaignData>) => void;
+  profileComplete: boolean;
+  onAddBilling: () => void;
+  onClose: () => void;
+  onSwitchManual: () => void;
+  onDone: () => void;
+}) {
+  const [phase, setPhase] = useState<"chat" | "building" | "review" | "pay" | "processing">("chat");
+  const showHeader = phase !== "building" && phase !== "processing";
+
+  return (
+    <div className="min-h-screen bg-[#F7F7F8]" style={{ fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>
+      {showHeader && (
+        <header className="sticky top-0 z-20 flex h-[65px] items-center gap-3 border-b border-black/[0.06] bg-white/80 px-5 backdrop-blur-sm">
+          <button onClick={onClose}
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-black/[0.08] text-neutral-500 transition hover:bg-neutral-50">
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+          <h1 className="text-base font-semibold" style={{ color: INK }}>New campaign</h1>
+          <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-[#4D2FB0]/[0.08] px-2.5 py-1 text-[11px] font-semibold text-[#4D2FB0]">✦ AI assistant</span>
+        </header>
+      )}
+
+      {phase === "chat" && (
+        <AgentChat
+          onSwitchManual={onSwitchManual}
+          onComplete={(patch) => { onPatch(patch); setPhase("building"); }}
+        />
+      )}
+
+      {phase === "building" && (
+        <div className="mx-auto max-w-2xl px-5 py-6"><BuildingScreen onDone={() => setPhase("review")} /></div>
+      )}
+
+      {phase === "review" && (
+        <>
+          <div className="mx-auto max-w-2xl px-5 py-6 pb-36"><StepReview data={data} /></div>
+          <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-black/[0.06] bg-white px-5 py-4">
+            <div className="mx-auto flex max-w-2xl items-center gap-4">
+              <button onClick={onClose} className="shrink-0 text-sm font-medium text-neutral-500 transition hover:text-neutral-700">Discard</button>
+              <p className="flex-1" />
+              <button onClick={() => setPhase("pay")}
+                className="shrink-0 rounded-xl bg-[#4D2FB0] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#3F2596] active:scale-[0.98]">
+                Accept &amp; pay Phase 1 →
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {phase === "pay" && (
+        <div className="mx-auto max-w-2xl px-5 py-6 pb-10">
+          <StepPay data={data} profileComplete={profileComplete} onAddBilling={onAddBilling} onPay={() => setPhase("processing")} />
+        </div>
+      )}
+
+      {phase === "processing" && <ProcessingScreen onDone={onDone} />}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /* Page                                                                */
 /* ------------------------------------------------------------------ */
 export default function NewCampaign() {
   const router = useRouter();
+  const [mode, setMode] = useState<null | "manual" | "agent">(null);
   const [step, setStep] = useState<Step>("type");
   const [data, setData] = useState<CampaignData>({
     name: "Spring 2026",
@@ -959,6 +1219,40 @@ export default function NewCampaign() {
 
   const isLowConfidence = step === "budget" && confidence.color === "red";
 
+  // ── Entry: choose manual vs AI agent ──
+  if (mode === null) {
+    return (
+      <div className="min-h-screen bg-[#F7F7F8]" style={{ fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>
+        <header className="sticky top-0 z-20 flex h-[65px] items-center gap-3 border-b border-black/[0.06] bg-white/80 px-5 backdrop-blur-sm">
+          <button onClick={() => router.back()}
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-black/[0.08] text-neutral-500 transition hover:bg-neutral-50">
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+          <h1 className="text-base font-semibold" style={{ color: INK }}>New campaign</h1>
+        </header>
+        <ModeChoice onAgent={() => setMode("agent")} onManual={() => setMode("manual")} />
+      </div>
+    );
+  }
+
+  // ── AI agent flow ──
+  if (mode === "agent") {
+    return (
+      <AgentFlow
+        data={data}
+        onPatch={update}
+        profileComplete={profileComplete}
+        onAddBilling={() => router.push("/profile")}
+        onClose={() => router.back()}
+        onSwitchManual={() => setMode("manual")}
+        onDone={() => router.push("/dashboard")}
+      />
+    );
+  }
+
+  // ── Manual wizard ──
   return (
     <div className="min-h-screen bg-[#F7F7F8]" style={{ fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>
 
