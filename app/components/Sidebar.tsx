@@ -22,8 +22,8 @@ const NAV_OTHERS: { icon: ReactNode; label: string; href?: string }[] = [
 type BrandItem = { id: string; name: string; initials: string; color: string; logo?: string };
 const BRANDS: BrandItem[] = [
   { id: "ounass", name: "Ounass",     initials: "O", color: "#4D2FB0", logo: "/ounass-logo.jpeg" },
-  { id: "luna",  name: "Luna Beauty", initials: "L", color: "#0891b2" },
-  { id: "fresh", name: "FreshGrocer", initials: "F", color: "#059669" },
+  { id: "luna",  name: "Luna Beauty", initials: "L", color: "#0891b2", logo: "/luna-logo.png" },
+  { id: "fresh", name: "FreshGrocer", initials: "F", color: "#059669", logo: "/freshgrocer-logo.jpg" },
 ];
 
 interface SidebarProps {
