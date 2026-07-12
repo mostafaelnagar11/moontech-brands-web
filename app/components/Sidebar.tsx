@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState, type ReactNode } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import {
   House, Megaphone, UsersThree,
@@ -19,8 +19,9 @@ const NAV_OTHERS: { icon: ReactNode; label: string; href?: string }[] = [
   { icon: <Question size={16} weight="bold" />, label: "Help" },
 ];
 
-const BRANDS = [
-  { id: "ounass", name: "Ounass",     initials: "O", color: "#4D2FB0" },
+type BrandItem = { id: string; name: string; initials: string; color: string; logo?: string };
+const BRANDS: BrandItem[] = [
+  { id: "ounass", name: "Ounass",     initials: "O", color: "#4D2FB0", logo: "/ounass-logo.jpeg" },
   { id: "luna",  name: "Luna Beauty", initials: "L", color: "#0891b2" },
   { id: "fresh", name: "FreshGrocer", initials: "F", color: "#059669" },
 ];
@@ -44,6 +45,11 @@ function SidebarContent({
   const router = useRouter();
   const [brandMenuOpen, setBrandMenuOpen] = useState(false);
   const [activeBrand, setActiveBrand] = useState(BRANDS[0]);
+  const [customLogo, setCustomLogo] = useState<string | null>(null);
+  useEffect(() => {
+    try { const l = localStorage.getItem("moontech_logo"); if (l) setCustomLogo(l); } catch {}
+  }, []);
+  const markSrc = (b: BrandItem) => (b.id === "ounass" ? customLogo ?? b.logo ?? null : b.logo ?? null);
 
   return (
     <div className={`flex h-full flex-col bg-white py-5 overflow-y-auto ${collapsed ? "px-2 items-center" : "px-3"}`}>
@@ -68,9 +74,12 @@ function SidebarContent({
             onClick={() => setBrandMenuOpen((o) => !o)}
             className="flex w-full items-center gap-2.5 rounded-xl border border-neutral-100 bg-neutral-50 px-3 py-2 transition hover:bg-neutral-100"
           >
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[11px] font-medium text-white shadow-sm"
-              style={{ backgroundColor: activeBrand.color }}>
-              {activeBrand.initials}
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-lg text-[11px] font-medium text-white shadow-sm"
+              style={{ backgroundColor: markSrc(activeBrand) ? "#fff" : activeBrand.color }}>
+              {markSrc(activeBrand)
+                ? // eslint-disable-next-line @next/next/no-img-element
+                  <img src={markSrc(activeBrand)!} alt={activeBrand.name} className="h-full w-full object-cover" />
+                : activeBrand.initials}
             </div>
             <span className="flex-1 truncate text-left text-[13px] font-semibold text-neutral-700">{activeBrand.name}</span>
             <svg viewBox="0 0 24 24" className={`h-3.5 w-3.5 shrink-0 text-neutral-400 transition-transform ${brandMenuOpen ? "rotate-180" : ""}`}
@@ -85,8 +94,13 @@ function SidebarContent({
               {BRANDS.map((b) => (
                 <button key={b.id} onClick={() => { setActiveBrand(b); setBrandMenuOpen(false); }}
                   className={`flex w-full items-center gap-2.5 px-3 py-2.5 text-left transition hover:bg-neutral-50 ${activeBrand.id === b.id ? "bg-violet-50/60" : ""}`}>
-                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[10px] font-medium text-white"
-                    style={{ backgroundColor: b.color }}>{b.initials}</div>
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-md text-[10px] font-medium text-white"
+                    style={{ backgroundColor: markSrc(b) ? "#fff" : b.color }}>
+                    {markSrc(b)
+                      ? // eslint-disable-next-line @next/next/no-img-element
+                        <img src={markSrc(b)!} alt={b.name} className="h-full w-full object-cover" />
+                      : b.initials}
+                  </div>
                   <span className="flex-1 text-[12px] font-medium text-neutral-700">{b.name}</span>
                   {activeBrand.id === b.id && (
                     <svg className="h-3.5 w-3.5 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
