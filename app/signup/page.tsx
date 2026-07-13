@@ -151,8 +151,9 @@ function ShowcasePanel() {
               <span className="ml-auto rounded-full bg-green-100 px-2 py-0.5 text-[9px] font-black text-green-600">94%</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-orange-400 to-red-500 shadow-sm">
-                <span className="text-[9px] font-black text-white">NIKE</span>
+              <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl bg-white shadow-sm">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/nike-logo.webp" alt="Nike" className="h-full w-full object-cover" />
               </div>
               <div className="relative flex-1">
                 <div className="h-px bg-indigo-200" />

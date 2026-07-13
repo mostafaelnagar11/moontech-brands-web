@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import {
   MagnifyingGlass, ClockCounterClockwise, House, Megaphone, UsersThree,
@@ -46,8 +47,11 @@ export default function CommandPalette() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
+  const [mounted, setMounted] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => setMounted(true), []);
 
   // Global ⌘K / Ctrl+K
   useEffect(() => {
@@ -118,8 +122,8 @@ export default function CommandPalette() {
         <kbd className="shrink-0 rounded-md border border-black/[0.08] bg-white px-1.5 py-0.5 text-[10px] font-medium text-neutral-400">⌘K</kbd>
       </button>
 
-      {open && (
-        <div className="fixed inset-0 z-[60] flex items-start justify-center px-4 pt-[14vh]" role="dialog" aria-modal="true">
+      {open && mounted && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-start justify-center px-4 pt-[14vh]" role="dialog" aria-modal="true">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-fade-in" onClick={() => setOpen(false)} />
           <div className="relative w-full max-w-xl overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-2xl shadow-black/20 animate-fade-in">
             {/* Search row */}
@@ -180,7 +184,8 @@ export default function CommandPalette() {
               </span>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
