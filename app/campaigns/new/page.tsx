@@ -861,6 +861,39 @@ function BuildingScreen({ onDone }: { onDone: () => void }) {
   );
 }
 
+/* Inline "building" widget — the chat-flow version of BuildingScreen, styled
+   as a tool/result card that sits inside the AI assistant's message stream. */
+function BuildingWidget({ onDone }: { onDone: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onDone, 3200);
+    return () => clearTimeout(t);
+  }, [onDone]);
+
+  return (
+    <div className="mt-0.5 w-full max-w-sm overflow-hidden rounded-2xl border border-black/[0.08] bg-white shadow-[0_4px_20px_rgba(16,12,40,0.06)]">
+      <div className="flex items-center gap-2.5 border-b border-black/[0.05] bg-neutral-50/60 px-4 py-2.5">
+        <span className="inline-block animate-spin text-[15px]" style={{ animationDuration: "3s" }}>⚙️</span>
+        <div className="min-w-0">
+          <p className="text-[13px] font-semibold text-neutral-800">Building your plan…</p>
+          <p className="truncate text-[11px] text-neutral-400">Analysing budget, ROAS target &amp; traffic data</p>
+        </div>
+      </div>
+      <div className="space-y-2.5 px-4 py-3.5">
+        {[100, 80, 88].map((w, i) => (
+          <div key={i} className="h-2.5 overflow-hidden rounded-full bg-[#4D2FB0]/[0.12]">
+            <div className="h-full rounded-full bg-[#4D2FB0]/40 animate-pulse" style={{ width: `${w}%`, animationDelay: `${i * 0.2}s` }} />
+          </div>
+        ))}
+        <div className="flex items-center gap-1.5 pt-0.5">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="h-1.5 w-1.5 rounded-full bg-[#4D2FB0]/50 animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ------------------------------------------------------------------ */
 /* Processing screen                                                   */
 /* ------------------------------------------------------------------ */
@@ -893,7 +926,7 @@ function ProcessingScreen({ onDone }: { onDone: () => void }) {
 /* ------------------------------------------------------------------ */
 /* AI agent chat flow                                                  */
 /* ------------------------------------------------------------------ */
-type AiMsg = { role: "ai" | "user"; text: string };
+type AiMsg = { role: "ai" | "user"; text?: string; widget?: "building" };
 
 const AI_FLOW: { key: string; ask: string; title: string; chips: string[]; skip?: boolean; multi?: boolean }[] = [
   { key: "setup",  ask: "Hi! I'm your MoonTech campaign assistant ✦\nHow would you like to set up your campaign?", title: "Setup method", chips: ["Continue with the AI assistant", "Set it up manually"] },
@@ -938,6 +971,7 @@ function AgentChat({ onComplete, onSwitchManual }: { onComplete: (patch: Partial
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const finalPatch = useRef<Partial<CampaignData>>({});
 
   const pushAi = (text: string) => {
     setTyping(true);
@@ -1004,10 +1038,13 @@ function AgentChat({ onComplete, onSwitchManual }: { onComplete: (patch: Partial
       pushAi(AI_FLOW[next].ask);
     } else {
       setDone(true);
+      finalPatch.current = mapAnswers(nextAnswers);
       const goalTxt = /aware|brand/i.test(nextAnswers.type || "") ? "Brand awareness" : "ROAS guaranteed";
       const summary = `Perfect — here's your campaign:\n\n• Name — ${nextAnswers.name || "Campaign"}\n• Goal — ${goalTxt}\n• Market — ${nextAnswers.geo || "UAE"}\n• Audience — ${nextAnswers.gender || "All"}, ${nextAnswers.age || "18–34"}\n• Budget — ${nextAnswers.budget || "$10,000"} · ${nextAnswers.roas || "5×"}\n\nBuilding your guaranteed plan now…`;
       pushAi(summary);
-      const t = setTimeout(() => onComplete(mapAnswers(nextAnswers)), 2600);
+      // Show the building step as an inline widget in the chat (not a full-page
+      // takeover); when it finishes, hand off to the review phase.
+      const t = setTimeout(() => setMessages((m) => [...m, { role: "ai", widget: "building" }]), 1650);
       timers.current.push(t);
     }
   }
@@ -1021,7 +1058,13 @@ function AgentChat({ onComplete, onSwitchManual }: { onComplete: (patch: Partial
             m.role === "ai" ? (
               <div key={i} className="flex items-start gap-3.5">
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#4D2FB0] text-[13px] text-white">✦</div>
-                <p className="mt-0.5 min-w-0 flex-1 whitespace-pre-line text-[15px] leading-7 text-neutral-800">{m.text}</p>
+                {m.widget === "building" ? (
+                  <div className="min-w-0 flex-1">
+                    <BuildingWidget onDone={() => onComplete(finalPatch.current)} />
+                  </div>
+                ) : (
+                  <p className="mt-0.5 min-w-0 flex-1 whitespace-pre-line text-[15px] leading-7 text-neutral-800">{m.text}</p>
+                )}
               </div>
             ) : (
               <div key={i} className="flex justify-end">
@@ -1190,12 +1233,8 @@ function AgentFlow({
       {phase === "chat" && (
         <AgentChat
           onSwitchManual={onSwitchManual}
-          onComplete={(patch) => { onPatch(patch); setPhase("building"); }}
+          onComplete={(patch) => { onPatch(patch); setPhase("review"); }}
         />
-      )}
-
-      {phase === "building" && (
-        <div className="mx-auto max-w-2xl px-5 py-6"><BuildingScreen onDone={() => setPhase("review")} /></div>
       )}
 
       {phase === "review" && (
