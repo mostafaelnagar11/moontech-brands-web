@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { MagnifyingGlass, List, Plus, SignOut } from "@phosphor-icons/react";
+import { List, Plus, SignOut } from "@phosphor-icons/react";
 import Sidebar from "../components/Sidebar";
 import NotificationCenter from "../components/NotificationCenter";
+import CommandPalette from "../components/CommandPalette";
 
 /* ------------------------------------------------------------------ */
 /* Design tokens                                                       */
@@ -515,12 +516,8 @@ export default function Dashboard() {
           </button>
           <h1 className="text-[15px] font-semibold shrink-0" style={{ color: INK }}>Dashboard</h1>
 
-          {/* Search — hidden on small screens */}
-          <div className="hidden sm:flex flex-1 items-center gap-2 rounded-xl border border-black/[0.07] bg-neutral-50 px-4 py-2.5 max-w-sm mx-auto transition focus-within:border-[#4D2FB0]/40 focus-within:bg-white focus-within:ring-2 focus-within:ring-[#4D2FB0]/10">
-            <MagnifyingGlass size={14} className="text-neutral-400 shrink-0" />
-            <input placeholder="Search anything…" className="bg-transparent text-[13px] text-neutral-600 placeholder:text-neutral-400 outline-none w-full" />
-            <kbd className="hidden lg:block shrink-0 rounded-md border border-black/[0.08] bg-white px-1.5 py-0.5 text-[10px] font-medium text-neutral-400">⌘K</kbd>
-          </div>
+          {/* Central search / command palette */}
+          <CommandPalette />
 
           <div className="flex items-center gap-2 ml-auto shrink-0">
             <button onClick={() => router.push("/campaigns/new")}

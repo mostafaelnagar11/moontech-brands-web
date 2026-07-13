@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { MagnifyingGlass, List, Plus, SignOut } from "@phosphor-icons/react";
+import { List, Plus, SignOut } from "@phosphor-icons/react";
 import Sidebar from "../components/Sidebar";
 import NotificationCenter from "../components/NotificationCenter";
+import CommandPalette from "../components/CommandPalette";
 
 /* ------------------------------------------------------------------ */
 /* Data                                                                */
@@ -185,10 +186,7 @@ export default function CampaignsPage() {
           </button>
           <h1 className="text-[15px] font-semibold text-[#191234] shrink-0">Campaigns</h1>
 
-          <div className="hidden sm:flex flex-1 items-center gap-2 rounded-xl border border-black/[0.07] bg-neutral-50 px-4 py-2.5 max-w-sm mx-auto transition focus-within:border-[#4D2FB0]/40 focus-within:bg-white focus-within:ring-2 focus-within:ring-[#4D2FB0]/10">
-            <MagnifyingGlass size={14} className="text-neutral-400 shrink-0" />
-            <input placeholder="Search campaigns…" className="bg-transparent text-[13px] text-neutral-600 placeholder:text-neutral-400 outline-none w-full" />
-          </div>
+          <CommandPalette />
 
           <div className="flex items-center gap-2 ml-auto shrink-0">
             <button onClick={() => router.push("/campaigns/new")}
