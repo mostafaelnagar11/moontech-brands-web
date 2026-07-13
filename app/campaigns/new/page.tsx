@@ -952,6 +952,7 @@ function AgentChat({ onComplete, onSwitchManual }: { onComplete: (patch: Partial
   }, [messages, typing]);
 
   const current = stepIdx < AI_FLOW.length ? AI_FLOW[stepIdx] : null;
+  const isSetup = current?.key === "setup";
 
   function answer(val: string) {
     const v = val.trim();
@@ -1036,28 +1037,31 @@ function AgentChat({ onComplete, onSwitchManual }: { onComplete: (patch: Partial
                     {c}
                   </button>
                 ))}
-                <div className="flex items-center gap-3 px-4 py-2">
-                  <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-neutral-400" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-                  </svg>
-                  <button onClick={() => inputRef.current?.focus()}
-                    className="flex-1 py-1 text-left text-sm text-neutral-400 transition hover:text-neutral-600">
-                    Something else
-                  </button>
-                  {current.skip && (
-                    <button onClick={() => answer("Skip for now")}
-                      className="shrink-0 rounded-lg border border-black/[0.09] bg-white px-3 py-1 text-[12px] font-medium text-neutral-500 transition hover:bg-neutral-50">
-                      Skip
+                {!isSetup && (
+                  <div className="flex items-center gap-3 px-4 py-2">
+                    <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-neutral-400" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                    </svg>
+                    <button onClick={() => inputRef.current?.focus()}
+                      className="flex-1 py-1 text-left text-sm text-neutral-400 transition hover:text-neutral-600">
+                      Something else
                     </button>
-                  )}
-                </div>
+                    {current.skip && (
+                      <button onClick={() => answer("Skip for now")}
+                        className="shrink-0 rounded-lg border border-black/[0.09] bg-white px-3 py-1 text-[12px] font-medium text-neutral-500 transition hover:bg-neutral-50">
+                        Skip
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           )}
-          <div className="flex items-end gap-1.5 rounded-[28px] border border-black/[0.09] bg-white py-2 pl-5 pr-2 shadow-[0_4px_20px_rgba(16,12,40,0.07)] transition focus-within:border-[#4D2FB0]/35">
+          <div className={`flex items-end gap-1.5 rounded-[28px] border border-black/[0.09] py-2 pl-5 pr-2 shadow-[0_4px_20px_rgba(16,12,40,0.07)] transition focus-within:border-[#4D2FB0]/35 ${isSetup ? "bg-neutral-50" : "bg-white"}`}>
             <textarea
               ref={inputRef}
               value={inputVal}
+              disabled={isSetup}
               onChange={(e) => {
                 setInputVal(e.target.value);
                 e.target.style.height = "auto";
@@ -1065,10 +1069,10 @@ function AgentChat({ onComplete, onSwitchManual }: { onComplete: (patch: Partial
               }}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); answer(inputVal); } }}
               rows={1}
-              placeholder="Type your answer…"
-              className="max-h-[120px] flex-1 resize-none bg-transparent py-1.5 text-[15px] leading-6 text-neutral-800 outline-none placeholder:text-neutral-400"
+              placeholder={isSetup ? "Choose an option above" : "Type your answer…"}
+              className="max-h-[120px] flex-1 resize-none bg-transparent py-1.5 text-[15px] leading-6 text-neutral-800 outline-none placeholder:text-neutral-400 disabled:cursor-not-allowed"
             />
-            <button onClick={() => answer(inputVal)} disabled={!inputVal.trim() || typing} aria-label="Send"
+            <button onClick={() => answer(inputVal)} disabled={!inputVal.trim() || typing || isSetup} aria-label="Send"
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#4D2FB0] text-white transition hover:bg-[#3F2596] disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-400">
               <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 19V5M5 12l7-7 7 7" />
