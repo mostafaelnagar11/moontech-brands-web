@@ -7,7 +7,6 @@ import {
   House, Megaphone, UsersThree,
   Gear, Question, SignOut, X,
 } from "@phosphor-icons/react";
-import { useEligibility } from "./useEligibility";
 
 type NavItem = { icon: ReactNode; label: string; href: string; badge?: string };
 const NAV_MENU: NavItem[] = [
@@ -33,18 +32,21 @@ interface SidebarProps {
   onNavChange: (label: string) => void;
   mobileOpen?: boolean;
   onMobileClose?: () => void;
+  /** Hide the main nav (Dashboard/Campaigns/Creators) — e.g. for a brand
+      that isn't eligible for campaigns yet. Defaults to showing the menu. */
+  restricted?: boolean;
 }
 
 function SidebarContent({
-  collapsed, activeNav, onNavChange, onMobileClose,
+  collapsed, activeNav, onNavChange, onMobileClose, restricted = false,
 }: {
   collapsed: boolean;
   activeNav: string;
   onNavChange: (label: string) => void;
   onMobileClose?: () => void;
+  restricted?: boolean;
 }) {
   const router = useRouter();
-  const eligible = useEligibility();
   const [brandMenuOpen, setBrandMenuOpen] = useState(false);
   const [activeBrand, setActiveBrand] = useState(BRANDS[0]);
   const [customLogo, setCustomLogo] = useState<string | null>(null);
@@ -125,7 +127,7 @@ function SidebarContent({
       )}
 
       {/* Nav — hidden for brands that aren't eligible yet */}
-      {eligible && (
+      {!restricted && (
         <>
           {!collapsed && <p className="px-2 mb-2 text-[9px] font-medium uppercase tracking-widest text-neutral-300">Menu</p>}
           <nav className="flex flex-col gap-1 mb-6 w-full">
@@ -176,12 +178,12 @@ function SidebarContent({
   );
 }
 
-export default function Sidebar({ collapsed, activeNav, onNavChange, mobileOpen, onMobileClose }: SidebarProps) {
+export default function Sidebar({ collapsed, activeNav, onNavChange, mobileOpen, onMobileClose, restricted }: SidebarProps) {
   return (
     <>
       {/* Desktop sidebar */}
       <aside className={`hidden md:flex shrink-0 flex-col border-r border-neutral-100/80 transition-all duration-200 ${collapsed ? "w-[60px]" : "w-[210px]"}`}>
-        <SidebarContent collapsed={collapsed} activeNav={activeNav} onNavChange={onNavChange} />
+        <SidebarContent collapsed={collapsed} activeNav={activeNav} onNavChange={onNavChange} restricted={restricted} />
       </aside>
 
       {/* Mobile drawer overlay */}
@@ -189,7 +191,7 @@ export default function Sidebar({ collapsed, activeNav, onNavChange, mobileOpen,
         <div className="fixed inset-0 z-40 md:hidden">
           <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onMobileClose} />
           <aside className="absolute left-0 top-0 h-full w-[240px] border-r border-neutral-100 shadow-xl">
-            <SidebarContent collapsed={false} activeNav={activeNav} onNavChange={onNavChange} onMobileClose={onMobileClose} />
+            <SidebarContent collapsed={false} activeNav={activeNav} onNavChange={onNavChange} onMobileClose={onMobileClose} restricted={restricted} />
           </aside>
         </div>
       )}

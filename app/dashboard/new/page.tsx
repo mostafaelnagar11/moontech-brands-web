@@ -27,7 +27,7 @@ export default function NewBrandDashboard() {
       style={{ fontFamily: "var(--font-geist-sans), system-ui, sans-serif", zoom: "110%", height: "calc(100vh / 1.1)" }}
     >
       {/* ── Sidebar ── */}
-      <Sidebar collapsed={collapsed} activeNav={activeNav} onNavChange={setActiveNav} />
+      <Sidebar collapsed={collapsed} activeNav={activeNav} onNavChange={setActiveNav} restricted={!eligible} />
 
       {/* ── Main ── */}
       <div className="flex flex-1 flex-col overflow-hidden">
