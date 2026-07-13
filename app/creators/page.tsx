@@ -79,13 +79,6 @@ function parseCount(s: string): number {
   return u === "M" ? v * 1_000_000 : u === "K" ? v * 1000 : v;
 }
 
-// Brand-fit score (higher = better) derived from conflict severity + match score.
-function brandFit(c: Creator): number {
-  if (c.brandConflict === "None") return Math.min(99, c.score + 4);
-  if (/^minor/i.test(c.brandConflict)) return Math.round(c.score * 0.75);
-  return Math.round(c.score * 0.4);
-}
-
 // Platforms a creator is active on — primary first, plus a deterministic
 // set of others so profiles show as multi-platform.
 function platformsFor(c: Creator): Platform[] {
@@ -137,9 +130,6 @@ function Detail({
   const cqColor = c.contentQuality === "Premium" ? BRAND : c.contentQuality === "High" ? "#059669" : "#D97706";
   const scoreColor = c.score >= 90 ? BRAND : c.score >= 80 ? "#059669" : "#D97706";
   const scoreLabel = c.score >= 90 ? "Excellent" : c.score >= 80 ? "Good" : "Fair";
-  const fit = brandFit(c);
-  const fitColor = fit >= 80 ? "#059669" : fit >= 55 ? "#D97706" : "#DC2626";
-  const fitTrack = fit >= 80 ? "#DCFCE7" : fit >= 55 ? "#FEF3C7" : "#FEE2E2";
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-white">
@@ -250,10 +240,6 @@ function Detail({
             </div>
           </div>
           <div className="grid grid-cols-2 gap-2.5">
-            <div className="col-span-2">
-              <SignalCard label="Brand fit" value={`${fit}%`} valueColor={fitColor}
-                track={fitTrack} bar={fitColor} width={fit} />
-            </div>
             <SignalCard label="Content quality" value={c.contentQuality} valueColor={cqColor}
               track={`${cqColor}22`} bar={cqColor} width={cqPct} />
             <SignalCard label="Post frequency" value={c.postFreq} valueColor={INK}
