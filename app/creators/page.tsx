@@ -126,8 +126,6 @@ function Detail({
     { ok: true, text: `Active since ${c.activeSince} · ${c.postFreq}` },
   ];
 
-  const cqPct = c.contentQuality === "Premium" ? 100 : c.contentQuality === "High" ? 75 : 45;
-  const cqColor = c.contentQuality === "Premium" ? BRAND : c.contentQuality === "High" ? "#059669" : "#D97706";
   const scoreColor = c.score >= 90 ? BRAND : c.score >= 80 ? "#059669" : "#D97706";
   const scoreLabel = c.score >= 90 ? "Excellent" : c.score >= 80 ? "Good" : "Fair";
 
@@ -221,29 +219,23 @@ function Detail({
           </div>
         </div>
 
-        {/* Why we recommend + signals */}
-        <div className="mb-5 grid grid-cols-1 gap-3 px-7 lg:grid-cols-2">
+        {/* Why we recommend */}
+        <div className="mb-5 px-7">
           <div className="rounded-2xl border border-[#4D2FB0]/12 bg-[#4D2FB0]/[0.04] p-4">
             <div className="mb-3 flex items-center gap-1.5">
               <span className="text-xs">✶</span>
               <span className="text-[11px] font-bold uppercase tracking-wide text-[#4D2FB0]">Why we recommend</span>
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
               {insights.map((ins, i) => (
-                <div key={i} className="flex items-start gap-2">
-                  <span className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded ${ins.ok ? "bg-green-100 text-green-600" : "bg-red-50 text-red-600"}`}>
+                <div key={i} className="flex items-center gap-2">
+                  <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded ${ins.ok ? "bg-green-100 text-green-600" : "bg-red-50 text-red-600"}`}>
                     <span className="text-[9px] font-bold">{ins.ok ? "✓" : "✕"}</span>
                   </span>
-                  <span className="text-xs leading-relaxed text-neutral-600">{ins.text}</span>
+                  <span className="text-xs text-neutral-600">{ins.text}</span>
                 </div>
               ))}
             </div>
-          </div>
-          <div className="grid grid-cols-2 gap-2.5">
-            <SignalCard label="Content quality" value={c.contentQuality} valueColor={cqColor}
-              track={`${cqColor}22`} bar={cqColor} width={cqPct} />
-            <SignalCard label="Post frequency" value={c.postFreq} valueColor={INK}
-              track={`${BRAND}1f`} bar={BRAND} width={70} />
           </div>
         </div>
 
@@ -299,20 +291,6 @@ function Detail({
           </button>
         </div>
       )}
-    </div>
-  );
-}
-
-function SignalCard({ label, value, valueColor, track, bar, width }: {
-  label: string; value: string; valueColor: string; track: string; bar: string; width: number;
-}) {
-  return (
-    <div className="rounded-2xl border border-black/[0.06] bg-neutral-50/70 p-4">
-      <div className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">{label}</div>
-      <div className="mt-1.5 text-[16px] font-bold" style={{ color: valueColor }}>{value}</div>
-      <div className="mt-2.5 h-[3px] overflow-hidden rounded-full" style={{ background: track }}>
-        <div className="h-full rounded-full" style={{ width: `${width}%`, background: bar }} />
-      </div>
     </div>
   );
 }
