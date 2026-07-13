@@ -98,11 +98,44 @@ export default function SignupPage() {
 /* Left showcase panel (shared with sign-in)                          */
 /* ------------------------------------------------------------------ */
 
+/* The floating scene is authored at a fixed design size and then scaled to
+   fit whatever width the panel has. Positions (%) and card sizes (px) shrink
+   together, so the layout never collapses / overlaps on smaller screens. */
+const DESIGN_W = 940;
+const DESIGN_H = 900;
+
 function ShowcasePanel() {
+  const frameRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    const el = frameRef.current;
+    if (!el) return;
+    const update = () => {
+      const { clientWidth: w, clientHeight: h } = el;
+      setScale(Math.min(w / DESIGN_W, h / DESIGN_H));
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   return (
     <div className="relative hidden lg:block lg:flex-1 p-4 bg-white overflow-hidden">
-      <div className="relative h-full w-full overflow-hidden rounded-2xl">
+      <div ref={frameRef} className="relative h-full w-full overflow-hidden rounded-2xl">
         <div className="absolute inset-0" style={{ backgroundImage: "linear-gradient(-20deg, #e9defa 0%, #fbfcdb 100%)" }} />
+
+        {/* Scaled design canvas — positioned against a fixed DESIGN_W × DESIGN_H
+            box, then uniformly scaled to fit the panel. */}
+        <div
+          className="absolute left-1/2 top-1/2"
+          style={{
+            width: DESIGN_W,
+            height: DESIGN_H,
+            transform: `translate(-50%, -50%) scale(${scale})`,
+          }}
+        >
 
         {/* LIVE campaign — top left */}
         <div className="absolute left-[6%] top-[7%] animate-float-a">
@@ -271,6 +304,7 @@ function ShowcasePanel() {
         <div className="absolute left-[calc(55%-100px)] bottom-[22%] animate-float-a">
           <img src="/emojis/SweatGrinning.png" alt="" className="h-[90px] w-[90px]" />
         </div>
+        </div>{/* /scaled design canvas */}
       </div>
     </div>
   );
