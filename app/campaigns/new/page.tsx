@@ -1159,65 +1159,181 @@ function AgentFlow({
 }
 
 /* ------------------------------------------------------------------ */
-/* Welcome overlay — shown once when an eligible brand first lands here */
+/* Welcome overlay — shown once when an eligible brand first lands here.
+   A choreographed celebration: springy card entrance, confetti burst,
+   self-drawing checkmark, keynote word-by-word headline, count-up stats
+   and a shimmering CTA. All entrance motion is gated behind
+   prefers-reduced-motion: no-preference (see wc- classes in globals.css). */
 /* ------------------------------------------------------------------ */
-function WelcomeOverlay({ industry, onStart }: { industry: string; onStart: () => void }) {
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center px-4" role="dialog" aria-modal="true">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-fade-in" />
-      <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-2xl shadow-black/20 animate-fade-in">
-        {/* Eligible header band */}
-        <div className="relative px-6 pt-6 pb-5" style={{ background: "linear-gradient(135deg,#ede9fe 0%,#f0f0ff 50%,#e8e4ff 100%)" }}>
-          <div className="flex items-start justify-between gap-3">
-            <span className="inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-3 py-1 text-[11px] font-semibold text-green-700">
-              Welcome to MoonTech 🎉
-            </span>
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white shadow-md">
-              <svg className="h-5 w-5 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-          </div>
-          <h2 className="mt-3 text-[22px] font-bold leading-tight tracking-tight text-neutral-900">
-            Your brand is <span className="text-violet-600">eligible</span><br />for a ROAS campaign
-          </h2>
-          <p className="mt-2 text-[13px] text-neutral-500">
-            Website verified · 280K monthly visitors confirmed · Guaranteed ROAS ready to activate
-          </p>
-        </div>
 
-        {/* Body */}
-        <div className="px-6 py-5">
-          <div className="flex gap-2.5">
-            {[
-              { v: "280K", l: "Monthly visitors" },
-              { v: "5×", l: "Guaranteed ROAS" },
-              { v: "100%", l: "Performance-based" },
-            ].map((s) => (
-              <div key={s.l} className="flex-1 rounded-xl border border-black/[0.06] bg-neutral-50 px-3 py-2.5 text-center">
-                <p className="text-lg font-bold leading-none text-violet-600">{s.v}</p>
-                <p className="mt-1 text-[10px] font-medium text-neutral-500">{s.l}</p>
-              </div>
+// Deterministic confetti field: index-derived values (golden-angle spread),
+// no Math.random, so server and client render identical markup.
+const WC_CONFETTI_COLORS = ["#4D2FB0", "#7C5CE0", "#A78BFA", "#22C55E", "#F59E0B", "#E879F9"];
+const WC_CONFETTI = Array.from(Array(22).keys()).map((i) => ({
+  left: `${(i * 137.5) % 100}%`,
+  delay: `${(0.5 + ((i * 47) % 55) / 100).toFixed(2)}s`,
+  duration: `${(2.1 + ((i * 31) % 90) / 100).toFixed(2)}s`,
+  w: i % 3 === 0 ? "9px" : "6px",
+  h: i % 4 === 1 ? "6px" : "10px",
+  r: i % 4 === 2 ? "50%" : "2px",
+  color: WC_CONFETTI_COLORS[i % WC_CONFETTI_COLORS.length],
+  drift: `${((i * 53) % 90) - 45}px`,
+  spin: `${(i % 2 === 0 ? 1 : -1) * (300 + ((i * 71) % 420))}deg`,
+  fall: `${430 + ((i * 29) % 130)}px`,
+}));
+
+// Headline words rise out of overflow masks one-by-one, keynote-style.
+const WC_WORDS: { t: string; hl?: boolean; brBefore?: boolean }[] = [
+  { t: "Your" }, { t: "brand" }, { t: "is" }, { t: "eligible", hl: true },
+  { t: "for", brBefore: true }, { t: "a" }, { t: "ROAS" }, { t: "campaign" },
+];
+
+function WelcomeOverlay({ industry, onStart }: { industry: string; onStart: () => void }) {
+  // Count-up hero moment: 0 → 280K / 5× / 100% while the stat tiles pop in.
+  const [counts, setCounts] = useState({ visitors: 0, roas: 0, perf: 0 });
+  const rafRef = useRef<number>(0);
+
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setCounts({ visitors: 280, roas: 5, perf: 100 });
+      return;
+    }
+    const DELAY = 600;
+    const DURATION = 1300;
+    const startedAt = performance.now();
+    const easeOutExpo = (t: number) => (t >= 1 ? 1 : 1 - Math.pow(2, -10 * t));
+    const tick = (now: number) => {
+      const elapsed = now - startedAt - DELAY;
+      if (elapsed < 0) { rafRef.current = requestAnimationFrame(tick); return; }
+      const p = Math.min(elapsed / DURATION, 1);
+      const e = easeOutExpo(p);
+      setCounts({
+        visitors: Math.round(280 * e),
+        roas: Math.min(5, Math.round(50 * e) / 10),
+        perf: Math.round(100 * e),
+      });
+      if (p < 1) rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, []);
+
+  const stats = [
+    { v: `${counts.visitors}K`, l: "Monthly visitors" },
+    { v: Number.isInteger(counts.roas) ? `${counts.roas}×` : `${counts.roas.toFixed(1)}×`, l: "Guaranteed ROAS" },
+    { v: `${counts.perf}%`, l: "Performance-based" },
+  ];
+
+  return (
+    <div className="fixed inset-0 z-[100] overflow-y-auto" role="dialog" aria-modal="true" aria-label="Welcome to MoonTech">
+      <div className="wc-backdrop fixed inset-0 bg-black/40 backdrop-blur-sm" />
+      <div className="relative flex min-h-full items-center justify-center px-4 py-8">
+        <div className="wc-card relative w-full max-w-md overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-2xl shadow-black/20">
+          {/* Confetti burst (one-time, card-scoped, pointer-transparent) */}
+          <div className="pointer-events-none absolute inset-0 z-20 overflow-hidden" aria-hidden="true">
+            {WC_CONFETTI.map((p, i) => (
+              <span
+                key={i}
+                className="wc-confetti-piece"
+                style={{
+                  "--wc-left": p.left, "--wc-delay": p.delay, "--wc-duration": p.duration,
+                  "--wc-w": p.w, "--wc-h": p.h, "--wc-r": p.r, "--wc-color": p.color,
+                  "--wc-drift": p.drift, "--wc-spin": p.spin, "--wc-fall": p.fall,
+                } as React.CSSProperties}
+              />
             ))}
           </div>
 
-          {/* Personalized motivation */}
-          <div className="mt-4 flex items-center gap-3 rounded-xl border border-[#4D2FB0]/12 bg-[#4D2FB0]/[0.05] px-4 py-3">
-            <span className="text-lg leading-none">✦</span>
-            <p className="text-[13px] font-medium text-[#3F2596]">
-              {industry} brands using MoonTech generated <span className="font-bold">8× ROAS</span> last month.
+          {/* Eligible header band */}
+          <div className="wc-header-gradient relative px-6 pt-6 pb-5">
+            <div className="pointer-events-none absolute -right-8 -top-10 h-36 w-36 rounded-full bg-[#4D2FB0]/10 blur-2xl" aria-hidden="true" />
+            <div className="pointer-events-none absolute -bottom-12 -left-10 h-32 w-32 rounded-full bg-violet-400/15 blur-2xl" aria-hidden="true" />
+            <div className="relative flex items-start justify-between gap-3">
+              <span
+                className="wc-rise inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-3 py-1 text-[11px] font-semibold text-green-700"
+                style={{ animationDelay: "0.25s" }}
+              >
+                <span className="relative flex h-1.5 w-1.5" aria-hidden="true">
+                  <span className="wc-ping absolute inline-flex h-full w-full rounded-full bg-green-500" />
+                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-green-500" />
+                </span>
+                Welcome to MoonTech 🎉
+              </span>
+              <div className="relative h-11 w-11 shrink-0">
+                <span className="wc-ring absolute inset-0 rounded-full border-2 border-violet-500" aria-hidden="true" />
+                <span className="wc-ring absolute inset-0 rounded-full border-2 border-violet-400" style={{ animationDelay: "1.15s" }} aria-hidden="true" />
+                <div className="wc-badge relative flex h-11 w-11 items-center justify-center rounded-full bg-white shadow-lg shadow-violet-600/25 ring-1 ring-violet-100">
+                  <svg className="h-5 w-5 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path className="wc-check" strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" pathLength={1} />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            {/* Keynote headline — words rise out of masks with 55ms stagger */}
+            <h2 className="relative mt-3 text-[22px] font-bold leading-tight tracking-tight text-[#191234]">
+              {WC_WORDS.map((w, i) => (
+                <span key={w.t}>
+                  {w.brBefore && <br />}
+                  <span className="wc-mask">
+                    <span
+                      className={"wc-word" + (w.hl ? " wc-grad-text" : "")}
+                      style={{ animationDelay: `${350 + i * 55}ms` }}
+                    >
+                      {w.t}
+                    </span>
+                  </span>
+                  {i < WC_WORDS.length - 1 && " "}
+                </span>
+              ))}
+            </h2>
+            <p className="wc-rise relative mt-2 text-[13px] text-neutral-500" style={{ animationDelay: "0.45s" }}>
+              Website verified · 280K monthly visitors confirmed · Guaranteed ROAS ready to activate
             </p>
           </div>
 
-          <button
-            onClick={onStart}
-            className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#4D2FB0] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#3F2596] active:scale-[0.98]"
-          >
-            Start now →
-          </button>
-          <p className="mt-2.5 text-center text-[11px] text-neutral-400">
-            Let&apos;s build your first campaign with the AI assistant.
-          </p>
+          {/* Body */}
+          <div className="px-6 py-5">
+            {/* Stat tiles pop in while their numbers count up */}
+            <div className="flex gap-2.5">
+              {stats.map((s, i) => (
+                <div
+                  key={s.l}
+                  className="wc-pop flex-1 rounded-xl border border-black/[0.06] bg-neutral-50 px-3 py-2.5 text-center transition-colors hover:border-violet-200 hover:bg-violet-50/60"
+                  style={{ animationDelay: `${0.6 + i * 0.1}s` }}
+                >
+                  <p className="text-lg font-bold leading-none tabular-nums text-violet-600">{s.v}</p>
+                  <p className="mt-1 text-[10px] font-medium text-neutral-500">{s.l}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Personalized motivation */}
+            <div
+              className="wc-rise mt-4 flex items-center gap-3 rounded-xl border border-[#4D2FB0]/12 bg-[#4D2FB0]/[0.05] px-4 py-3"
+              style={{ animationDelay: "0.95s" }}
+            >
+              <span className="wc-sparkle text-lg leading-none text-[#4D2FB0]">✦</span>
+              <p className="text-[13px] font-medium text-[#3F2596]">
+                {industry} brands using MoonTech generated <span className="font-bold">8× ROAS</span> last month.
+              </p>
+            </div>
+
+            {/* CTA lands last: violet glow, shimmer sweeps, then a breathing halo */}
+            <div className="wc-rise relative mt-5" style={{ animationDelay: "1.05s" }}>
+              <div className="wc-cta-halo pointer-events-none absolute -inset-1 rounded-2xl bg-[#4D2FB0] blur-lg" aria-hidden="true" />
+              <button
+                onClick={onStart}
+                className="wc-cta group relative flex w-full items-center justify-center gap-2 rounded-xl bg-[#4D2FB0] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#3F2596] active:scale-[0.98]"
+              >
+                Start now
+                <span className="transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden="true">→</span>
+              </button>
+            </div>
+            <p className="wc-rise mt-2.5 text-center text-[11px] text-neutral-400" style={{ animationDelay: "1.15s" }}>
+              Let&apos;s build your first campaign with the AI assistant.
+            </p>
+          </div>
         </div>
       </div>
     </div>
