@@ -939,15 +939,15 @@ function ModeChoice({ onAgent, onManual }: { onAgent: () => void; onManual: () =
 /* ------------------------------------------------------------------ */
 type AiMsg = { role: "ai" | "user"; text: string };
 
-const AI_FLOW: { key: string; ask: string; chips: string[] }[] = [
-  { key: "name",   ask: "Hi! I'm your MoonTech campaign assistant ✦\nLet's set this up in a few quick questions. First — what should we call the campaign?", chips: ["Spring 2026", "Summer Sale", "Brand Launch", "Ramadan 2026"] },
-  { key: "type",   ask: "Got it! What's the goal for this campaign?", chips: ["Drive sales (ROAS guaranteed)", "Grow brand awareness"] },
-  { key: "geo",    ask: "Which markets should it run in?", chips: ["UAE", "KSA", "Kuwait", "All GCC"] },
-  { key: "gender", ask: "Who's your target audience?", chips: ["All genders", "Women only", "Men only"] },
-  { key: "age",    ask: "And the age range you're after?", chips: ["18–34", "25–44", "35–54", "All ages"] },
-  { key: "budget", ask: "What's your total budget? (USD)", chips: ["$2,000", "$5,000", "$10,000", "$20,000+"] },
-  { key: "roas",   ask: "What ROAS are you aiming for — revenue per $1 spent?", chips: ["2× ROAS", "3× ROAS", "5× ROAS", "10× ROAS"] },
-  { key: "brief",  ask: "Last one — anything creators should know? Any do's or don'ts?", chips: ["Keep it casual & authentic", "No competitor mentions", "Focus on product quality", "Skip for now"] },
+const AI_FLOW: { key: string; ask: string; title: string; chips: string[]; skip?: boolean }[] = [
+  { key: "name",   ask: "Hi! I'm your MoonTech campaign assistant ✦\nLet's set this up in a few quick questions. First — what should we call the campaign?", title: "Campaign name", chips: ["Spring 2026", "Summer Sale", "Brand Launch", "Ramadan 2026"] },
+  { key: "type",   ask: "Got it! What's the goal for this campaign?", title: "Campaign goal", chips: ["Drive sales (ROAS guaranteed)", "Grow brand awareness"] },
+  { key: "geo",    ask: "Which markets should it run in?", title: "Target markets", chips: ["UAE", "KSA", "Kuwait", "All GCC"] },
+  { key: "gender", ask: "Who's your target audience?", title: "Target audience", chips: ["All genders", "Women only", "Men only"] },
+  { key: "age",    ask: "And the age range you're after?", title: "Age range", chips: ["18–34", "25–44", "35–54", "All ages"] },
+  { key: "budget", ask: "What's your total budget? (USD)", title: "Total budget", chips: ["$2,000", "$5,000", "$10,000", "$20,000+"] },
+  { key: "roas",   ask: "What ROAS are you aiming for — revenue per $1 spent?", title: "ROAS target", chips: ["2× ROAS", "3× ROAS", "5× ROAS", "10× ROAS"] },
+  { key: "brief",  ask: "Last one — anything creators should know? Any do's or don'ts?", title: "Creator brief", chips: ["Keep it casual & authentic", "No competitor mentions", "Focus on product quality"], skip: true },
 ];
 
 function mapAnswers(a: Record<string, string>): Partial<CampaignData> {
@@ -971,6 +971,7 @@ function AgentChat({ onComplete, onSwitchManual }: { onComplete: (patch: Partial
   const [inputVal, setInputVal] = useState("");
   const [done, setDone] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const pushAi = (text: string) => {
@@ -1052,17 +1053,40 @@ function AgentChat({ onComplete, onSwitchManual }: { onComplete: (patch: Partial
       {!done && (
         <div className="mx-auto w-full max-w-3xl px-5 pb-5 pt-1">
           {!typing && current && (
-            <div className="mb-3 flex flex-wrap justify-center gap-2">
-              {current.chips.map((c) => (
-                <button key={c} onClick={() => answer(c)}
-                  className="rounded-full border border-black/[0.1] bg-white px-3.5 py-1.5 text-[13px] font-medium text-neutral-600 transition hover:border-[#4D2FB0]/40 hover:text-[#4D2FB0]">
-                  {c}
-                </button>
-              ))}
+            <div className="mb-3 overflow-hidden rounded-2xl border border-black/[0.08] bg-white shadow-[0_4px_20px_rgba(16,12,40,0.07)]">
+              <div className="flex items-baseline justify-between gap-3 px-4 pb-2 pt-3">
+                <p className="text-[14px] font-medium text-neutral-800">{current.title}</p>
+                <span className="shrink-0 text-[11px] text-neutral-400">{stepIdx + 1} of {AI_FLOW.length}</span>
+              </div>
+              <div className="divide-y divide-black/[0.05]">
+                {current.chips.map((c, i) => (
+                  <button key={c} onClick={() => answer(c)}
+                    className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-neutral-700 transition hover:bg-neutral-50">
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-neutral-100 text-[11px] font-medium text-neutral-500">{i + 1}</span>
+                    {c}
+                  </button>
+                ))}
+                <div className="flex items-center gap-3 px-4 py-2">
+                  <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-neutral-400" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                  </svg>
+                  <button onClick={() => inputRef.current?.focus()}
+                    className="flex-1 py-1 text-left text-sm text-neutral-400 transition hover:text-neutral-600">
+                    Something else
+                  </button>
+                  {current.skip && (
+                    <button onClick={() => answer("Skip for now")}
+                      className="shrink-0 rounded-lg border border-black/[0.09] bg-white px-3 py-1 text-[12px] font-medium text-neutral-500 transition hover:bg-neutral-50">
+                      Skip
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           )}
           <div className="flex items-end gap-1.5 rounded-[28px] border border-black/[0.09] bg-white py-2 pl-5 pr-2 shadow-[0_4px_20px_rgba(16,12,40,0.07)] transition focus-within:border-[#4D2FB0]/35">
             <textarea
+              ref={inputRef}
               value={inputVal}
               onChange={(e) => {
                 setInputVal(e.target.value);
