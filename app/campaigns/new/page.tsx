@@ -1113,11 +1113,11 @@ function AgentFlow({
     <div className="min-h-screen bg-[#F7F7F8]" style={{ fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>
       {showHeader && (
         <header className="sticky top-0 z-20 h-[65px] border-b border-black/[0.06] bg-white/80 backdrop-blur-sm">
-          {/* Same centered column as the chat, so the header content starts
-              exactly where the messages start — in every scenario. */}
-          <div className="mx-auto flex h-full w-full max-w-3xl items-center gap-3 px-5">
+          {/* Logo / close button stays pinned to the far left; the title and
+              AI-assistant pill align with the chat column below. */}
+          <div className="absolute left-5 top-1/2 -translate-y-1/2">
             {firstRun ? (
-              <Image src="/logo.svg" alt="MoonTech" width={110} height={20} priority className="mr-1 h-5 w-auto" />
+              <Image src="/logo.svg" alt="MoonTech" width={110} height={20} priority className="h-5 w-auto" />
             ) : (
               <button onClick={onClose}
                 className="flex h-9 w-9 items-center justify-center rounded-xl border border-black/[0.08] text-neutral-500 transition hover:bg-neutral-50">
@@ -1126,6 +1126,8 @@ function AgentFlow({
                 </svg>
               </button>
             )}
+          </div>
+          <div className="mx-auto flex h-full w-full max-w-3xl items-center gap-3 px-5">
             <h1 className="text-base font-semibold" style={{ color: INK }}>New campaign</h1>
             <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-[#4D2FB0]/[0.08] px-2.5 py-1 text-[11px] font-semibold text-[#4D2FB0]">✦ AI assistant</span>
           </div>
