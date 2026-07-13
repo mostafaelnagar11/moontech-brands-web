@@ -45,10 +45,12 @@ export default function NewBrandDashboard() {
           </div>
 
           <div className="flex items-center gap-2.5 ml-auto">
-            <button className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2 text-[12px] font-semibold text-white shadow-md shadow-violet-200 hover:shadow-violet-300 hover:from-violet-700 hover:to-indigo-700 transition-all"
-              onClick={() => router.push("/campaigns/new")}>
-              <Plus size={13} weight="bold" /> New Campaign
-            </button>
+            {eligible && (
+              <button className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2 text-[12px] font-semibold text-white shadow-md shadow-violet-200 hover:shadow-violet-300 hover:from-violet-700 hover:to-indigo-700 transition-all"
+                onClick={() => router.push("/campaigns/new")}>
+                <Plus size={13} weight="bold" /> New Campaign
+              </button>
+            )}
             <button className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-neutral-200 bg-white text-neutral-500 hover:bg-neutral-50 transition-colors shadow-sm">
               <Bell size={16} />
             </button>

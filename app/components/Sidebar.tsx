@@ -7,6 +7,7 @@ import {
   House, Megaphone, UsersThree,
   Gear, Question, SignOut, X,
 } from "@phosphor-icons/react";
+import { useEligibility } from "./useEligibility";
 
 type NavItem = { icon: ReactNode; label: string; href: string; badge?: string };
 const NAV_MENU: NavItem[] = [
@@ -43,6 +44,7 @@ function SidebarContent({
   onMobileClose?: () => void;
 }) {
   const router = useRouter();
+  const eligible = useEligibility();
   const [brandMenuOpen, setBrandMenuOpen] = useState(false);
   const [activeBrand, setActiveBrand] = useState(BRANDS[0]);
   const [customLogo, setCustomLogo] = useState<string | null>(null);
@@ -122,27 +124,31 @@ function SidebarContent({
         </div>
       )}
 
-      {/* Nav */}
-      {!collapsed && <p className="px-2 mb-2 text-[9px] font-medium uppercase tracking-widest text-neutral-300">Menu</p>}
-      <nav className="flex flex-col gap-1 mb-6 w-full">
-        {NAV_MENU.map((item) => (
-          <button key={item.label} onClick={() => { onNavChange(item.label); router.push(item.href); onMobileClose?.(); }}
-            title={collapsed ? item.label : undefined}
-            className={`flex items-center rounded-xl py-2.5 text-[13px] font-medium transition-all text-left ${collapsed ? "justify-center px-0" : "gap-3 px-3"} ${
-              activeNav === item.label
-                ? "bg-[#4D2FB0] text-white shadow-md shadow-violet-200"
-                : "text-neutral-500 hover:bg-neutral-50 hover:text-neutral-800"
-            }`}>
-            {item.icon}
-            {!collapsed && <span className="flex-1 truncate">{item.label}</span>}
-            {!collapsed && item.badge && (
-              <span className={`shrink-0 rounded-md px-1.5 py-0.5 text-[11px] font-semibold ${
-                activeNav === item.label ? "bg-white/20 text-white" : "bg-neutral-100 text-neutral-500"
-              }`}>{item.badge}</span>
-            )}
-          </button>
-        ))}
-      </nav>
+      {/* Nav — hidden for brands that aren't eligible yet */}
+      {eligible && (
+        <>
+          {!collapsed && <p className="px-2 mb-2 text-[9px] font-medium uppercase tracking-widest text-neutral-300">Menu</p>}
+          <nav className="flex flex-col gap-1 mb-6 w-full">
+            {NAV_MENU.map((item) => (
+              <button key={item.label} onClick={() => { onNavChange(item.label); router.push(item.href); onMobileClose?.(); }}
+                title={collapsed ? item.label : undefined}
+                className={`flex items-center rounded-xl py-2.5 text-[13px] font-medium transition-all text-left ${collapsed ? "justify-center px-0" : "gap-3 px-3"} ${
+                  activeNav === item.label
+                    ? "bg-[#4D2FB0] text-white shadow-md shadow-violet-200"
+                    : "text-neutral-500 hover:bg-neutral-50 hover:text-neutral-800"
+                }`}>
+                {item.icon}
+                {!collapsed && <span className="flex-1 truncate">{item.label}</span>}
+                {!collapsed && item.badge && (
+                  <span className={`shrink-0 rounded-md px-1.5 py-0.5 text-[11px] font-semibold ${
+                    activeNav === item.label ? "bg-white/20 text-white" : "bg-neutral-100 text-neutral-500"
+                  }`}>{item.badge}</span>
+                )}
+              </button>
+            ))}
+          </nav>
+        </>
+      )}
 
       {/* Bottom */}
       <div className="mt-auto flex flex-col gap-1 w-full">

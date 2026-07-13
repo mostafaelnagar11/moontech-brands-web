@@ -6,6 +6,7 @@ import { List, Plus, SignOut } from "@phosphor-icons/react";
 import Sidebar from "../components/Sidebar";
 import NotificationCenter from "../components/NotificationCenter";
 import CommandPalette from "../components/CommandPalette";
+import { useEligibility } from "../components/useEligibility";
 
 /* ------------------------------------------------------------------ */
 /* Data                                                                */
@@ -150,6 +151,7 @@ function CampaignCard({ c }: { c: typeof CAMPAIGNS[0] }) {
 /* ------------------------------------------------------------------ */
 export default function CampaignsPage() {
   const router = useRouter();
+  const eligible = useEligibility();
   const [activeNav, setActiveNav]       = useState("Campaigns");
   const [collapsed, setCollapsed]       = useState(false);
   const [mobileOpen, setMobileOpen]     = useState(false);
@@ -189,11 +191,13 @@ export default function CampaignsPage() {
           <CommandPalette />
 
           <div className="flex items-center gap-2 ml-auto shrink-0">
-            <button onClick={() => router.push("/campaigns/new")}
-              className="flex items-center gap-2 rounded-xl bg-[#4D2FB0] px-3 sm:px-4 py-2 text-[12px] font-semibold text-white hover:bg-[#3F2596] transition-colors">
-              <Plus size={13} weight="bold" />
-              <span className="hidden sm:inline">New Campaign</span>
-            </button>
+            {eligible && (
+              <button onClick={() => router.push("/campaigns/new")}
+                className="flex items-center gap-2 rounded-xl bg-[#4D2FB0] px-3 sm:px-4 py-2 text-[12px] font-semibold text-white hover:bg-[#3F2596] transition-colors">
+                <Plus size={13} weight="bold" />
+                <span className="hidden sm:inline">New Campaign</span>
+              </button>
+            )}
             <NotificationCenter />
             <div className="relative">
               <button onClick={() => setUserMenuOpen((o) => !o)}
