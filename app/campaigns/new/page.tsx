@@ -864,31 +864,45 @@ function BuildingScreen({ onDone }: { onDone: () => void }) {
 /* Inline "building" widget — the chat-flow version of BuildingScreen, styled
    as a tool/result card that sits inside the AI assistant's message stream. */
 function BuildingWidget({ onDone }: { onDone: () => void }) {
+  const [complete, setComplete] = useState(false);
   useEffect(() => {
-    const t = setTimeout(onDone, 3200);
+    const t = setTimeout(() => { setComplete(true); onDone(); }, 3200);
     return () => clearTimeout(t);
   }, [onDone]);
 
   return (
     <div className="mt-0.5 w-full max-w-sm overflow-hidden rounded-2xl border border-black/[0.08] bg-white shadow-[0_4px_20px_rgba(16,12,40,0.06)]">
       <div className="flex items-center gap-2.5 border-b border-black/[0.05] bg-neutral-50/60 px-4 py-2.5">
-        <span className="inline-block animate-spin text-[15px]" style={{ animationDuration: "3s" }}>⚙️</span>
+        {complete ? (
+          <span className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full bg-green-100 text-green-600">
+            <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+          </span>
+        ) : (
+          <span className="inline-block animate-spin text-[15px]" style={{ animationDuration: "3s" }}>⚙️</span>
+        )}
         <div className="min-w-0">
-          <p className="text-[13px] font-semibold text-neutral-800">Building your plan…</p>
-          <p className="truncate text-[11px] text-neutral-400">Analysing budget, ROAS target &amp; traffic data</p>
+          <p className="text-[13px] font-semibold text-neutral-800">{complete ? "Plan ready" : "Building your plan…"}</p>
+          <p className="truncate text-[11px] text-neutral-400">
+            {complete ? "Your 4-phase plan is on the right →" : "Analysing budget, ROAS target & traffic data"}
+          </p>
         </div>
       </div>
       <div className="space-y-2.5 px-4 py-3.5">
         {[100, 80, 88].map((w, i) => (
           <div key={i} className="h-2.5 overflow-hidden rounded-full bg-[#4D2FB0]/[0.12]">
-            <div className="h-full rounded-full bg-[#4D2FB0]/40 animate-pulse" style={{ width: `${w}%`, animationDelay: `${i * 0.2}s` }} />
+            <div
+              className={`h-full rounded-full bg-[#4D2FB0]/40 ${complete ? "" : "animate-pulse"}`}
+              style={{ width: complete ? "100%" : `${w}%`, animationDelay: `${i * 0.2}s` }}
+            />
           </div>
         ))}
-        <div className="flex items-center gap-1.5 pt-0.5">
-          {[0, 1, 2].map((i) => (
-            <div key={i} className="h-1.5 w-1.5 rounded-full bg-[#4D2FB0]/50 animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
-          ))}
-        </div>
+        {!complete && (
+          <div className="flex items-center gap-1.5 pt-0.5">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="h-1.5 w-1.5 rounded-full bg-[#4D2FB0]/50 animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1050,7 +1064,7 @@ function AgentChat({ onComplete, onSwitchManual }: { onComplete: (patch: Partial
   }
 
   return (
-    <div className="flex flex-col bg-white" style={{ height: "calc(100vh - 65px)" }}>
+    <div className="flex h-full min-h-0 flex-col bg-white">
       {/* Messages */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
         <div className="mx-auto max-w-3xl space-y-7 px-5 py-8">
@@ -1230,27 +1244,33 @@ function AgentFlow({
         </header>
       )}
 
-      {phase === "chat" && (
-        <AgentChat
-          onSwitchManual={onSwitchManual}
-          onComplete={(patch) => { onPatch(patch); setPhase("review"); }}
-        />
-      )}
-
-      {phase === "review" && (
-        <>
-          <div className="mx-auto max-w-2xl px-5 py-6 pb-36"><StepReview data={data} /></div>
-          <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-black/[0.06] bg-white px-5 py-4">
-            <div className="mx-auto flex max-w-2xl items-center gap-4">
-              <button onClick={onClose} className="shrink-0 text-sm font-medium text-neutral-500 transition hover:text-neutral-700">Discard</button>
-              <p className="flex-1" />
-              <button onClick={() => setPhase("pay")}
-                className="shrink-0 rounded-xl bg-[#4D2FB0] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#3F2596] active:scale-[0.98]">
-                Accept &amp; pay Phase 1 →
-              </button>
-            </div>
+      {/* Chat stays mounted through review; the plan opens as a right-side
+          panel next to it. Only payment/processing take over the full screen. */}
+      {(phase === "chat" || phase === "review") && (
+        <div className="flex min-h-0" style={{ height: "calc(100vh - 65px)" }}>
+          <div className={`${phase === "review" ? "hidden md:block" : ""} min-w-0 flex-1`}>
+            <AgentChat
+              onSwitchManual={onSwitchManual}
+              onComplete={(patch) => { onPatch(patch); setPhase("review"); }}
+            />
           </div>
-        </>
+
+          {phase === "review" && (
+            <aside className="animate-slide-in-right flex w-full shrink-0 flex-col border-l border-black/[0.08] bg-white md:w-[520px]">
+              <div className="flex-1 overflow-y-auto px-5 py-6"><StepReview data={data} /></div>
+              <div className="border-t border-black/[0.06] bg-white px-5 py-4">
+                <div className="flex items-center gap-4">
+                  <button onClick={onClose} className="shrink-0 text-sm font-medium text-neutral-500 transition hover:text-neutral-700">Discard</button>
+                  <p className="flex-1" />
+                  <button onClick={() => setPhase("pay")}
+                    className="shrink-0 rounded-xl bg-[#4D2FB0] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#3F2596] active:scale-[0.98]">
+                    Accept &amp; pay Phase 1 →
+                  </button>
+                </div>
+              </div>
+            </aside>
+          )}
+        </div>
       )}
 
       {phase === "pay" && (
