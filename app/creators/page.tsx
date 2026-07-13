@@ -308,10 +308,8 @@ function SignalCard({ label, value, valueColor, track, bar, width }: {
 }) {
   return (
     <div className="rounded-2xl border border-black/[0.06] bg-neutral-50/70 p-4">
-      <div className="flex items-center justify-between gap-2">
-        <span className="min-w-0 text-[10px] font-bold uppercase leading-tight tracking-wide text-neutral-400">{label}</span>
-        <span className="shrink-0 whitespace-nowrap text-[16px] font-bold" style={{ color: valueColor }}>{value}</span>
-      </div>
+      <div className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">{label}</div>
+      <div className="mt-1.5 text-[16px] font-bold" style={{ color: valueColor }}>{value}</div>
       <div className="mt-2.5 h-[3px] overflow-hidden rounded-full" style={{ background: track }}>
         <div className="h-full rounded-full" style={{ width: `${width}%`, background: bar }} />
       </div>
