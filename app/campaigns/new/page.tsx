@@ -890,57 +890,13 @@ function ProcessingScreen({ onDone }: { onDone: () => void }) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Mode choice — manual vs AI agent                                    */
-/* ------------------------------------------------------------------ */
-function ModeChoice({ onAgent, onManual }: { onAgent: () => void; onManual: () => void }) {
-  return (
-    <div className="mx-auto flex max-w-xl flex-col items-center px-5 py-12 text-center" style={{ minHeight: "calc(100vh - 65px)" }}>
-      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#4D2FB0] text-2xl text-white">✦</div>
-      <h1 className="mt-5 text-[24px] font-bold tracking-tight" style={{ color: INK }}>How do you want to set up your campaign?</h1>
-      <p className="mt-2 max-w-sm text-sm leading-relaxed text-neutral-500">Answer a few questions with our AI assistant, or fill in the details yourself.</p>
-
-      <div className="mt-8 w-full space-y-3 text-left">
-        <button onClick={onAgent}
-          className="w-full rounded-2xl border-2 border-[#4D2FB0] bg-[#4D2FB0]/[0.04] p-5 transition hover:bg-[#4D2FB0]/[0.08]">
-          <div className="flex items-start gap-3.5">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#4D2FB0] text-lg text-white">✦</div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <p className="text-[15px] font-semibold" style={{ color: INK }}>Build it with AI</p>
-                <span className="rounded-md bg-[#4D2FB0] px-1.5 py-0.5 text-[10px] font-bold text-white">Recommended</span>
-              </div>
-              <p className="mt-1 text-[13px] leading-relaxed text-neutral-500">Chat with our assistant — it asks the right questions and assembles your guaranteed-ROAS plan. About 2 minutes.</p>
-            </div>
-          </div>
-        </button>
-
-        <button onClick={onManual}
-          className="w-full rounded-2xl border border-black/[0.1] bg-white p-5 transition hover:border-black/20">
-          <div className="flex items-start gap-3.5">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-neutral-500">
-              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
-                <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" />
-                <line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" />
-              </svg>
-            </div>
-            <div className="flex-1">
-              <p className="text-[15px] font-semibold" style={{ color: INK }}>Set it up manually</p>
-              <p className="mt-1 text-[13px] leading-relaxed text-neutral-500">Fill in the details yourself — name, type, target audience, budget, and ROAS goal.</p>
-            </div>
-          </div>
-        </button>
-      </div>
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
 /* AI agent chat flow                                                  */
 /* ------------------------------------------------------------------ */
 type AiMsg = { role: "ai" | "user"; text: string };
 
 const AI_FLOW: { key: string; ask: string; title: string; chips: string[]; skip?: boolean }[] = [
-  { key: "name",   ask: "Hi! I'm your MoonTech campaign assistant ✦\nLet's set this up in a few quick questions. First — what should we call the campaign?", title: "Campaign name", chips: ["Spring 2026", "Summer Sale", "Brand Launch", "Ramadan 2026"] },
+  { key: "setup",  ask: "Hi! I'm your MoonTech campaign assistant ✦\nHow would you like to set up your campaign?", title: "Setup method", chips: ["Continue with the AI assistant", "Set it up manually"] },
+  { key: "name",   ask: "Great — let's build it together. First, what should we call the campaign?", title: "Campaign name", chips: ["Spring 2026", "Summer Sale", "Brand Launch", "Ramadan 2026"] },
   { key: "type",   ask: "Got it! What's the goal for this campaign?", title: "Campaign goal", chips: ["Drive sales (ROAS guaranteed)", "Grow brand awareness"] },
   { key: "geo",    ask: "Which markets should it run in?", title: "Target markets", chips: ["UAE", "KSA", "Kuwait", "All GCC"] },
   { key: "gender", ask: "Who's your target audience?", title: "Target audience", chips: ["All genders", "Women only", "Men only"] },
@@ -1001,6 +957,18 @@ function AgentChat({ onComplete, onSwitchManual }: { onComplete: (patch: Partial
     const v = val.trim();
     if (!v || typing || done) return;
     const q = AI_FLOW[stepIdx];
+    if (q.key === "setup") {
+      setMessages((m) => [...m, { role: "user", text: v }]);
+      setInputVal("");
+      if (/manual/i.test(v)) {
+        const t = setTimeout(onSwitchManual, 450);
+        timers.current.push(t);
+        return;
+      }
+      setStepIdx(1);
+      pushAi(AI_FLOW[1].ask);
+      return;
+    }
     setMessages((m) => [...m, { role: "user", text: v }]);
     const nextAnswers = { ...answers, [q.key]: v };
     setAnswers(nextAnswers);
@@ -1056,7 +1024,9 @@ function AgentChat({ onComplete, onSwitchManual }: { onComplete: (patch: Partial
             <div className="mb-3 overflow-hidden rounded-2xl border border-black/[0.08] bg-white shadow-[0_4px_20px_rgba(16,12,40,0.07)]">
               <div className="flex items-baseline justify-between gap-3 px-4 pb-2 pt-3">
                 <p className="text-[14px] font-medium text-neutral-800">{current.title}</p>
-                <span className="shrink-0 text-[11px] text-neutral-400">{stepIdx + 1} of {AI_FLOW.length}</span>
+                {current.key !== "setup" && (
+                  <span className="shrink-0 text-[11px] text-neutral-400">{stepIdx} of {AI_FLOW.length - 1}</span>
+                )}
               </div>
               <div className="divide-y divide-black/[0.05]">
                 {current.chips.map((c, i) => (
@@ -1105,10 +1075,12 @@ function AgentChat({ onComplete, onSwitchManual }: { onComplete: (patch: Partial
               </svg>
             </button>
           </div>
-          <p className="mt-2.5 text-center text-[11px] text-neutral-400">
-            Prefer to fill it in yourself?{" "}
-            <button onClick={onSwitchManual} className="text-neutral-500 underline-offset-2 transition hover:text-[#4D2FB0] hover:underline">Switch to manual setup</button>
-          </p>
+          {current?.key !== "setup" && (
+            <p className="mt-2.5 text-center text-[11px] text-neutral-400">
+              Prefer to fill it in yourself?{" "}
+              <button onClick={onSwitchManual} className="text-neutral-500 underline-offset-2 transition hover:text-[#4D2FB0] hover:underline">Switch to manual setup</button>
+            </p>
+          )}
         </div>
       )}
     </div>
@@ -1187,7 +1159,7 @@ function AgentFlow({
 /* ------------------------------------------------------------------ */
 export default function NewCampaign() {
   const router = useRouter();
-  const [mode, setMode] = useState<null | "manual" | "agent">(null);
+  const [mode, setMode] = useState<"manual" | "agent">("agent");
   const [step, setStep] = useState<Step>("type");
   const [data, setData] = useState<CampaignData>({
     name: "Spring 2026",
@@ -1253,25 +1225,7 @@ export default function NewCampaign() {
 
   const isLowConfidence = step === "budget" && confidence.color === "red";
 
-  // ── Entry: choose manual vs AI agent ──
-  if (mode === null) {
-    return (
-      <div className="min-h-screen bg-[#F7F7F8]" style={{ fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>
-        <header className="sticky top-0 z-20 flex h-[65px] items-center gap-3 border-b border-black/[0.06] bg-white/80 px-5 backdrop-blur-sm">
-          <button onClick={() => router.back()}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-black/[0.08] text-neutral-500 transition hover:bg-neutral-50">
-            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-          <h1 className="text-base font-semibold" style={{ color: INK }}>New campaign</h1>
-        </header>
-        <ModeChoice onAgent={() => setMode("agent")} onManual={() => setMode("manual")} />
-      </div>
-    );
-  }
-
-  // ── AI agent flow ──
+  // ── AI agent flow (default entry — first question offers manual) ──
   if (mode === "agent") {
     return (
       <AgentFlow
