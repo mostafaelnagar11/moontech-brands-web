@@ -15,6 +15,12 @@ import NotificationCenter from "../components/NotificationCenter";
 const BRAND = "#4D2FB0";
 const INK = "#191234";
 
+/* Flag emojis for the country codes used in `topCountries`. */
+const COUNTRY_FLAGS: Record<string, string> = {
+  UAE: "🇦🇪", KSA: "🇸🇦", Kuwait: "🇰🇼", Qatar: "🇶🇦", Bahrain: "🇧🇭",
+  Oman: "🇴🇲", Egypt: "🇪🇬", Jordan: "🇯🇴", Lebanon: "🇱🇧",
+};
+
 /* ------------------------------------------------------------------ */
 /* Data                                                                */
 /* ------------------------------------------------------------------ */
@@ -120,10 +126,28 @@ function Detail({
   const idx = pendingList.findIndex((x) => x.id === c.id);
   const hasPrev = idx > 0, hasNext = idx >= 0 && idx < pendingList.length - 1;
 
-  const insights = [
-    { ok: true, text: `Top countries: ${c.topCountries}` },
-    { ok: c.contentQuality !== "Medium", text: `${c.contentQuality} content quality` },
-    { ok: true, text: `Active since ${c.activeSince} · ${c.postFreq}` },
+  const topCountries = c.topCountries.split(",").map((seg) => {
+    const [code, ...rest] = seg.trim().split(" ");
+    return { code, pct: rest.join(" ") };
+  });
+
+  const insights: { ok: boolean; node: React.ReactNode }[] = [
+    {
+      ok: true,
+      node: (
+        <span className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+          <span>Top countries:</span>
+          {topCountries.map((f, i) => (
+            <span key={i} className="flex items-center gap-1">
+              <span className="text-[13px] leading-none">{COUNTRY_FLAGS[f.code] ?? f.code}</span>
+              <span>{f.pct}</span>
+            </span>
+          ))}
+        </span>
+      ),
+    },
+    { ok: c.contentQuality !== "Medium", node: `${c.contentQuality} content quality` },
+    { ok: true, node: `Active since ${c.activeSince} · ${c.postFreq}` },
   ];
 
   const scoreColor = c.score >= 90 ? BRAND : c.score >= 80 ? "#059669" : "#D97706";
@@ -232,7 +256,7 @@ function Detail({
                   <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded ${ins.ok ? "bg-green-100 text-green-600" : "bg-red-50 text-red-600"}`}>
                     <span className="text-[9px] font-bold">{ins.ok ? "✓" : "✕"}</span>
                   </span>
-                  <span className="text-xs text-neutral-600">{ins.text}</span>
+                  <span className="text-xs text-neutral-600">{ins.node}</span>
                 </div>
               ))}
             </div>
