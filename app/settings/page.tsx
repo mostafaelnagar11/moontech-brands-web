@@ -3,9 +3,10 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
-  List, Bell, SignOut, EnvelopeSimple, Info, Question, CaretRight, CaretDown, Camera,
+  List, SignOut, EnvelopeSimple, Info, Question, CaretRight, CaretDown, Camera,
 } from "@phosphor-icons/react";
 import Sidebar from "../components/Sidebar";
+import NotificationCenter from "../components/NotificationCenter";
 
 const INK = "#191234";
 const card = "rounded-2xl bg-white border border-black/[0.06] shadow-[0_1px_2px_rgba(16,12,40,0.04)]";
@@ -80,10 +81,7 @@ export default function SettingsPage() {
           </button>
           <h1 className="text-[15px] font-semibold shrink-0" style={{ color: INK }}>Settings</h1>
           <div className="flex items-center gap-2 ml-auto shrink-0">
-            <button className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-black/[0.07] bg-white text-neutral-500 hover:bg-neutral-50 transition-colors">
-              <Bell size={16} />
-              <span className="absolute -right-0.5 -top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-red-500 text-[9px] font-medium text-white ring-2 ring-white">2</span>
-            </button>
+            <NotificationCenter />
             <div className="relative">
               <button onClick={() => setUserMenuOpen((o) => !o)}
                 className="flex h-9 w-9 items-center justify-center rounded-full bg-[#4D2FB0] text-white text-xs font-medium">

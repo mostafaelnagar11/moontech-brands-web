@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Bell, MagnifyingGlass, List, Plus, SignOut } from "@phosphor-icons/react";
+import { MagnifyingGlass, List, Plus, SignOut } from "@phosphor-icons/react";
 import Sidebar from "../components/Sidebar";
+import NotificationCenter from "../components/NotificationCenter";
 
 /* ------------------------------------------------------------------ */
 /* Design tokens                                                       */
@@ -527,10 +528,7 @@ export default function Dashboard() {
               <Plus size={13} weight="bold" />
               <span className="hidden sm:inline">New Campaign</span>
             </button>
-            <button className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-black/[0.07] bg-white text-neutral-500 hover:bg-neutral-50 transition-colors">
-              <Bell size={16} />
-              <span className="absolute -right-0.5 -top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-red-500 text-[9px] font-medium text-white ring-2 ring-white">2</span>
-            </button>
+            <NotificationCenter />
             <div className="relative">
               <button onClick={() => setUserMenuOpen((o) => !o)}
                 className="flex h-9 w-9 items-center justify-center rounded-full bg-[#4D2FB0] text-white text-xs font-medium">
