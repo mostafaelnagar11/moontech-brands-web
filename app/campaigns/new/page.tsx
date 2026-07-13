@@ -1131,6 +1131,22 @@ function AgentFlow({
             <h1 className="text-base font-semibold" style={{ color: INK }}>New campaign</h1>
             <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-[#4D2FB0]/[0.08] px-2.5 py-1 text-[11px] font-semibold text-[#4D2FB0]">✦ AI assistant</span>
           </div>
+          {/* First-run only: Help affordance on the far right (flow TBD). */}
+          {firstRun && (
+            <div className="absolute right-5 top-1/2 -translate-y-1/2">
+              <button
+                type="button"
+                className="flex items-center gap-1.5 rounded-xl border border-black/[0.08] px-3 py-2 text-[13px] font-medium text-neutral-600 transition hover:bg-neutral-50"
+              >
+                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+                Help
+              </button>
+            </div>
+          )}
         </header>
       )}
 
