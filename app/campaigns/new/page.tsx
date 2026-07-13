@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 /* ------------------------------------------------------------------ */
 /* Design tokens                                                       */
@@ -1092,7 +1093,7 @@ function AgentChat({ onComplete, onSwitchManual }: { onComplete: (patch: Partial
 }
 
 function AgentFlow({
-  data, onPatch, profileComplete, onAddBilling, onClose, onSwitchManual, onDone,
+  data, onPatch, profileComplete, onAddBilling, onClose, onSwitchManual, onDone, firstRun = false,
 }: {
   data: CampaignData;
   onPatch: (patch: Partial<CampaignData>) => void;
@@ -1101,6 +1102,9 @@ function AgentFlow({
   onClose: () => void;
   onSwitchManual: () => void;
   onDone: () => void;
+  /** First-time arrival (from the welcome overlay): there is no app to go
+      back to yet, so show the MoonTech logo instead of a close button. */
+  firstRun?: boolean;
 }) {
   const [phase, setPhase] = useState<"chat" | "building" | "review" | "pay" | "processing">("chat");
   const showHeader = phase !== "building" && phase !== "processing";
@@ -1109,12 +1113,16 @@ function AgentFlow({
     <div className="min-h-screen bg-[#F7F7F8]" style={{ fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>
       {showHeader && (
         <header className="sticky top-0 z-20 flex h-[65px] items-center gap-3 border-b border-black/[0.06] bg-white/80 px-5 backdrop-blur-sm">
-          <button onClick={onClose}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-black/[0.08] text-neutral-500 transition hover:bg-neutral-50">
-            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
+          {firstRun ? (
+            <Image src="/logo.svg" alt="MoonTech" width={110} height={20} priority className="mr-1 h-5 w-auto" />
+          ) : (
+            <button onClick={onClose}
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-black/[0.08] text-neutral-500 transition hover:bg-neutral-50">
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          )}
           <h1 className="text-base font-semibold" style={{ color: INK }}>New campaign</h1>
           <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-[#4D2FB0]/[0.08] px-2.5 py-1 text-[11px] font-semibold text-[#4D2FB0]">✦ AI assistant</span>
         </header>
@@ -1371,7 +1379,10 @@ export default function NewCampaign() {
 
   // Welcome overlay — shown once when an eligible brand is dropped here from
   // the (skipped) new-brand dashboard. The flag is set right before redirect.
+  // firstRun stays true after the overlay closes: on this visit there is no
+  // app to go back to, so the header shows the MoonTech logo instead of an X.
   const [showWelcome, setShowWelcome] = useState(false);
+  const [firstRun, setFirstRun] = useState(false);
   const [industry, setIndustry] = useState("Fashion");
   useEffect(() => {
     try {
@@ -1379,6 +1390,7 @@ export default function NewCampaign() {
       if (i && i.trim()) setIndustry(i.trim());
       if (sessionStorage.getItem("moontech_welcome_campaign") === "1") {
         setShowWelcome(true);
+        setFirstRun(true);
         sessionStorage.removeItem("moontech_welcome_campaign");
       }
     } catch {}
@@ -1438,6 +1450,7 @@ export default function NewCampaign() {
           onClose={() => router.back()}
           onSwitchManual={() => setMode("manual")}
           onDone={() => router.push("/dashboard")}
+          firstRun={firstRun}
         />
         {showWelcome && <WelcomeOverlay industry={industry} onStart={() => setShowWelcome(false)} />}
       </>
