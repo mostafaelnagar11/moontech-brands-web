@@ -895,11 +895,11 @@ function ProcessingScreen({ onDone }: { onDone: () => void }) {
 /* ------------------------------------------------------------------ */
 type AiMsg = { role: "ai" | "user"; text: string };
 
-const AI_FLOW: { key: string; ask: string; title: string; chips: string[]; skip?: boolean }[] = [
+const AI_FLOW: { key: string; ask: string; title: string; chips: string[]; skip?: boolean; multi?: boolean }[] = [
   { key: "setup",  ask: "Hi! I'm your MoonTech campaign assistant ✦\nHow would you like to set up your campaign?", title: "Setup method", chips: ["Continue with the AI assistant", "Set it up manually"] },
   { key: "name",   ask: "Great — let's build it together. First, what should we call the campaign?", title: "Campaign name", chips: ["Spring 2026", "Summer Sale", "Brand Launch", "Ramadan 2026"] },
   { key: "type",   ask: "Got it! What's the goal for this campaign?", title: "Campaign goal", chips: ["Drive sales (ROAS guaranteed)", "Grow brand awareness"] },
-  { key: "geo",    ask: "Which markets should it run in?", title: "Target markets", chips: ["UAE", "KSA", "Kuwait", "All GCC"] },
+  { key: "geo",    ask: "Which markets should it run in? Pick all that apply.", title: "Target markets", chips: ["UAE", "KSA", "Kuwait", "All GCC"], multi: true },
   { key: "gender", ask: "Who's your target audience?", title: "Target audience", chips: ["All genders", "Women only", "Men only"] },
   { key: "age",    ask: "And the age range you're after?", title: "Age range", chips: ["18–34", "25–44", "35–54", "All ages"] },
   { key: "budget", ask: "What's your total budget? (USD)", title: "Total budget", chips: ["$2,000", "$5,000", "$10,000", "$20,000+"] },
@@ -911,7 +911,14 @@ function mapAnswers(a: Record<string, string>): Partial<CampaignData> {
   const p: Partial<CampaignData> = {};
   if (a.name) p.name = a.name;
   if (a.type) p.type = /aware|brand/i.test(a.type) ? "awareness" : "roas";
-  if (a.geo) p.region = /ksa/i.test(a.geo) ? "ksa" : /kuwait/i.test(a.geo) ? "kuwait" : /gcc|all/i.test(a.geo) ? "gcc" : "uae";
+  if (a.geo) {
+    const g = a.geo.toLowerCase();
+    const count = [/uae/, /ksa/, /kuwait/].filter((re) => re.test(g)).length;
+    p.region = /gcc|all/.test(g) || count > 1 ? "gcc"
+      : /ksa/.test(g) ? "ksa"
+      : /kuwait/.test(g) ? "kuwait"
+      : "uae";
+  }
   if (a.gender) p.gender = /wom|female/i.test(a.gender) ? "female" : /\bmen|male/i.test(a.gender) ? "male" : "all";
   if (a.age) p.age = a.age.includes("18") ? "18-34" : a.age.includes("25") ? "25-44" : a.age.includes("35") ? "35-54" : "all";
   if (a.budget) { const n = parseInt(a.budget.replace(/[^0-9]/g, ""), 10) || 10000; p.budget = Math.min(80000, Math.max(1000, n)); }
@@ -926,6 +933,7 @@ function AgentChat({ onComplete, onSwitchManual }: { onComplete: (patch: Partial
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [typing, setTyping] = useState(false);
   const [inputVal, setInputVal] = useState("");
+  const [selected, setSelected] = useState<string[]>([]);
   const [done, setDone] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -952,8 +960,23 @@ function AgentChat({ onComplete, onSwitchManual }: { onComplete: (patch: Partial
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, typing]);
 
+  // Clear multi-select choices whenever the step changes.
+  useEffect(() => { setSelected([]); }, [stepIdx]);
+
   const current = stepIdx < AI_FLOW.length ? AI_FLOW[stepIdx] : null;
   const isSetup = current?.key === "setup";
+  const isMulti = !!current?.multi;
+
+  // Toggle a chip in a multi-select step. "All GCC" is exclusive with the
+  // individual markets (picking it clears the rest, and vice versa).
+  function toggleChip(chip: string) {
+    setSelected((prev) => {
+      const ALL = "All GCC";
+      if (chip === ALL) return prev.includes(ALL) ? [] : [ALL];
+      const rest = prev.filter((c) => c !== ALL);
+      return rest.includes(chip) ? rest.filter((c) => c !== chip) : [...rest, chip];
+    });
+  }
 
   function answer(val: string) {
     const v = val.trim();
@@ -1031,13 +1054,22 @@ function AgentChat({ onComplete, onSwitchManual }: { onComplete: (patch: Partial
                 )}
               </div>
               <div className="divide-y divide-black/[0.05]">
-                {current.chips.map((c, i) => (
-                  <button key={c} onClick={() => answer(c)}
-                    className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-neutral-700 transition hover:bg-neutral-50">
-                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-neutral-100 text-[11px] font-medium text-neutral-500">{i + 1}</span>
-                    {c}
-                  </button>
-                ))}
+                {current.chips.map((c, i) => {
+                  const active = isMulti && selected.includes(c);
+                  return (
+                    <button key={c} onClick={() => (isMulti ? toggleChip(c) : answer(c))}
+                      className={`flex w-full items-center gap-3 px-4 py-3 text-left text-sm transition hover:bg-neutral-50 ${active ? "bg-[#4D2FB0]/[0.04] text-neutral-800" : "text-neutral-700"}`}>
+                      {isMulti ? (
+                        <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition ${active ? "border-[#4D2FB0] bg-[#4D2FB0] text-white" : "border-black/15 bg-white text-transparent"}`}>
+                          <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+                        </span>
+                      ) : (
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-neutral-100 text-[11px] font-medium text-neutral-500">{i + 1}</span>
+                      )}
+                      {c}
+                    </button>
+                  );
+                })}
                 {!isSetup && (
                   <div className="flex items-center gap-3 px-4 py-2">
                     <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-neutral-400" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
@@ -1047,12 +1079,17 @@ function AgentChat({ onComplete, onSwitchManual }: { onComplete: (patch: Partial
                       className="flex-1 py-1 text-left text-sm text-neutral-400 transition hover:text-neutral-600">
                       Something else
                     </button>
-                    {current.skip && (
+                    {isMulti ? (
+                      <button onClick={() => answer(selected.join(", "))} disabled={selected.length === 0}
+                        className="shrink-0 rounded-lg bg-[#4D2FB0] px-3.5 py-1.5 text-[12px] font-semibold text-white transition hover:bg-[#3F2596] disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-400">
+                        Confirm{selected.length ? ` (${selected.length})` : ""}
+                      </button>
+                    ) : current.skip ? (
                       <button onClick={() => answer("Skip for now")}
                         className="shrink-0 rounded-lg border border-black/[0.09] bg-white px-3 py-1 text-[12px] font-medium text-neutral-500 transition hover:bg-neutral-50">
                         Skip
                       </button>
-                    )}
+                    ) : null}
                   </div>
                 )}
               </div>
