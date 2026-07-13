@@ -1159,6 +1159,72 @@ function AgentFlow({
 }
 
 /* ------------------------------------------------------------------ */
+/* Welcome overlay — shown once when an eligible brand first lands here */
+/* ------------------------------------------------------------------ */
+function WelcomeOverlay({ industry, onStart }: { industry: string; onStart: () => void }) {
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center px-4" role="dialog" aria-modal="true">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-fade-in" />
+      <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-2xl shadow-black/20 animate-fade-in">
+        {/* Eligible header band */}
+        <div className="relative px-6 pt-6 pb-5" style={{ background: "linear-gradient(135deg,#ede9fe 0%,#f0f0ff 50%,#e8e4ff 100%)" }}>
+          <div className="flex items-start justify-between gap-3">
+            <span className="inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-3 py-1 text-[11px] font-semibold text-green-700">
+              Welcome to MoonTech 🎉
+            </span>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white shadow-md">
+              <svg className="h-5 w-5 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+          </div>
+          <h2 className="mt-3 text-[22px] font-bold leading-tight tracking-tight text-neutral-900">
+            Your brand is <span className="text-violet-600">eligible</span><br />for a ROAS campaign
+          </h2>
+          <p className="mt-2 text-[13px] text-neutral-500">
+            Website verified · 280K monthly visitors confirmed · Guaranteed ROAS ready to activate
+          </p>
+        </div>
+
+        {/* Body */}
+        <div className="px-6 py-5">
+          <div className="flex gap-2.5">
+            {[
+              { v: "280K", l: "Monthly visitors" },
+              { v: "5×", l: "Guaranteed ROAS" },
+              { v: "100%", l: "Performance-based" },
+            ].map((s) => (
+              <div key={s.l} className="flex-1 rounded-xl border border-black/[0.06] bg-neutral-50 px-3 py-2.5 text-center">
+                <p className="text-lg font-bold leading-none text-violet-600">{s.v}</p>
+                <p className="mt-1 text-[10px] font-medium text-neutral-500">{s.l}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Personalized motivation */}
+          <div className="mt-4 flex items-center gap-3 rounded-xl border border-[#4D2FB0]/12 bg-[#4D2FB0]/[0.05] px-4 py-3">
+            <span className="text-lg leading-none">✦</span>
+            <p className="text-[13px] font-medium text-[#3F2596]">
+              {industry} brands using MoonTech generated <span className="font-bold">8× ROAS</span> last month.
+            </p>
+          </div>
+
+          <button
+            onClick={onStart}
+            className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#4D2FB0] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#3F2596] active:scale-[0.98]"
+          >
+            Start now →
+          </button>
+          <p className="mt-2.5 text-center text-[11px] text-neutral-400">
+            Let&apos;s build your first campaign with the AI assistant.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /* Page                                                                */
 /* ------------------------------------------------------------------ */
 export default function NewCampaign() {
@@ -1186,6 +1252,21 @@ export default function NewCampaign() {
   const isProcessing  = step === "processing";
   const isReview      = step === "review";
   const isPay         = step === "pay";
+
+  // Welcome overlay — shown once when an eligible brand is dropped here from
+  // the (skipped) new-brand dashboard. The flag is set right before redirect.
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [industry, setIndustry] = useState("Fashion");
+  useEffect(() => {
+    try {
+      const i = localStorage.getItem("moontech_industry");
+      if (i && i.trim()) setIndustry(i.trim());
+      if (sessionStorage.getItem("moontech_welcome_campaign") === "1") {
+        setShowWelcome(true);
+        sessionStorage.removeItem("moontech_welcome_campaign");
+      }
+    } catch {}
+  }, []);
 
   const [profileComplete, setProfileComplete] = useState(false);
   useEffect(() => {
@@ -1232,15 +1313,18 @@ export default function NewCampaign() {
   // ── AI agent flow (default entry — first question offers manual) ──
   if (mode === "agent") {
     return (
-      <AgentFlow
-        data={data}
-        onPatch={update}
-        profileComplete={profileComplete}
-        onAddBilling={() => router.push("/profile")}
-        onClose={() => router.back()}
-        onSwitchManual={() => setMode("manual")}
-        onDone={() => router.push("/dashboard")}
-      />
+      <>
+        <AgentFlow
+          data={data}
+          onPatch={update}
+          profileComplete={profileComplete}
+          onAddBilling={() => router.push("/profile")}
+          onClose={() => router.back()}
+          onSwitchManual={() => setMode("manual")}
+          onDone={() => router.push("/dashboard")}
+        />
+        {showWelcome && <WelcomeOverlay industry={industry} onStart={() => setShowWelcome(false)} />}
+      </>
     );
   }
 

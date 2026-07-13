@@ -65,7 +65,12 @@ export default function SignupPage() {
               <SignupStep
                 data={signupData}
                 onChange={update}
-                onSubmit={() => setStep("review")}
+                onSubmit={() => {
+                  // Persist the industry so the campaign welcome overlay can
+                  // personalize its motivation line.
+                  try { localStorage.setItem("moontech_industry", signupData.industry); } catch {}
+                  setStep("review");
+                }}
               />
             )}
             {step === "review" && (
