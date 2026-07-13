@@ -217,7 +217,7 @@ function Detail({
         <div className="mb-5 px-7">
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
             {[
-              { lbl: "Match score", val: `${c.score}%`, sub: scoreLabel, color: scoreColor, subCls: "text-neutral-400" },
+              { lbl: "Brand Fit", val: `${c.score}%`, sub: scoreLabel, color: scoreColor, subCls: "text-neutral-400" },
               { lbl: "Avg. followers", val: fmt(c.followers), sub: "across platforms", color: INK, subCls: "text-neutral-400" },
               { lbl: "Avg views", val: fmt(c.avgViews), sub: "per post", color: INK, subCls: "text-neutral-400" },
               { lbl: "Total posts", val: c.totalPosts.toLocaleString(), sub: `since ${c.activeSince}`, color: INK, subCls: "text-neutral-400" },
