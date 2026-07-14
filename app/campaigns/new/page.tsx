@@ -861,46 +861,157 @@ function BuildingScreen({ onDone }: { onDone: () => void }) {
   );
 }
 
-/* Inline "building" widget — the chat-flow version of BuildingScreen, styled
-   as a tool/result card that sits inside the AI assistant's message stream. */
-function BuildingWidget({ onDone }: { onDone: () => void }) {
+/* Inline "building" widget — a live build receipt that flips into the
+   celebratory "Plan ready" card (wcp- classes in globals.css). Task rows
+   check themselves off on a pure-CSS delay timeline inside the 3.2s build
+   window; on completion the gradient border powers up, a one-shot shimmer
+   sweeps the card and the header flips to the Plan ready moment with a
+   "View plan" CTA that (re)opens the plan panel. */
+const WCP_TASKS = [
+  { label: "Analysing budget", chip: "mapped", delay: 0.9 },
+  { label: "Matching ROAS curve", chip: "locked", delay: 1.8 },
+  { label: "Structuring phases", chip: "4 phases", delay: 2.7 },
+];
+
+/* deterministic sparkle constellation around the hero badge */
+const WCP_SPARKS = [
+  { left: -9, top: -5, size: 9, delay: 0.3, color: "#7C5CE0" },
+  { left: 30, top: -8, size: 7, delay: 0.42, color: "#9B7BF0" },
+  { left: 37, top: 12, size: 6, delay: 0.55, color: "#4D2FB0" },
+  { left: -12, top: 16, size: 7, delay: 0.48, color: "#9B7BF0" },
+  { left: 12, top: -12, size: 6, delay: 0.66, color: "#7C5CE0" },
+  { left: 28, top: 28, size: 5, delay: 0.6, color: "#C4B5FD" },
+];
+
+function BuildingWidget({ onDone, onOpenPlan, planOpen }: { onDone: () => void; onOpenPlan: () => void; planOpen: boolean }) {
   const [complete, setComplete] = useState(false);
+  // Fire exactly once on mount. onDone is an inline prop that changes identity
+  // on every parent render — depending on it would re-arm the timer and keep
+  // reopening the plan panel after the user dismisses it.
+  const onDoneRef = useRef(onDone);
+  onDoneRef.current = onDone;
   useEffect(() => {
-    const t = setTimeout(() => { setComplete(true); onDone(); }, 3200);
+    const t = setTimeout(() => { setComplete(true); onDoneRef.current(); }, 3200);
     return () => clearTimeout(t);
-  }, [onDone]);
+  }, []);
 
   return (
-    <div className="mt-0.5 w-full max-w-sm overflow-hidden rounded-2xl border border-black/[0.08] bg-white shadow-[0_4px_20px_rgba(16,12,40,0.06)]">
-      <div className="flex items-center gap-2.5 border-b border-black/[0.05] bg-neutral-50/60 px-4 py-2.5">
+    <div className={`wcp-card mt-0.5 w-full max-w-sm ${complete ? "wcp-card-ready" : ""}`}>
+      <div className="wcp-inner relative overflow-hidden bg-white">
+        {/* one-shot shimmer across the whole card on completion */}
+        {complete && <span aria-hidden="true" className="wcp-card-sweep" />}
+
+        {/* ── Header ─────────────────────────────────────────────── */}
         {complete ? (
-          <span className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full bg-green-100 text-green-600">
-            <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
-          </span>
-        ) : (
-          <span className="inline-block animate-spin text-[15px]" style={{ animationDuration: "3s" }}>⚙️</span>
-        )}
-        <div className="min-w-0">
-          <p className="text-[13px] font-semibold text-neutral-800">{complete ? "Plan ready" : "Building your plan…"}</p>
-          <p className="truncate text-[11px] text-neutral-400">
-            {complete ? "Your 4-phase plan is on the right →" : "Analysing budget, ROAS target & traffic data"}
-          </p>
-        </div>
-      </div>
-      <div className="space-y-2.5 px-4 py-3.5">
-        {[100, 80, 88].map((w, i) => (
-          <div key={i} className="h-2.5 overflow-hidden rounded-full bg-[#4D2FB0]/[0.12]">
-            <div
-              className={`h-full rounded-full bg-[#4D2FB0]/40 ${complete ? "" : "animate-pulse"}`}
-              style={{ width: complete ? "100%" : `${w}%`, animationDelay: `${i * 0.2}s` }}
-            />
+          <div className="wcp-header-band border-b border-[#4D2FB0]/[0.08] px-4 py-3">
+            <div className="flex items-center gap-3">
+              <span className="relative h-8 w-8 shrink-0">
+                <span className="wcp-ring absolute inset-0 rounded-full border-2 border-[#7C5CE0]" />
+                <span className="wcp-hero-badge relative flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#4D2FB0] to-[#7C5CE0] shadow-[0_4px_14px_-2px_rgba(77,47,176,0.55)]">
+                  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="white" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path className="wcp-check wcp-hero-check" pathLength={1} d="M20 6 9 17l-5-5" />
+                  </svg>
+                </span>
+                {WCP_SPARKS.map((s, i) => (
+                  <span
+                    key={i}
+                    className="wcp-sparkle pointer-events-none absolute leading-none"
+                    style={{ left: s.left, top: s.top, fontSize: s.size, color: s.color, "--wcp-d": `${s.delay}s` } as React.CSSProperties}
+                  >
+                    ✦
+                  </span>
+                ))}
+              </span>
+              <div className="min-w-0">
+                <p className="wcp-pop text-[15px] font-bold leading-tight" style={{ "--wcp-d": "0.12s" } as React.CSSProperties}>
+                  <span className="wcp-grad-text">Plan ready</span>
+                </p>
+                <p className="wcp-rise truncate text-[11px] font-medium text-[#4D2FB0]/60" style={{ "--wcp-d": "0.26s" } as React.CSSProperties}>
+                  4 phases · matched to your budget &amp; ROAS target
+                </p>
+              </div>
+            </div>
           </div>
-        ))}
-        {!complete && (
-          <div className="flex items-center gap-1.5 pt-0.5">
-            {[0, 1, 2].map((i) => (
-              <div key={i} className="h-1.5 w-1.5 rounded-full bg-[#4D2FB0]/50 animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
-            ))}
+        ) : (
+          <div className="relative overflow-hidden border-b border-black/[0.05] bg-[#F8F7FD] px-4 py-3">
+            <span className="wcp-sweep pointer-events-none absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-transparent via-[#7C5CE0]/[0.10] to-transparent" />
+            <div className="relative flex items-center gap-3">
+              <span className="relative flex h-8 w-8 shrink-0 items-center justify-center">
+                <svg viewBox="0 0 28 28" className="wcp-dial h-7 w-7" aria-hidden="true">
+                  <circle cx="14" cy="14" r="11" fill="none" stroke="#7C5CE0" strokeOpacity="0.55" strokeWidth="2" strokeLinecap="round" strokeDasharray="3.5 5.2" />
+                </svg>
+                <span aria-hidden="true" className="wcp-core absolute h-2 w-2 rounded-full bg-[#4D2FB0]" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-[13px] font-semibold text-[#191234]">
+                  Building your plan
+                  {[0, 1, 2].map((i) => (
+                    <span key={i} className="wcp-dot" style={{ "--wcp-d": `${i * 0.22}s` } as React.CSSProperties}>.</span>
+                  ))}
+                </p>
+                <p className="truncate text-[11px] text-neutral-400">Analysing budget, ROAS target &amp; traffic data</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Live receipt rows ──────────────────────────────────── */}
+        <div className="divide-y divide-dashed divide-[#4D2FB0]/[0.07] px-4">
+          {WCP_TASKS.map((t, i) => (
+            <div key={t.label} className="flex items-center gap-2.5 py-2.5">
+              <span className="w-4 text-[10px] font-medium tabular-nums text-neutral-300">0{i + 1}</span>
+              <span className="relative h-[18px] w-[18px] shrink-0">
+                {complete ? (
+                  <span className="flex h-[18px] w-[18px] items-center justify-center rounded-full bg-gradient-to-br from-[#4D2FB0] to-[#7C5CE0]">
+                    <svg viewBox="0 0 24 24" className="h-2.5 w-2.5" fill="none" stroke="white" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path className="wcp-check" pathLength={1} d="M20 6 9 17l-5-5" />
+                    </svg>
+                  </span>
+                ) : (
+                  <>
+                    <span className="wcp-task-wait absolute inset-0 flex items-center justify-center" style={{ "--wcp-d": `${t.delay}s` } as React.CSSProperties}>
+                      <span className="wcp-spinner h-[15px] w-[15px]" />
+                    </span>
+                    <span className="wcp-task-flip absolute inset-0 flex items-center justify-center rounded-full bg-gradient-to-br from-[#4D2FB0] to-[#7C5CE0]" style={{ "--wcp-d": `${t.delay}s` } as React.CSSProperties}>
+                      <svg viewBox="0 0 24 24" className="h-2.5 w-2.5" fill="none" stroke="white" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path className="wcp-check wcp-task-check" pathLength={1} d="M20 6 9 17l-5-5" />
+                      </svg>
+                    </span>
+                  </>
+                )}
+              </span>
+              <span className={`flex-1 truncate text-[12px] font-medium ${complete ? "text-[#191234]" : "text-neutral-500"}`}>{t.label}</span>
+              {complete ? (
+                <span className="rounded-full bg-[#4D2FB0]/[0.07] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#4D2FB0]/80">{t.chip}</span>
+              ) : (
+                <span className="relative flex h-[17px] min-w-[56px] items-center justify-end">
+                  <span className="wcp-task-skel wcp-skel absolute right-0 h-2 w-12 rounded-full" style={{ "--wcp-d": `${t.delay}s` } as React.CSSProperties} />
+                  <span className="wcp-task-chip rounded-full bg-[#4D2FB0]/[0.07] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#4D2FB0]/80" style={{ "--wcp-d": `${t.delay}s` } as React.CSSProperties}>
+                    {t.chip}
+                  </span>
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* ── Footer CTA — reopens the plan panel any time ───────── */}
+        {complete && (
+          <div className="wcp-rise border-t border-dashed border-[#4D2FB0]/[0.09] px-4 pb-3.5 pt-3" style={{ "--wcp-d": "0.45s" } as React.CSSProperties}>
+            <button
+              type="button"
+              onClick={onOpenPlan}
+              className={
+                planOpen
+                  ? "group flex w-full items-center justify-center gap-1.5 rounded-xl border border-[#4D2FB0]/20 bg-[#4D2FB0]/[0.04] px-4 py-2.5 text-[13px] font-semibold text-[#4D2FB0]/70 transition-transform hover:-translate-y-px active:translate-y-0"
+                  : "wcp-cta group flex w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#4D2FB0] to-[#6D4AD6] px-4 py-2.5 text-[13px] font-semibold text-white transition-transform hover:-translate-y-px active:translate-y-0"
+              }
+            >
+              {planOpen ? "Plan open — view again" : "View plan"}
+              <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M5 12h14M13 6l6 6-6 6" />
+              </svg>
+            </button>
           </div>
         )}
       </div>
@@ -974,7 +1085,12 @@ function mapAnswers(a: Record<string, string>): Partial<CampaignData> {
   return p;
 }
 
-function AgentChat({ onComplete, onSwitchManual }: { onComplete: (patch: Partial<CampaignData>) => void; onSwitchManual: () => void }) {
+function AgentChat({ onComplete, onSwitchManual, onOpenPlan, planOpen }: {
+  onComplete: (patch: Partial<CampaignData>) => void;
+  onSwitchManual: () => void;
+  onOpenPlan: () => void;
+  planOpen: boolean;
+}) {
   const [messages, setMessages] = useState<AiMsg[]>([]);
   const [stepIdx, setStepIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -1028,7 +1144,21 @@ function AgentChat({ onComplete, onSwitchManual }: { onComplete: (patch: Partial
 
   function answer(val: string) {
     const v = val.trim();
-    if (!v || typing || done) return;
+    if (!v || typing) return;
+    // After the plan is built the chat stays open — answer freeform questions
+    // with a helpful nudge back to the plan panel.
+    if (done) {
+      setMessages((m) => [...m, { role: "user", text: v }]);
+      setInputVal("");
+      const lower = v.toLowerCase();
+      const reply = /budget|roas|target|phase|change|edit|adjust/.test(lower)
+        ? "Happy to help adjust that! For now you can review every phase, budget and ROAS target in the plan panel — open it from the “Plan ready” card above. Fine-tuning via chat is coming soon."
+        : /pay|launch|start|go live/.test(lower)
+        ? "Once you're happy with the plan, hit “Accept & pay Phase 1” in the plan panel — only Phase 1 is due today, the rest unlock as targets are hit."
+        : "Your 4-phase plan is ready — open it anytime from the “Plan ready” card above. Ask me about budgets, phases, or how the ROAS guarantee works.";
+      pushAi(reply);
+      return;
+    }
     const q = AI_FLOW[stepIdx];
     if (q.key === "setup") {
       setMessages((m) => [...m, { role: "user", text: v }]);
@@ -1074,7 +1204,11 @@ function AgentChat({ onComplete, onSwitchManual }: { onComplete: (patch: Partial
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#4D2FB0] text-[13px] text-white">✦</div>
                 {m.widget === "building" ? (
                   <div className="min-w-0 flex-1">
-                    <BuildingWidget onDone={() => onComplete(finalPatch.current)} />
+                    <BuildingWidget
+                      onDone={() => onComplete(finalPatch.current)}
+                      onOpenPlan={onOpenPlan}
+                      planOpen={planOpen}
+                    />
                   </div>
                 ) : (
                   <p className="mt-0.5 min-w-0 flex-1 whitespace-pre-line text-[15px] leading-7 text-neutral-800">{m.text}</p>
@@ -1099,8 +1233,9 @@ function AgentChat({ onComplete, onSwitchManual }: { onComplete: (patch: Partial
         </div>
       </div>
 
-      {/* Composer */}
-      {!done && (
+      {/* Composer — stays mounted after the plan is built so the user can
+          keep talking to the assistant. */}
+      {(
         <div className="mx-auto w-full max-w-3xl px-5 pb-5 pt-1">
           {!typing && current && (
             <div className="mb-3 overflow-hidden rounded-2xl border border-black/[0.08] bg-white shadow-[0_4px_20px_rgba(16,12,40,0.07)]">
@@ -1164,7 +1299,7 @@ function AgentChat({ onComplete, onSwitchManual }: { onComplete: (patch: Partial
               }}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); answer(inputVal); } }}
               rows={1}
-              placeholder={isSetup ? "Choose an option above" : "Type your answer…"}
+              placeholder={isSetup ? "Choose an option above" : done ? "Ask about your plan…" : "Type your answer…"}
               className="max-h-[120px] flex-1 resize-none bg-transparent py-1.5 text-[15px] leading-6 text-neutral-800 outline-none placeholder:text-neutral-400 disabled:cursor-not-allowed"
             />
             <button onClick={() => answer(inputVal)} disabled={!inputVal.trim() || typing || isSetup} aria-label="Send"
@@ -1174,7 +1309,7 @@ function AgentChat({ onComplete, onSwitchManual }: { onComplete: (patch: Partial
               </svg>
             </button>
           </div>
-          {current?.key !== "setup" && (
+          {!done && current?.key !== "setup" && (
             <p className="mt-2.5 text-center text-[11px] text-neutral-400">
               Prefer to fill it in yourself?{" "}
               <button onClick={onSwitchManual} className="text-neutral-500 underline-offset-2 transition hover:text-[#4D2FB0] hover:underline">Switch to manual setup</button>
@@ -1221,9 +1356,13 @@ function AgentFlow({
               </button>
             )}
           </div>
-          <div className="mx-auto flex h-full w-full max-w-3xl items-center gap-3 px-5">
-            <h1 className="text-base font-semibold" style={{ color: INK }}>New campaign</h1>
-            <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-[#4D2FB0]/[0.08] px-2.5 py-1 text-[11px] font-semibold text-[#4D2FB0]">✦ AI assistant</span>
+          {/* When the plan panel is open the chat column shrinks by 520px, so
+              mirror that here to keep the title aligned with the chat start. */}
+          <div className={`h-full ${phase === "review" ? "md:pr-[520px]" : ""}`}>
+            <div className="mx-auto flex h-full w-full max-w-3xl items-center gap-3 px-5">
+              <h1 className="text-base font-semibold" style={{ color: INK }}>New campaign</h1>
+              <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-[#4D2FB0]/[0.08] px-2.5 py-1 text-[11px] font-semibold text-[#4D2FB0]">✦ AI assistant</span>
+            </div>
           </div>
           {/* First-run only: Help affordance on the far right (flow TBD). */}
           {firstRun && (
@@ -1252,6 +1391,8 @@ function AgentFlow({
             <AgentChat
               onSwitchManual={onSwitchManual}
               onComplete={(patch) => { onPatch(patch); setPhase("review"); }}
+              onOpenPlan={() => setPhase("review")}
+              planOpen={phase === "review"}
             />
           </div>
 
@@ -1260,7 +1401,9 @@ function AgentFlow({
               <div className="flex-1 overflow-y-auto px-5 py-6"><StepReview data={data} /></div>
               <div className="border-t border-black/[0.06] bg-white px-5 py-4">
                 <div className="flex items-center gap-4">
-                  <button onClick={onClose} className="shrink-0 text-sm font-medium text-neutral-500 transition hover:text-neutral-700">Discard</button>
+                  {/* Closes the panel only — the user stays in the chat and can
+                      reopen the plan from the "Plan ready" widget. */}
+                  <button onClick={() => setPhase("chat")} className="shrink-0 text-sm font-medium text-neutral-500 transition hover:text-neutral-700">Discard</button>
                   <p className="flex-1" />
                   <button onClick={() => setPhase("pay")}
                     className="shrink-0 rounded-xl bg-[#4D2FB0] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#3F2596] active:scale-[0.98]">
