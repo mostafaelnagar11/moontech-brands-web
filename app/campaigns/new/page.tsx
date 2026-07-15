@@ -1322,7 +1322,7 @@ function AgentChat({ onComplete, onSwitchManual, onOpenPlan, planOpen }: {
 }
 
 function AgentFlow({
-  data, onPatch, profileComplete, onAddBilling, onClose, onSwitchManual, onDone, firstRun = false,
+  data, onPatch, profileComplete, onAddBilling, onClose, onSwitchManual, onDone, firstRun = false, jumpToPay = false,
 }: {
   data: CampaignData;
   onPatch: (patch: Partial<CampaignData>) => void;
@@ -1334,9 +1334,16 @@ function AgentFlow({
   /** First-time arrival (from the welcome overlay): there is no app to go
       back to yet, so show the MoonTech logo instead of a close button. */
   firstRun?: boolean;
+  /** Returning from the billing/profile page: skip straight to the pay step
+      instead of restarting the chat. */
+  jumpToPay?: boolean;
 }) {
   const [phase, setPhase] = useState<"chat" | "building" | "review" | "pay" | "processing">("chat");
   const showHeader = phase !== "building" && phase !== "processing";
+
+  useEffect(() => {
+    if (jumpToPay) setPhase("pay");
+  }, [jumpToPay]);
 
   return (
     <div className="min-h-screen bg-[#F7F7F8]" style={{ fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>
@@ -1673,6 +1680,32 @@ export default function NewCampaign() {
   }, [step]);
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
 
+  // "Add business & billing" navigates to /profile, which remounts this page
+  // on return — losing all in-memory flow state. Snapshot the flow before
+  // leaving and jump straight back to the pay step when we come back.
+  const [resumePay, setResumePay] = useState(false);
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem("moontech_resume_pay");
+      if (raw) {
+        sessionStorage.removeItem("moontech_resume_pay");
+        const saved = JSON.parse(raw);
+        if (saved.data) setData((d) => ({ ...d, ...saved.data }));
+        if (saved.mode === "manual") {
+          setMode("manual");
+          setStep("pay");
+        } else {
+          setResumePay(true);
+        }
+      }
+    } catch {}
+  }, []);
+
+  const goToBilling = (m: "agent" | "manual") => {
+    try { sessionStorage.setItem("moontech_resume_pay", JSON.stringify({ mode: m, data })); } catch {}
+    router.push("/profile");
+  };
+
   const confidence = getConfidence(data.budget, data.roas);
 
   const handleNext = () => {
@@ -1707,11 +1740,12 @@ export default function NewCampaign() {
           data={data}
           onPatch={update}
           profileComplete={profileComplete}
-          onAddBilling={() => router.push("/profile")}
+          onAddBilling={() => goToBilling("agent")}
           onClose={() => router.back()}
           onSwitchManual={() => setMode("manual")}
           onDone={() => router.push("/dashboard")}
           firstRun={firstRun}
+          jumpToPay={resumePay}
         />
         {showWelcome && <WelcomeOverlay industry={industry} onStart={() => setShowWelcome(false)} />}
       </>
@@ -1759,7 +1793,7 @@ export default function NewCampaign() {
         {step === "budget"   && <StepBudget data={data} onChange={update} />}
         {step === "building" && <BuildingScreen onDone={() => setStep("review")} />}
         {step === "review"   && <StepReview data={data} />}
-        {step === "pay"      && <StepPay data={data} profileComplete={profileComplete} onAddBilling={() => router.push("/profile")} onPay={() => setStep("processing")} />}
+        {step === "pay"      && <StepPay data={data} profileComplete={profileComplete} onAddBilling={() => goToBilling("manual")} onPay={() => setStep("processing")} />}
         {step === "processing" && <ProcessingScreen onDone={() => router.push("/dashboard")} />}
       </div>
 
