@@ -4,12 +4,14 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Bell, MagnifyingGlass, List, SignOut } from "@phosphor-icons/react";
 import Sidebar from "../../components/Sidebar";
+import EligibilityAgent from "../../components/EligibilityAgent";
 
 export default function NewBrandDashboard() {
   const router = useRouter();
   const [activeNav, setActiveNav] = useState("Dashboard");
   const [collapsed, setCollapsed] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [agentOpen, setAgentOpen] = useState(false);
   const [resolved, setResolved] = useState(false);
 
   // Eligible brands skip this screen entirely: a brand with no campaigns yet has
@@ -131,12 +133,13 @@ export default function NewBrandDashboard() {
                     ))}
                   </div>
                   <div className="mt-6">
-                    <a
-                      href="mailto:support@moontech.com"
-                      className="flex w-fit items-center gap-2 rounded-xl border border-neutral-300 bg-white px-6 py-3 text-sm font-semibold text-neutral-700 shadow-sm transition hover:bg-neutral-50 active:scale-[0.98]"
+                    <button
+                      onClick={() => setAgentOpen(true)}
+                      className="flex w-fit items-center gap-2 rounded-xl bg-[#4D2FB0] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-200 transition hover:bg-[#3F2596] active:scale-[0.98]"
                     >
-                      Think something&apos;s wrong? Contact us
-                    </a>
+                      <span aria-hidden="true">✦</span>
+                      Think something&apos;s wrong? Talk to Agent
+                    </button>
                     <p className="mt-2 text-xs text-neutral-400">
                       We&apos;ll re-check automatically once your traffic crosses 5,000 monthly visitors.
                     </p>
@@ -165,6 +168,9 @@ export default function NewBrandDashboard() {
           </section>
         </div>
       </div>
+
+      {/* Eligibility AI agent — full-screen chat overlay */}
+      {agentOpen && <EligibilityAgent onClose={() => setAgentOpen(false)} />}
     </div>
   );
 }
