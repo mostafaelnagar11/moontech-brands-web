@@ -135,9 +135,9 @@ export default function NewBrandDashboard() {
                   <div className="mt-6">
                     <button
                       onClick={() => setAgentOpen(true)}
-                      className="flex w-fit items-center gap-2 rounded-xl bg-[#4D2FB0] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-200 transition hover:bg-[#3F2596] active:scale-[0.98]"
+                      className="flex w-fit items-center gap-2 rounded-xl border border-neutral-300 bg-white px-6 py-3 text-sm font-semibold text-neutral-700 shadow-sm transition hover:bg-neutral-50 active:scale-[0.98]"
                     >
-                      <span aria-hidden="true">✦</span>
+                      <span aria-hidden="true" className="text-[#4D2FB0]">✦</span>
                       Think something&apos;s wrong? Talk to Agent
                     </button>
                     <p className="mt-2 text-xs text-neutral-400">
