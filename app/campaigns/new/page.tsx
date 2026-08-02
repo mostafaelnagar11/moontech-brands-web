@@ -576,6 +576,18 @@ function StepReview({ data }: { data: CampaignData }) {
         </div>
       </div>
 
+      {/* Approval disclaimer — no phase runs without the user's go-ahead */}
+      <div className="flex items-start gap-3 rounded-2xl border border-[#4D2FB0]/12 bg-[#4D2FB0]/[0.04] p-4">
+        <svg className="mt-0.5 h-4 w-4 shrink-0 text-[#4D2FB0]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <rect x="5" y="11" width="14" height="9" rx="2" />
+          <path strokeLinecap="round" d="M8 11V7a4 4 0 018 0v4" />
+        </svg>
+        <p className="text-xs leading-relaxed text-neutral-600">
+          <strong className="text-[#3F2596]">No phase runs without your approval.</strong> Each phase
+          starts only after you review and confirm it — today you&apos;re committing to Phase 1 only.
+        </p>
+      </div>
+
       {/* Total projected revenue */}
       <div className="rounded-2xl border border-green-200 bg-green-50 p-4">
         <div className="flex items-center justify-between">
