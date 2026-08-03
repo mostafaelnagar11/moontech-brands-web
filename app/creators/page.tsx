@@ -12,7 +12,6 @@ import NotificationCenter from "../components/NotificationCenter";
 /* ------------------------------------------------------------------ */
 /* Design tokens                                                       */
 /* ------------------------------------------------------------------ */
-const BRAND = "#4D2FB0";
 const INK = "#191234";
 
 /* Flag emojis for the country codes used in `topCountries`. */
@@ -149,7 +148,6 @@ function Detail({
     { ok: c.contentQuality !== "Medium", node: `${c.contentQuality} content quality` },
   ];
 
-  const scoreColor = c.score >= 90 ? BRAND : c.score >= 80 ? "#059669" : "#D97706";
   const scoreLabel = c.score >= 90 ? "Excellent" : c.score >= 80 ? "Good" : "Fair";
 
   return (
@@ -204,10 +202,10 @@ function Detail({
               </div>
             </div>
             {/* Brand Fit — pinned to the right of the header */}
-            <div className="shrink-0 rounded-2xl border border-black/[0.06] bg-neutral-50/70 p-4 text-right">
-              <div className="text-[10px] font-medium uppercase tracking-wide text-neutral-400">Brand Fit</div>
-              <div className="mt-1.5 text-[24px] font-semibold tabular-nums leading-none" style={{ color: scoreColor }}>{c.score}%</div>
-              <div className="mt-1.5 text-[11px] text-neutral-400">{scoreLabel}</div>
+            <div className="flex h-[96px] w-[96px] shrink-0 flex-col items-center justify-center rounded-2xl bg-[#4D2FB0] text-center shadow-md shadow-violet-200">
+              <div className="text-[9px] font-semibold uppercase tracking-wide text-white/60">Brand Fit</div>
+              <div className="mt-1 text-[26px] font-bold tabular-nums leading-none text-white">{c.score}%</div>
+              <div className="mt-1 text-[10px] font-medium text-white/70">{scoreLabel}</div>
             </div>
           </div>
         </div>
