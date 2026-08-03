@@ -147,7 +147,6 @@ function Detail({
       ),
     },
     { ok: c.contentQuality !== "Medium", node: `${c.contentQuality} content quality` },
-    { ok: true, node: `Active since ${c.activeSince} · ${c.postFreq}` },
   ];
 
   const scoreColor = c.score >= 90 ? BRAND : c.score >= 80 ? "#059669" : "#D97706";
