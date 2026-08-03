@@ -202,10 +202,10 @@ function Detail({
               </div>
             </div>
             {/* Brand Fit — pinned to the right of the header */}
-            <div className="flex h-[96px] w-[96px] shrink-0 flex-col items-center justify-center rounded-2xl bg-[#4D2FB0] text-center shadow-md shadow-violet-200">
-              <div className="text-[9px] font-semibold uppercase tracking-wide text-white/60">Brand Fit</div>
+            <div className="flex h-[96px] w-[96px] shrink-0 flex-col items-center justify-center rounded-2xl bg-[#C9A227] text-center">
+              <div className="text-[9px] font-semibold uppercase tracking-wide text-white/70">Brand Fit</div>
               <div className="mt-1 text-[26px] font-bold tabular-nums leading-none text-white">{c.score}%</div>
-              <div className="mt-1 text-[10px] font-medium text-white/70">{scoreLabel}</div>
+              <div className="mt-1 text-[10px] font-medium text-white/80">{scoreLabel}</div>
             </div>
           </div>
         </div>
