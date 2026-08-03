@@ -204,6 +204,12 @@ function Detail({
                 <span className="text-xs leading-relaxed text-neutral-600">{c.bio}</span>
               </div>
             </div>
+            {/* Brand Fit — pinned to the right of the header */}
+            <div className="shrink-0 rounded-2xl border border-black/[0.06] bg-neutral-50/70 p-4 text-right">
+              <div className="text-[10px] font-medium uppercase tracking-wide text-neutral-400">Brand Fit</div>
+              <div className="mt-1.5 text-[24px] font-semibold tabular-nums leading-none" style={{ color: scoreColor }}>{c.score}%</div>
+              <div className="mt-1.5 text-[11px] text-neutral-400">{scoreLabel}</div>
+            </div>
           </div>
         </div>
 
@@ -224,24 +230,6 @@ function Detail({
               className="rounded-lg border border-red-200 px-2.5 py-1 text-xs font-medium text-[#4D2FB0] transition hover:bg-white">Like</button>
           </div>
         )}
-
-        {/* Stat cards */}
-        <div className="mb-5 px-7">
-          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-            {[
-              { lbl: "Brand Fit", val: `${c.score}%`, sub: scoreLabel, color: scoreColor, subCls: "text-neutral-400" },
-              { lbl: "Avg. followers", val: fmt(c.followers), sub: "across platforms", color: INK, subCls: "text-neutral-400" },
-              { lbl: "Avg views", val: fmt(c.avgViews), sub: "per post", color: INK, subCls: "text-neutral-400" },
-              { lbl: "Total posts", val: c.totalPosts.toLocaleString(), sub: `since ${c.activeSince}`, color: INK, subCls: "text-neutral-400" },
-            ].map((m) => (
-              <div key={m.lbl} className="rounded-2xl border border-black/[0.06] bg-neutral-50/70 p-4">
-                <div className="text-[10px] font-medium uppercase tracking-wide text-neutral-400">{m.lbl}</div>
-                <div className="mt-1.5 text-[24px] font-semibold tabular-nums leading-none" style={{ color: m.color }}>{m.val}</div>
-                <div className={`mt-1.5 text-[11px] ${m.subCls}`}>{m.sub}</div>
-              </div>
-            ))}
-          </div>
-        </div>
 
         {/* Why we recommend */}
         <div className="mb-5 px-7">
@@ -303,7 +291,7 @@ function Detail({
         <div className="flex items-center gap-3 border-t border-black/[0.06] bg-white px-7 py-4">
           <div className="min-w-0 flex-1">
             <div className="text-[11px] font-semibold text-neutral-400">Make a decision</div>
-            <div className="truncate text-xs text-neutral-500">Approval adds <strong className="text-neutral-700">{c.name}</strong> to your Ounass campaign pool</div>
+            <div className="truncate text-xs text-neutral-500">Like adds <strong className="text-neutral-700">{c.name}</strong> to your Ounass campaign pool</div>
           </div>
           <button onClick={() => onDecide(c.id, "rejected")}
             className="flex shrink-0 items-center gap-2 rounded-xl border border-black/[0.1] bg-white px-5 py-2.5 text-sm font-semibold text-neutral-600 transition hover:bg-neutral-50 active:scale-[0.98]">
@@ -466,7 +454,7 @@ export default function CreatorsPage() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-[13px] font-semibold" style={{ color: INK }}>{c.name}</div>
-                    <div className="mt-0.5 text-[11px] text-neutral-400">{c.niche} · {fmt(c.followers)}</div>
+                    <div className="mt-0.5 text-[11px] text-neutral-400">{c.niche}</div>
                   </div>
                   {c.status === "approved" && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-green-500" />}
                   {c.status === "rejected" && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-neutral-300" />}
