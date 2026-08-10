@@ -17,10 +17,10 @@ const GROUPS: Group[] = [
   {
     title: "Recent projects",
     items: [
-      { id: "r-spring", label: "Spring 2026", icon: ClockCounterClockwise, href: "/campaigns" },
-      { id: "r-summer", label: "Summer 2025", icon: ClockCounterClockwise, href: "/campaigns" },
-      { id: "r-ramadan", label: "Ramadan Flash", icon: ClockCounterClockwise, href: "/campaigns" },
-      { id: "r-eid", label: "Eid Collection", icon: ClockCounterClockwise, href: "/campaigns" },
+      { id: "r-spring", label: "Spring 2026", icon: ClockCounterClockwise, href: "/campaigns/spring-2026" },
+      { id: "r-ramadan", label: "Ramadan Flash", icon: ClockCounterClockwise, href: "/campaigns/ramadan-flash" },
+      { id: "r-launch", label: "Brand Launch", icon: ClockCounterClockwise, href: "/campaigns/brand-launch" },
+      { id: "r-summer", label: "Summer Push", icon: ClockCounterClockwise, href: "/campaigns/summer-push" },
     ],
   },
   {

@@ -22,13 +22,15 @@ interface Notif {
 }
 
 const NOTIFS: Notif[] = [
-  { id: "n1", type: "phase",   group: "Today",   time: "2m ago",  title: "Phase 2 unlocked 🎉", body: "Spring 2026 hit 84% of its Phase 1 target — the next phase is ready.", href: "/campaigns", cta: "Pay Phase 2 — $2,000" },
-  { id: "n2", type: "content", group: "Today",   time: "1h ago",  title: "12 ads awaiting review", body: "New creator content for Spring 2026 needs your approval before it goes live.", href: "/creators" },
+  { id: "n1", type: "phase",   group: "Today",   time: "2m ago",  title: "Phase 2 unlocked 🎉", body: "Spring 2026 hit 84% of its Phase 1 target — the next phase is ready.", href: "/campaigns/spring-2026", cta: "Pay Phase 2 — $3,000" },
+  /* This used to read "12 ads awaiting review — needs your approval before it
+     goes live", which is the exact claim the signup key terms deny. */
+  { id: "n2", type: "content", group: "Today",   time: "1h ago",  title: "8 ads waiting on you", body: "Spring 2026 creative is ready to publish — nothing posts until you say so.", href: "/campaigns/ads?c=spring-2026" },
   { id: "n3", type: "creator", group: "Today",   time: "3h ago",  title: "8 creators pending approval", body: "Fresh matches for your Ounass campaign pool.", href: "/creators" },
   { id: "n4", type: "payment", group: "Earlier", time: "Yesterday", title: "Payment received — $500", body: "Phase 1 payment for Ramadan Flash was processed by Mamo Pay.", href: "/settings" },
   { id: "n5", type: "report",  group: "Earlier", time: "Yesterday", title: "Your weekly report is ready", body: "Revenue up 18% week over week · ROAS 5.8×. See what changed.", href: "/dashboard" },
   { id: "n6", type: "creator", group: "Earlier", time: "2d ago",  title: "Layla Al Rashid accepted your campaign", body: "She'll start posting within 48 hours.", href: "/creators" },
-  { id: "n7", type: "phase",   group: "Earlier", time: "3d ago",  title: "Ramadan Flash is on pace", body: "77% of the Phase 2 target — unlock expected in about 3 days.", href: "/campaigns" },
+  { id: "n7", type: "phase",   group: "Earlier", time: "3d ago",  title: "Ramadan Flash is on pace", body: "77% of the Phase 2 target — unlock expected in about 3 days.", href: "/campaigns/ramadan-flash" },
 ];
 
 const TYPE_STYLE: Record<NotifType, { icon: React.ReactNode; tile: string }> = {

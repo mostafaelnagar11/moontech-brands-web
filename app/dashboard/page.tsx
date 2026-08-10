@@ -53,6 +53,7 @@ const REV_CAMPAIGNS = [
 
 const RUNNING = [
   {
+    id: "spring-2026",
     name: "Spring 2026",
     phase: "Phase 1 · Warm-up",
     dates: "Apr 1 – May 30, 2026",

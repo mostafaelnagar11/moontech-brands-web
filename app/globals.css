@@ -522,6 +522,58 @@ input[type="range"]::-moz-range-thumb {
   }
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   CAMPAIGNS — shared with the MoonTech mobile app so both clients
+   render the same signature marks: the gradient keyline and the 80%
+   unlock line.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* Signature gradient keyline (bar fills, phase stepper) */
+.keyline-grad {
+  background: linear-gradient(90deg, #4D2FB0 0%, #9B7BF0 55%, #F4A8D8 100%);
+}
+
+/* The 80% unlock line — the phased business model as one mark.
+   Not crossed: a grey pin standing ahead of the fill.
+   Crossed:     a white cut through the keyline gradient. */
+.unlock-notch {
+  position: absolute;
+  top: 50%;
+  left: 80%;
+  height: 10px;
+  width: 2px;
+  transform: translate(-50%, -50%);
+  border-radius: 9999px;
+  background: #c9c6d6;
+  pointer-events: none;
+}
+.unlock-notch--crossed {
+  background: #ffffff;
+  box-shadow: 0 0 0 0.5px rgba(25, 18, 52, 0.14);
+}
+
+@keyframes bar-reveal {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .bar-fill {
+    transform-origin: left center;
+    animation: bar-reveal 0.8s cubic-bezier(0.22, 1, 0.36, 1) var(--bd, 0.25s) both;
+  }
+}
+
+/* Legibility guard for white type over photography — the review stage */
+.ad-shadow { text-shadow: 0 1px 3px rgba(0, 0, 0, 0.95); }
+
+@keyframes toast-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .undo-toast { animation: toast-up 0.34s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+}
+
 /* OTP digit box */
 .otp-box {
   height: 52px;
