@@ -200,13 +200,13 @@ function ShowcasePanel() {
         </div>
       </div>
 
-      {/* Tagline — bottom left */}
+      {/* Tagline — bottom left. Same message as the mobile splash. */}
       <div className="absolute bottom-16 left-8">
-        <h2 className="text-[32px] xl:text-[48px] font-black leading-tight tracking-tight text-indigo-950">
-          Create. Match. Convert.
+        <h2 className="text-[32px] xl:text-[48px] font-black leading-[1.05] tracking-tight text-indigo-950">
+          Set it.<br />It runs.<br /><span className="wc-grad-text">It pays.</span>
         </h2>
-        <p className="mt-3 text-[16px] xl:text-[22px] font-medium text-indigo-700/55">
-          AI-powered influencer marketing, from discovery to campaign ROI.
+        <p className="mt-3 max-w-[26ch] text-[16px] xl:text-[22px] font-medium leading-snug text-indigo-700/55">
+          Set a budget and a target. Sourcing, briefing and scaling run themselves.
         </p>
       </div>
 
@@ -253,7 +253,8 @@ function ShowcasePanel() {
           23 Campaigns Live
         </span>
       </div>
-      <div className="absolute bottom-[28%] left-[calc(5%+50px)] animate-float-e rounded-full border border-indigo-200 bg-white/90 px-3 py-1.5 shadow-sm backdrop-blur-sm">
+      {/* Sits right of the three-line tagline, clear of the cards above. */}
+      <div className="absolute bottom-[11%] left-[58%] animate-float-e rounded-full border border-indigo-200 bg-white/90 px-3 py-1.5 shadow-sm backdrop-blur-sm">
         <span className="text-[10px] font-semibold text-indigo-600">✦ AI Matching Active</span>
       </div>
       <div className="absolute right-[5%] top-[28%] animate-float-c rounded-full border border-violet-200 bg-white/90 px-3 py-1.5 shadow-sm backdrop-blur-sm">
