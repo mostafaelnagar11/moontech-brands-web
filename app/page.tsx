@@ -123,7 +123,14 @@ function ShowcasePanel() {
               <span className="animate-live h-1.5 w-1.5 rounded-full bg-white" />
               LIVE
             </div>
-            <div className="absolute bottom-[calc(2.5rem+4px)] left-3 h-8 w-8 rounded-full border-2 border-white bg-white/30" />
+            <div className="absolute bottom-[calc(2.5rem+4px)] left-3 h-8 w-8 overflow-hidden rounded-full border-2 border-white bg-white/30">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=80&h=80&fit=crop&crop=faces"
+                alt=""
+                className="h-full w-full object-cover"
+              />
+            </div>
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/65 p-3">
               <p className="text-[11px] font-semibold text-white">@luna.creates</p>
               <p className="text-[10px] text-white/70">847K watching</p>
@@ -213,14 +220,20 @@ function ShowcasePanel() {
         </p>
       </div>
 
-      {/* Photo content card — right middle */}
+      {/* Photo content card — right middle. A creator's own bag ad. */}
       <div className="absolute right-[5%] top-[38%] animate-float-e">
         <div className="w-44 overflow-hidden rounded-2xl shadow-xl shadow-indigo-200/60">
-          <div className="relative h-36 bg-gradient-to-br from-cyan-400 via-teal-400 to-emerald-500">
-            <div className="absolute right-2 top-2 rounded-lg bg-black/30 px-2 py-1 backdrop-blur-sm">
+          <div className="relative h-36">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=440&h=360&fit=crop"
+              alt="Creator styling the leather tote"
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+            <div className="absolute right-2 top-2 rounded-lg bg-black/40 px-2 py-1 backdrop-blur-sm">
               <span className="text-[9px] font-bold text-white">4.7% ER</span>
             </div>
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/65 p-2.5">
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/75 via-black/40 p-2.5">
               <p className="text-[11px] font-semibold text-white">@sarah.style</p>
               <p className="text-[10px] text-white/70">892K followers</p>
             </div>
