@@ -7,6 +7,7 @@ import {
   House, Megaphone, UsersThree,
   Gear, Question, SignOut, X,
 } from "@phosphor-icons/react";
+import { BRANDS, type Brand } from "../data";
 
 type NavItem = { icon: ReactNode; label: string; href: string; badge?: string };
 const NAV_MENU: NavItem[] = [
@@ -19,12 +20,9 @@ const NAV_OTHERS: { icon: ReactNode; label: string; href?: string }[] = [
   { icon: <Question size={16} weight="bold" />, label: "Help" },
 ];
 
-type BrandItem = { id: string; name: string; initials: string; color: string; logo?: string };
-const BRANDS: BrandItem[] = [
-  { id: "ounass", name: "Ounass",     initials: "O", color: "#4D2FB0", logo: "/ounass-logo.jpeg" },
-  { id: "luna",  name: "Luna Beauty", initials: "L", color: "#0891b2", logo: "/luna-logo.png" },
-  { id: "fresh", name: "FreshGrocer", initials: "F", color: "#059669", logo: "/freshgrocer-logo.jpg" },
-];
+/* The workspace brands live in app/data.ts — the sign-in brand picker shows
+   the same list, so it must not be duplicated here. */
+type BrandItem = Brand;
 
 interface SidebarProps {
   collapsed: boolean;

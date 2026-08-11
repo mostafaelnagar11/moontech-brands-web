@@ -5,13 +5,13 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
   ArrowLeft,
-  ArrowSquareOut,
   CaretRight,
   Check,
   CheckCircle,
   CircleNotch,
   Lightning,
   LockSimple,
+  Storefront,
   Translate,
   WarningCircle,
 } from "@phosphor-icons/react";
@@ -548,9 +548,9 @@ function BrandStep({ onBack, onContinue }: { onBack: () => void; onContinue: () 
       <BackButton onClick={onBack} />
       <div className="mt-5 flex flex-col items-center text-center">
         <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-lg shadow-indigo-200">
-          <ArrowSquareOut size={26} weight="bold" className="text-white" />
+          <Storefront size={26} weight="bold" className="text-white" />
         </div>
-        <h1 className="mt-3.5 text-[20px] font-bold tracking-tight text-[#1e1b4b]">Test Brand</h1>
+        <h1 className="mt-3.5 text-[20px] font-bold tracking-tight text-[#1e1b4b]">Choose your brand</h1>
         <p className="mt-1 text-sm text-neutral-500">Select an account to continue</p>
       </div>
       <div className="mt-5 flex flex-col gap-2.5">
@@ -571,8 +571,18 @@ function BrandRow({ brand, selected, onSelect }: { brand: Brand; selected: boole
           : "border-neutral-200 bg-white hover:border-indigo-200 hover:bg-indigo-50/30"
       }`}
     >
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white shadow-sm" style={{ backgroundColor: brand.color }}>
-        {brand.external ? <ArrowSquareOut size={17} weight="bold" /> : <span className="text-xs font-bold">{brand.initials}</span>}
+      {/* Same mark the sidebar's brand switcher shows: the logo on white, or
+          the brand's initial on its own colour when there is no logo. */}
+      <span
+        className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl text-white shadow-sm ring-1 ring-black/[0.04]"
+        style={{ backgroundColor: brand.logo ? "#fff" : brand.color }}
+      >
+        {brand.logo ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={brand.logo} alt="" className="h-full w-full object-cover" />
+        ) : (
+          <span className="text-xs font-bold">{brand.initials}</span>
+        )}
       </span>
       <span className="flex-1 text-sm font-semibold text-neutral-800">{brand.name}</span>
       <CaretRight size={16} weight="bold" className={selected ? "text-indigo-400" : "text-neutral-300"} />

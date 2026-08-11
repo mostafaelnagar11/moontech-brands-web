@@ -1,15 +1,17 @@
 export const DEMO_CODE = "911324";
 
+/* The workspace brands — ONE list, shared by the sign-in brand picker and the
+   sidebar's brand switcher, so the two can never drift apart. */
 export type Brand = {
   id: string;
   name: string;
   initials: string;
   color: string;
-  external?: boolean;
+  logo?: string;
 };
 
 export const BRANDS: Brand[] = [
-  { id: "test-01", name: "Test 01", initials: "T1", color: "#2563eb", external: true },
-  { id: "test-02", name: "Test 02", initials: "T2", color: "#2563eb" },
-  { id: "test-03", name: "Test 03", initials: "T3", color: "#2563eb" },
+  { id: "ounass", name: "Ounass",      initials: "O", color: "#4D2FB0", logo: "/ounass-logo.jpeg" },
+  { id: "luna",   name: "Luna Beauty", initials: "L", color: "#0891b2", logo: "/luna-logo.png" },
+  { id: "fresh",  name: "FreshGrocer", initials: "F", color: "#059669", logo: "/freshgrocer-logo.jpg" },
 ];
