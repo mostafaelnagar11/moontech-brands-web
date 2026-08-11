@@ -7,8 +7,11 @@ import {
   ArrowLeft,
   ArrowSquareOut,
   CaretRight,
+  Check,
   CheckCircle,
   CircleNotch,
+  Lightning,
+  LockSimple,
   Translate,
   WarningCircle,
 } from "@phosphor-icons/react";
@@ -225,24 +228,81 @@ function ShowcasePanel() {
         </div>
       </div>
 
-      {/* Campaign ROI card — bottom right */}
-      <div className="absolute bottom-[calc(6%+100px)] right-[5%] animate-float-f">
-        <div className="w-52 rounded-2xl border border-white/90 bg-white/95 p-4 shadow-xl shadow-indigo-100/80">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-pink-500">Campaign ROI</p>
-          <div className="mt-2 flex items-end gap-3">
-            <div>
-              <p className="text-[28px] font-black leading-none text-neutral-800">340%</p>
-              <p className="text-[10px] text-neutral-400">return</p>
+      {/* Revenue card — bottom right. Ported from the mobile splash: one
+          phase, one number, and the 80% line it has already crossed. */}
+      <div className="absolute bottom-[7%] right-[5%] animate-float-f">
+        <div className="relative w-60">
+          <div className="rounded-[22px] bg-white px-4 pb-3 pt-4 shadow-[0_24px_56px_-22px_rgba(25,18,52,0.32)] ring-1 ring-black/[0.04]">
+            <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-[#047857]">
+              <span className="animate-live h-1.5 w-1.5 shrink-0 rounded-full bg-[#059669]" />
+              Revenue
+            </p>
+
+            <div className="mt-2 flex items-baseline justify-between gap-2">
+              <p className="text-[26px] font-black leading-none tabular-nums text-[#191234]">
+                $840
+                <span className="ml-1 text-[11px] font-medium text-neutral-500">of $1,000 target</span>
+              </p>
+              <p className="text-[13px] font-semibold tabular-nums text-[#4D2FB0]">84%</p>
             </div>
-            <div className="ml-auto text-right">
-              <p className="text-base font-black text-green-500">$48K</p>
-              <p className="text-[10px] text-neutral-400">revenue</p>
+
+            {/* THE SIGNATURE — the 80% unlock line, already crossed */}
+            <div className="relative mt-3 h-2 rounded-full bg-[#EFEBFA]">
+              <div className="bar-fill keyline-grad h-full rounded-full" style={{ width: "84%" }} />
+              <span aria-hidden="true" className="unlock-notch unlock-notch--crossed" />
+            </div>
+
+            <p className="mt-2 flex items-start gap-1.5 text-[11px] font-medium text-[#4D2FB0]">
+              <Lightning size={12} weight="fill" className="mt-0.5 shrink-0" />
+              Phase 2 unlocked — Phase 1 hit 84%
+            </p>
+
+            {/* The 10 / 30 / 60 split as pure geometry: the machine bets
+                small, proves it, then bets big. */}
+            <div className="mt-3 space-y-2 border-t border-black/[0.05] pt-3">
+              {([
+                { name: "Warm-up", state: "Done", w: 10 },
+                { name: "Scale", state: "Active", w: 30 },
+                { name: "Peak", state: "Pending", w: 60 },
+              ] as const).map((p, i) => (
+                <div key={p.name} className="flex items-center gap-2">
+                  <span className="w-4 shrink-0">
+                    {p.state === "Pending" ? (
+                      <LockSimple size={12} weight="fill" className="text-neutral-300" />
+                    ) : p.state === "Done" ? (
+                      <Check size={12} weight="bold" className="text-[#4D2FB0]" />
+                    ) : (
+                      <Lightning size={12} weight="fill" className="text-amber-500" />
+                    )}
+                  </span>
+                  <span className={`w-[68px] shrink-0 whitespace-nowrap text-[10px] font-semibold ${
+                    p.state === "Pending" ? "text-neutral-400" : "text-[#191234]"
+                  }`}>
+                    P{i + 1} {p.name}
+                  </span>
+                  <span className="flex-1">
+                    <span
+                      className={`block h-1 min-w-2 rounded-full ${
+                        p.state === "Done" ? "keyline-grad" : p.state === "Active" ? "bg-amber-400" : "bg-[#E5E4EC]"
+                      }`}
+                      style={{ width: `${p.w}%` }}
+                    />
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
-          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-neutral-100">
-            <div className="h-full w-3/4 rounded-full bg-gradient-to-r from-pink-400 to-violet-500" />
+
+          {/* The next phase, released by itself — the only saturated object */}
+          <div className="absolute -right-3 -top-4 animate-float-b">
+            <div className="rounded-2xl bg-[#4D2FB0] px-3 py-2 shadow-[0_16px_34px_-12px_rgba(77,47,176,0.6)] ring-1 ring-white/20">
+              <p className="flex items-center gap-1.5 text-[10px] font-bold text-white">
+                <Lightning size={11} weight="fill" className="shrink-0" />
+                Phase 2 unlocked
+              </p>
+              <p className="mt-0.5 text-[10px] font-semibold text-white/75">Funded itself · just now</p>
+            </div>
           </div>
-          <p className="mt-2 text-[9px] text-neutral-400">Sephora × @glam.by.nour</p>
         </div>
       </div>
 
@@ -253,8 +313,8 @@ function ShowcasePanel() {
           23 Campaigns Live
         </span>
       </div>
-      {/* Sits right of the three-line tagline, clear of the cards above. */}
-      <div className="absolute bottom-[11%] left-[58%] animate-float-e rounded-full border border-indigo-200 bg-white/90 px-3 py-1.5 shadow-sm backdrop-blur-sm">
+      {/* Threads between the tagline and the revenue card. */}
+      <div className="absolute bottom-[5%] left-[52%] animate-float-e rounded-full border border-indigo-200 bg-white/90 px-3 py-1.5 shadow-sm backdrop-blur-sm">
         <span className="text-[10px] font-semibold text-indigo-600">✦ AI Matching Active</span>
       </div>
       <div className="absolute right-[5%] top-[28%] animate-float-c rounded-full border border-violet-200 bg-white/90 px-3 py-1.5 shadow-sm backdrop-blur-sm">
