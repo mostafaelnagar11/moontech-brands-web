@@ -287,6 +287,13 @@ export default function CampaignsPage() {
   const flightPct = flightTarget ? Math.round((flightRev / flightTarget) * 100) : 0;
   const count = (s: CampaignStatus) => roster.filter((c) => c.status === s).length;
 
+  /* The three headline panels sit in one row. Either of the two action panels
+     can be empty, so the grid follows how many actually render — a missing
+     panel must not leave a hole. */
+  const panels = 1 + (actions.length > 0 ? 1 : 0) + (adQueue.length > 0 ? 1 : 0);
+  const panelGrid =
+    panels === 3 ? "xl:grid-cols-3" : panels === 2 ? "lg:grid-cols-2" : "";
+
   const shown = filter === "All" ? roster : roster.filter((c) => c.status === filter);
   const cards = shown.filter((c) => c.status !== "Ended");
   const archive = shown.filter((c) => c.status === "Ended");
@@ -383,17 +390,20 @@ export default function CampaignsPage() {
         <main className="flex-1 overflow-y-auto px-4 py-5 sm:px-6 sm:py-6">
           <div aria-live="polite" role="status" className="sr-only">{announce}</div>
 
-          {/* § MASTHEAD — live-phase revenue only, never a lifetime total */}
-          <section
-            className="animate-fade-in flex flex-col gap-5 rounded-2xl border border-black/[0.06] bg-white px-5 py-5 shadow-sm lg:flex-row lg:items-end lg:gap-10 lg:px-6"
-            style={{ animationDelay: "0s" }}
-          >
-            <div className="shrink-0">
+          {/* § HEADLINES — what's running, what needs paying, what needs
+              judging: three panels in one row on a wide screen. */}
+          <div className={`grid gap-4 ${panelGrid}`}>
+
+            {/* IN FLIGHT — live-phase revenue only, never a lifetime total */}
+            <section
+              className="animate-fade-in flex h-full flex-col rounded-2xl border border-black/[0.06] bg-white px-5 py-5 shadow-sm"
+              style={{ animationDelay: "0s" }}
+            >
               <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-green-600">
                 <span aria-hidden="true" className="animate-live h-1.5 w-1.5 rounded-full bg-green-500" />
                 IN FLIGHT
               </p>
-              <p className="mt-2 text-[36px] font-bold leading-none tabular-nums" style={{ color: INK }}>
+              <p className="mt-2 text-[32px] font-bold leading-none tabular-nums" style={{ color: INK }}>
                 {fmtUSD(flightRev)}
               </p>
               <p className="mt-2 text-xs text-neutral-500">
@@ -403,45 +413,48 @@ export default function CampaignsPage() {
                   <span className="text-neutral-400"> · {deployingCount} deploying</span>
                 )}
               </p>
-            </div>
 
-            <div className="min-w-0 flex-1 lg:pb-1.5">
-              <div className="mb-2 flex items-baseline justify-between gap-2">
-                <span className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400">
-                  Combined phase progress
-                </span>
-                <span className="text-sm font-semibold tabular-nums text-[#4D2FB0]">{flightPct}%</span>
+              {/* mt-auto pins the meter to the bottom so all three panels in
+                  the row end on the same line. */}
+              <div className="mt-auto pt-5">
+                <div className="mb-2 flex items-baseline justify-between gap-2">
+                  <span className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400">
+                    Combined phase progress
+                  </span>
+                  <span className="text-sm font-semibold tabular-nums text-[#4D2FB0]">{flightPct}%</span>
+                </div>
+                <div
+                  role="img"
+                  aria-label={
+                    `Live phase revenue ${fmtUSD(flightRev)} of a ${fmtUSD(flightTarget)} combined target, ${flightPct} percent.` +
+                    (deployingCount > 0
+                      ? ` ${deployingCount} further phase${deployingCount === 1 ? "" : "s"} deploying, not measured yet.`
+                      : "")
+                  }
+                  className="h-1.5 rounded-full bg-[#EFEBFA]"
+                >
+                  <div className="bar-fill keyline-grad h-full rounded-full"
+                    style={{ width: `${flightPct}%`, "--bd": ".2s" } as React.CSSProperties} />
+                </div>
               </div>
-              <div
-                role="img"
-                aria-label={
-                  `Live phase revenue ${fmtUSD(flightRev)} of a ${fmtUSD(flightTarget)} combined target, ${flightPct} percent.` +
-                  (deployingCount > 0
-                    ? ` ${deployingCount} further phase${deployingCount === 1 ? "" : "s"} deploying, not measured yet.`
-                    : "")
-                }
-                className="h-1.5 rounded-full bg-[#EFEBFA]"
+            </section>
+
+            {/* NEEDS YOU */}
+            {actions.length > 0 && (
+              <section
+                className="animate-fade-in flex h-full flex-col overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-sm"
+                style={{ animationDelay: ".07s" }}
               >
-                <div className="bar-fill keyline-grad h-full rounded-full"
-                  style={{ width: `${flightPct}%`, "--bd": ".2s" } as React.CSSProperties} />
-              </div>
-            </div>
-          </section>
-
-          {/* § NEEDS YOU */}
-          {actions.length > 0 && (
-            <section className="animate-fade-in mt-6" style={{ animationDelay: ".07s" }}>
-              <p className="mb-2.5 text-[11px] font-bold uppercase tracking-wide text-[#7C5CE0]">
-                NEEDS YOU · {actions.length}
-              </p>
-              <div className="overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-sm">
+                <p className="px-5 pb-2 pt-5 text-[11px] font-bold uppercase tracking-wide text-[#7C5CE0]">
+                  NEEDS YOU · {actions.length}
+                </p>
                 {actions.map((c, i) => (
                   <button
                     key={c.id}
                     onClick={() => open(c.id)}
                     aria-label={`${c.due!.label} for ${c.name}, ${fmtUSD(c.due!.amount)} plus 5% VAT. Open campaign details.`}
-                    className={`flex w-full items-center gap-3.5 px-4 py-3.5 text-left transition-colors hover:bg-neutral-50 sm:px-5 ${
-                      i > 0 ? "border-t border-black/[0.06]" : ""
+                    className={`flex w-full items-center gap-3 px-5 py-3.5 text-left transition-colors hover:bg-neutral-50 ${
+                      i > 0 ? "border-t border-black/[0.06]" : "border-t border-black/[0.06]"
                     }`}
                   >
                     <span aria-hidden="true" className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] bg-[#4D2FB0]/[0.1] text-[#4D2FB0]">
@@ -453,34 +466,35 @@ export default function CampaignsPage() {
                     </span>
                     {/* The pay modal charges this amount plus 5% VAT, so the
                         pill says so rather than promising the smaller price. */}
-                    <span className="flex shrink-0 items-baseline gap-1 rounded-full bg-[#4D2FB0] px-3.5 py-2 text-xs font-semibold tabular-nums text-white">
+                    <span className="flex shrink-0 items-baseline gap-1 rounded-full bg-[#4D2FB0] px-3 py-1.5 text-xs font-semibold tabular-nums text-white">
                       {fmtUSD(c.due!.amount)}
                       <span className="text-[10px] font-medium text-white/70">+ VAT</span>
                     </span>
                     <CaretRight size={14} weight="bold" aria-hidden="true" className="shrink-0 text-neutral-300" />
                   </button>
                 ))}
-              </div>
-            </section>
-          )}
+              </section>
+            )}
 
-          {/* § AD REVIEW — the list owns what needs you, and finished drafts
-              need you as much as an unfunded phase does. Nothing here has
-              posted; each row is one campaign's queue. */}
-          {adQueue.length > 0 && (
-            <section className="animate-fade-in mt-6" style={{ animationDelay: ".1s" }}>
-              <p className="mb-2.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-amber-600">
-                <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                AD REVIEW · {adsWaiting}
-              </p>
-              <div className="overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-sm">
+            {/* AD REVIEW — the list owns what needs you, and finished drafts
+                need you as much as an unfunded phase does. Nothing here has
+                posted; each row is one campaign's queue. */}
+            {adQueue.length > 0 && (
+              <section
+                className="animate-fade-in flex h-full flex-col overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-sm"
+                style={{ animationDelay: ".1s" }}
+              >
+                <p className="flex items-center gap-1.5 px-5 pb-2 pt-5 text-[11px] font-bold uppercase tracking-wide text-amber-600">
+                  <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                  AD REVIEW · {adsWaiting}
+                </p>
                 {adQueue.map(({ c, waiting }, i) => (
                   <button
                     key={c.id}
                     onClick={() => router.push(`/campaigns/ads?c=${c.id}`)}
                     aria-label={`${waiting.length} ads waiting on you for ${c.name}. Nothing posts until you react. Open ad review.`}
-                    className={`flex w-full items-center gap-3.5 px-4 py-3.5 text-left transition-colors hover:bg-neutral-50 sm:px-5 ${
-                      i > 0 ? "border-t border-black/[0.06]" : ""
+                    className={`flex w-full items-center gap-3 px-5 py-3.5 text-left transition-colors hover:bg-neutral-50 ${
+                      i > 0 ? "border-t border-black/[0.06]" : "border-t border-black/[0.06]"
                     }`}
                   >
                     <span className="flex shrink-0 -space-x-2" aria-hidden="true">
@@ -501,9 +515,9 @@ export default function CampaignsPage() {
                     <CaretRight size={14} weight="bold" aria-hidden="true" className="shrink-0 text-neutral-300" />
                   </button>
                 ))}
-              </div>
-            </section>
-          )}
+              </section>
+            )}
+          </div>
 
           {/* § FILTER */}
           <div className="flex flex-wrap items-center gap-2 pb-5 pt-6"
