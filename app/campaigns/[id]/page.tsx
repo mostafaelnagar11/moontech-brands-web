@@ -174,7 +174,7 @@ export default function CampaignDetailPage() {
             <button onClick={() => router.push("/campaigns/new")}
               className="flex items-center gap-2 rounded-xl bg-[#4D2FB0] px-3 sm:px-4 py-2 text-[12px] font-semibold text-white hover:bg-[#3F2596] transition-colors">
               <Plus size={13} weight="bold" />
-              <span className="hidden sm:inline">New Campaign</span>
+              <span className="hidden sm:inline">New campaign</span>
             </button>
             <NotificationCenter />
             <div className="relative">
@@ -251,7 +251,7 @@ export default function CampaignDetailPage() {
                       {detail.revLabel}
                     </p>
                     <p className="mt-2 text-xs text-neutral-500">
-                      {deploying ? "earned so far" : "earned across completed phases"}
+                      {deploying ? "revenue so far" : "revenue across completed phases"}
                     </p>
                   </>
                 )}
@@ -268,19 +268,19 @@ export default function CampaignDetailPage() {
 
               {/* ── AD REVIEW ──
                    Above the ledger, per the note at the top of this file: the
-                   drafts are the thing that needs you today, and the ledger is
+                   ads are the thing waiting on you today, and the ledger is
                    the thing that explains the money. Nothing in here has posted
                    yet — the creator has finished the piece and it waits on you. */}
               {waiting.length > 0 ? (
                 <section>
                   <p className={`${EYEBROW} mb-2 flex items-center gap-1.5 text-amber-600`}>
                     <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                    AD REVIEW · {waiting.length}
+                    Ads waiting on you · {waiting.length}
                   </p>
                   <div className={`${CARD} overflow-hidden`}>
                     <button
                       onClick={() => router.push(`/campaigns/ads?c=${detail.id}`)}
-                      aria-label={`${waiting.length} ads waiting on you for ${detail.name}. Nothing posts until you react.`}
+                      aria-label={`${waiting.length} ads waiting on you for ${detail.name}. Nothing publishes until you like or dislike it.`}
                       className="flex w-full items-center gap-3 px-5 py-4 text-left hover:bg-neutral-50 transition-colors"
                     >
                       <span className="flex shrink-0 -space-x-2" aria-hidden="true">
@@ -295,7 +295,7 @@ export default function CampaignDetailPage() {
                           {waiting.length} ads waiting on you
                         </span>
                         <span className="mt-0.5 block truncate text-xs text-neutral-500">
-                          Nothing posts until you react
+                          Nothing publishes until you like or dislike it
                         </span>
                       </span>
                       <CaretRight size={14} weight="bold" aria-hidden="true" className="shrink-0 text-neutral-300" />
@@ -306,11 +306,11 @@ export default function CampaignDetailPage() {
                 /* Every draft has a decision — but a decision can be changed,
                    so the way back into the review stays on the page. */
                 <section>
-                  <p className={`${EYEBROW} mb-2 text-neutral-400`}>AD REVIEW</p>
+                  <p className={`${EYEBROW} mb-2 text-neutral-400`}>Ad review</p>
                   <div className={`${CARD} overflow-hidden`}>
                     <button
                       onClick={() => router.push(`/campaigns/ads?c=${detail.id}`)}
-                      aria-label={`All ${drafts.length} drafts reviewed for ${detail.name}. Open the review to change a decision.`}
+                      aria-label={`All ${drafts.length} ads reviewed for ${detail.name}. Open the review to change a decision.`}
                       className="flex w-full items-center gap-3 px-5 py-4 text-left hover:bg-neutral-50 transition-colors"
                     >
                       <span aria-hidden="true" className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] bg-[#059669]/[0.09] text-[#047857]">
@@ -318,7 +318,7 @@ export default function CampaignDetailPage() {
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-semibold" style={{ color: INK }}>
-                          All drafts reviewed
+                          All ads reviewed
                         </span>
                         <span className="mt-0.5 block truncate text-xs text-neutral-500">
                           {drafts.length} decided · open the review to change one
@@ -332,14 +332,14 @@ export default function CampaignDetailPage() {
 
               {/* ── PHASE LEDGER ── */}
               <section>
-                <p className={`${EYEBROW} mb-2 text-[#7C5CE0]`}>PHASE LEDGER</p>
+                <p className={`${EYEBROW} mb-2 text-[#7C5CE0]`}>Phase ledger</p>
                 <div className={`${CARD} overflow-hidden`}>
                   {detail.phases.map((p, j) => {
                     const state =
                       p === "Done" ? "Complete"
-                        : p === "Active" ? "In progress"
+                        : p === "Active" ? "Live"
                         : due && due.phase === j + 1 ? "Ready to fund"
-                        : `Locked until Phase ${j} hits 80%`;
+                        : `Locked until Phase ${j} crosses the 80% unlock line`;
                     const tone =
                       p === "Done" ? "text-[#047857]"
                         : p === "Active" ? "text-amber-700"
@@ -393,16 +393,16 @@ export default function CampaignDetailPage() {
                 <section className={`${CARD} p-5`}>
                   <p className={`${EYEBROW} flex items-center gap-1.5 text-[#7C5CE0]`}>
                     <Lightning size={12} weight="fill" aria-hidden="true" />
-                    NEEDS YOU
+                    Waiting on you · Phase {due.phase} funding
                   </p>
                   <p className="mt-2 text-sm font-semibold" style={{ color: INK }}>{due.reason}</p>
                   <p className="mt-1 text-xs text-neutral-500">
-                    You only pay for the phase about to run.
+                    You only fund the phase about to run.
                   </p>
                   <button
                     onClick={() => { setPayDue(due); setPayOpen(true); setPayState("idle"); }}
                     className="mt-4 flex w-full items-center justify-center rounded-xl bg-[#4D2FB0] px-4 py-3 text-[13px] font-semibold tabular-nums text-white hover:bg-[#3F2596] transition-colors">
-                    {due.label} · {fmtUSD(due.amount)}
+                    Fund Phase {due.phase} — {fmtUSD(due.amount)}
                   </button>
                   {/* The receipt bills amount + 5% VAT, so the button must not
                       be the only number the user sees before the modal. */}
@@ -412,7 +412,7 @@ export default function CampaignDetailPage() {
                 </section>
               ) : detail.status === "Live" ? (
                 <section className={`${CARD} p-5`}>
-                  <p className={`${EYEBROW} text-[#7C5CE0]`}>RUNNING</p>
+                  <p className={`${EYEBROW} text-[#7C5CE0]`}>Live</p>
                   <p className="mt-2 text-sm font-semibold" style={{ color: INK }}>
                     Phase {detail.phaseNo} · {detail.phaseName}
                   </p>
@@ -430,14 +430,18 @@ export default function CampaignDetailPage() {
                 </section>
               ) : null}
 
-              {/* ── Delivery rail — three stats, stacked so they can breathe ── */}
+              {/* ── Delivery rail — two stats, stacked so they can breathe.
+                     There used to be a third tile for `detail.content`, but that
+                     number is stored, not computed: one campaign holds 89 against
+                     125 ads live and another holds 142 against 96. Two different
+                     numbers both labelled "ads" is worse than one, so the tile is
+                     gone. The field stays in the data, unread here. ── */}
               {detail.adsLive !== null && (
                 <section className={`${CARD} overflow-hidden`}>
-                  <p className={`${EYEBROW} px-5 pt-4 pb-1 text-neutral-400`}>DELIVERY</p>
+                  <p className={`${EYEBROW} px-5 pt-4 pb-1 text-neutral-400`}>Delivery</p>
                   {[
                     { k: "Ads live", v: `${detail.adsLive}/${detail.adsTotal}` },
                     { k: "Creators", v: `${detail.creators}` },
-                    { k: "Content",  v: `${detail.content}` },
                   ].map((m, i) => (
                     <div key={m.k}
                       className={`flex items-center justify-between px-5 py-3.5 ${i > 0 ? "border-t border-black/[0.06]" : ""}`}>
@@ -471,7 +475,7 @@ export default function CampaignDetailPage() {
             {payState !== "done" ? (
               <div className="p-5">
                 <h2 id="pay-dialog-title" className="text-[17px] font-bold" style={{ color: INK }}>
-                  Pay Phase {payDue.phase}
+                  Fund Phase {payDue.phase}
                 </h2>
 
                 <div className="mt-4 overflow-hidden rounded-2xl border border-black/[0.06]">
@@ -520,7 +524,7 @@ export default function CampaignDetailPage() {
                       <CircleNotch size={16} className="animate-spin" aria-hidden="true" /> Processing…
                     </span>
                   ) : (
-                    `Pay ${fmtUSD(total)}`
+                    `Fund ${fmtUSD(total)}`
                   )}
                 </button>
               </div>
@@ -543,7 +547,7 @@ export default function CampaignDetailPage() {
                   Phase {payDue.phase} funded
                 </h2>
                 <p className="mt-1.5 text-xs text-neutral-500">
-                  Deploying to matched creators. You&apos;ll get a notification as content goes live.
+                  Deploying to matched creators. You&apos;ll get a notification as ads publish.
                 </p>
                 <button
                   onClick={dismiss}

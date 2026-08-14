@@ -89,10 +89,10 @@ export default function NewBrandDashboard() {
               <circle cx="12" cy="12" r="10" /><path d="M12 8v4M12 16h.01" strokeLinecap="round" />
             </svg>
             <p className="flex-1 text-xs font-medium text-white">
-              Finish your business profile — add your VAT number, trade license &amp; office location before launching a campaign
+              Finish your business profile — add your VAT number, trade licence &amp; office location before you can fund a campaign
             </p>
             <span className="shrink-0 rounded-full border border-white/30 bg-white/10 px-2.5 py-0.5 text-[11px] font-semibold text-white">
-              0 of 3 done
+              0 of 3 complete
             </span>
             <button
               onClick={() => router.push("/profile")}
@@ -138,7 +138,7 @@ export default function NewBrandDashboard() {
                       className="flex w-fit items-center gap-2 rounded-xl border border-neutral-300 bg-white px-6 py-3 text-sm font-semibold text-neutral-700 shadow-sm transition hover:bg-neutral-50 active:scale-[0.98]"
                     >
                       <span aria-hidden="true" className="text-[#4D2FB0]">✦</span>
-                      Think something&apos;s wrong? Talk to Agent
+                      Think something&apos;s wrong? Talk to the MoonTech assistant
                     </button>
                     <p className="mt-2 text-xs text-neutral-400">
                       We&apos;ll re-check automatically once your traffic crosses 5,000 monthly visitors.

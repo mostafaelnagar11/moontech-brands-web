@@ -3,8 +3,8 @@
 /* ------------------------------------------------------------------ */
 /* Campaigns list — ported from the MoonTech mobile app, re-expressed  */
 /* for a desktop browser. Same sections, same data, same words:        */
-/* IN FLIGHT masthead → NEEDS YOU → AD REVIEW → filter → cards →       */
-/* ARCHIVE.                                                            */
+/* Live masthead → Phases waiting on you → Ads waiting on you →        */
+/* filter → cards → Archive.                                           */
 /*                                                                     */
 /* Everything derives from useRoster() so a phase funded on the detail  */
 /* route is already applied when you come back here.                   */
@@ -38,6 +38,15 @@ const INK = "#191234";
 const STATUS_FILTERS = ["All", "Live", "Ready", "Ended"] as const;
 type StatusFilter = (typeof STATUS_FILTERS)[number];
 
+/* The filter VALUES are the stored campaign statuses; the labels are the
+   canonical state words, so a tab and a status chip never disagree. */
+const FILTER_LABEL: Record<StatusFilter, string> = {
+  All: "All",
+  Live: "Live",
+  Ready: "Ready to fund",
+  Ended: "Complete",
+};
+
 /* byte-identical to the mobile phase stepper */
 const segCls = (v: PhaseState) =>
   v === "Done" ? "keyline-grad" : v === "Active" ? "bg-amber-400" : "bg-[#E5E4EC]";
@@ -64,8 +73,8 @@ function CampaignCard({ c, i, onOpen }: { c: Campaign; i: number; onOpen: (id: s
   const label = metered
     ? `${c.name}, live, Phase ${c.phaseNo} ${c.phaseName}, ${fmtUSD(c.rev)} of ${fmtUSD(c.revTarget!)}, ${c.revPct} percent of the phase target, ${c.roas} ROAS. Open campaign details.`
     : state === "deploying"
-      ? `${c.name}, live, Phase ${c.phaseNo} ${c.phaseName}, ${c.revLabel} earned so far, ${c.roas} ROAS. Open campaign details.`
-      : `${c.name}, ${c.status.toLowerCase()}, Phase ${c.phaseNo} ${c.phaseName}, ${c.revLabel} earned, ${c.roas} ROAS. Open campaign details.`;
+      ? `${c.name}, live, Phase ${c.phaseNo} ${c.phaseName}, ${c.revLabel} revenue so far, ${c.roas} ROAS. Open campaign details.`
+      : `${c.name}, ${c.status.toLowerCase()}, Phase ${c.phaseNo} ${c.phaseName}, ${c.revLabel} revenue, ${c.roas} ROAS. Open campaign details.`;
 
   return (
     <button
@@ -82,7 +91,7 @@ function CampaignCard({ c, i, onOpen }: { c: Campaign; i: number; onOpen: (id: s
             {metered
               ? c.dates
               : c.due
-                ? `Phase ${c.phaseNo} · ${c.phaseName} — awaiting funding`
+                ? `Phase ${c.phaseNo} · ${c.phaseName} — ready to fund`
                 : `Phase ${c.phaseNo} · ${c.phaseName}`}
           </p>
         </div>
@@ -139,7 +148,7 @@ function CampaignCard({ c, i, onOpen }: { c: Campaign; i: number; onOpen: (id: s
                 {c.revLabel}
               </p>
               <p className="mt-1.5 text-[11px] font-medium text-neutral-500">
-                {state === "deploying" ? "earned so far" : "earned across completed phases"}
+                {state === "deploying" ? "revenue so far" : "revenue across completed phases"}
               </p>
             </div>
             <span className="shrink-0 rounded-full bg-[#F6F4FC] px-2 py-0.5 text-[11px] font-semibold tabular-nums text-[#4D2FB0]">
@@ -208,7 +217,7 @@ function ArchiveBlock({
     <>
       {showEyebrow && (
         <p className="mb-2.5 mt-8 text-[11px] font-bold uppercase tracking-wide text-neutral-400">
-          ARCHIVE · {rows.length}
+          Archive · {rows.length}
         </p>
       )}
       <div
@@ -307,13 +316,13 @@ export default function CampaignsPage() {
 
   const EMPTY: Record<StatusFilter, { title: string; body: string; cta?: string; act?: () => void }> = {
     Live: {
-      title: "Nothing running right now",
-      body: "Fund a ready phase and it goes live within the hour.",
+      title: "Nothing live right now",
+      body: "Fund a ready phase and it is live within the hour.",
       cta: "See what's ready", act: () => setFilter("Ready"),
     },
     Ready: {
       title: "Nothing waiting on you",
-      body: "Every funded phase is running.",
+      body: "Every funded phase is live.",
       cta: "See what's live", act: () => setFilter("Live"),
     },
     Ended: {
@@ -321,8 +330,8 @@ export default function CampaignsPage() {
       body: "Phases you finish are archived here with their final ROAS.",
     },
     All: {
-      title: "Your portfolio is empty",
-      body: "Every campaign runs in three guaranteed phases. You only pay for the phase about to run.",
+      title: "You have no campaigns yet",
+      body: "Every campaign runs in three guaranteed phases. You only fund the phase about to run.",
       cta: "New campaign", act: () => router.push("/campaigns/new"),
     },
   };
@@ -361,7 +370,7 @@ export default function CampaignsPage() {
             <button onClick={() => router.push("/campaigns/new")}
               className="flex items-center gap-2 rounded-xl bg-[#4D2FB0] px-3 py-2 text-[12px] font-semibold text-white transition-colors hover:bg-[#3F2596] sm:px-4">
               <Plus size={13} weight="bold" />
-              <span className="hidden sm:inline">New Campaign</span>
+              <span className="hidden sm:inline">New campaign</span>
             </button>
             <NotificationCenter />
             <div className="relative">
@@ -394,23 +403,23 @@ export default function CampaignsPage() {
               judging: three panels in one row on a wide screen. */}
           <div className={`grid gap-4 ${panelGrid}`}>
 
-            {/* IN FLIGHT — live-phase revenue only, never a lifetime total */}
+            {/* Live — live-phase revenue only, never a lifetime total */}
             <section
               className="animate-fade-in flex h-full flex-col rounded-2xl border border-black/[0.06] bg-white px-5 py-5 shadow-sm"
               style={{ animationDelay: "0s" }}
             >
               <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-green-600">
                 <span aria-hidden="true" className="animate-live h-1.5 w-1.5 rounded-full bg-green-500" />
-                IN FLIGHT
+                Live · {inFlight.length}
               </p>
               <p className="mt-2 text-[32px] font-bold leading-none tabular-nums" style={{ color: INK }}>
                 {fmtUSD(flightRev)}
               </p>
               <p className="mt-2 text-xs text-neutral-500">
                 of <span className="font-semibold tabular-nums">{fmtUSD(flightTarget)}</span>{" "}
-                across {inFlight.length} running phase{inFlight.length === 1 ? "" : "s"}
+                across {inFlight.length} live phase{inFlight.length === 1 ? "" : "s"}
                 {deployingCount > 0 && (
-                  <span className="text-neutral-400"> · {deployingCount} deploying</span>
+                  <span className="text-neutral-400"> · {deployingCount} funded, not measured yet</span>
                 )}
               </p>
 
@@ -428,7 +437,7 @@ export default function CampaignsPage() {
                   aria-label={
                     `Live phase revenue ${fmtUSD(flightRev)} of a ${fmtUSD(flightTarget)} combined target, ${flightPct} percent.` +
                     (deployingCount > 0
-                      ? ` ${deployingCount} further phase${deployingCount === 1 ? "" : "s"} deploying, not measured yet.`
+                      ? ` ${deployingCount} further phase${deployingCount === 1 ? "" : "s"} funded, not measured yet.`
                       : "")
                   }
                   className="h-1.5 rounded-full bg-[#EFEBFA]"
@@ -439,14 +448,14 @@ export default function CampaignsPage() {
               </div>
             </section>
 
-            {/* NEEDS YOU */}
+            {/* Phases waiting on you */}
             {actions.length > 0 && (
               <section
                 className="animate-fade-in flex h-full flex-col overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-sm"
                 style={{ animationDelay: ".07s" }}
               >
                 <p className="px-5 pb-2 pt-5 text-[11px] font-bold uppercase tracking-wide text-[#7C5CE0]">
-                  NEEDS YOU · {actions.length}
+                  Phases waiting on you · {actions.length}
                 </p>
                 {actions.map((c, i) => (
                   <button
@@ -476,7 +485,7 @@ export default function CampaignsPage() {
               </section>
             )}
 
-            {/* AD REVIEW — the list owns what needs you, and finished drafts
+            {/* Ads waiting on you — the list owns what waits on you, and finished ads
                 need you as much as an unfunded phase does. Nothing here has
                 posted; each row is one campaign's queue. */}
             {adQueue.length > 0 && (
@@ -486,13 +495,13 @@ export default function CampaignsPage() {
               >
                 <p className="flex items-center gap-1.5 px-5 pb-2 pt-5 text-[11px] font-bold uppercase tracking-wide text-amber-600">
                   <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                  AD REVIEW · {adsWaiting}
+                  Ads waiting on you · {adsWaiting}
                 </p>
                 {adQueue.map(({ c, waiting }, i) => (
                   <button
                     key={c.id}
                     onClick={() => router.push(`/campaigns/ads?c=${c.id}`)}
-                    aria-label={`${waiting.length} ads waiting on you for ${c.name}. Nothing posts until you react. Open ad review.`}
+                    aria-label={`${waiting.length} ads waiting on you for ${c.name}. Nothing publishes until you like or dislike it. Open ad review.`}
                     className={`flex w-full items-center gap-3 px-5 py-3.5 text-left transition-colors hover:bg-neutral-50 ${
                       i > 0 ? "border-t border-black/[0.06]" : "border-t border-black/[0.06]"
                     }`}
@@ -509,7 +518,7 @@ export default function CampaignsPage() {
                         {waiting.length} ads waiting on you
                       </span>
                       <span className="mt-0.5 block truncate text-xs text-neutral-500">
-                        {c.name} · Nothing posts until you react
+                        {c.name} · Nothing publishes until you like or dislike it
                       </span>
                     </span>
                     <CaretRight size={14} weight="bold" aria-hidden="true" className="shrink-0 text-neutral-300" />
@@ -527,7 +536,7 @@ export default function CampaignsPage() {
                 onClick={() => {
                   setFilter(f);
                   const n = f === "All" ? roster.length : count(f as CampaignStatus);
-                  setAnnounce(`Showing ${n} ${f === "All" ? "" : f.toLowerCase() + " "}campaign${n === 1 ? "" : "s"}`);
+                  setAnnounce(`Showing ${n} ${f === "All" ? "" : FILTER_LABEL[f].toLowerCase() + " "}campaign${n === 1 ? "" : "s"}`);
                 }}
                 aria-pressed={filter === f}
                 className={`rounded-xl px-4 py-1.5 text-sm font-medium transition-colors ${
@@ -535,7 +544,7 @@ export default function CampaignsPage() {
                     ? "border border-[#4D2FB0] bg-[#4D2FB0]/[0.06] text-[#4D2FB0]"
                     : "border border-black/[0.09] bg-white text-neutral-500 hover:border-neutral-300 hover:text-neutral-700"
                 }`}>
-                {f}
+                {FILTER_LABEL[f]}
                 <span className={`ml-1.5 text-[11px] tabular-nums ${filter === f ? "text-[#4D2FB0]" : "text-neutral-400"}`}>
                   {f === "All" ? roster.length : count(f as CampaignStatus)}
                 </span>

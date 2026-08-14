@@ -15,7 +15,7 @@ type Group = { title: string; items: Item[] };
 
 const GROUPS: Group[] = [
   {
-    title: "Recent projects",
+    title: "Recent campaigns",
     items: [
       { id: "r-spring", label: "Spring 2026", icon: ClockCounterClockwise, href: "/campaigns/spring-2026" },
       { id: "r-ramadan", label: "Ramadan Flash", icon: ClockCounterClockwise, href: "/campaigns/ramadan-flash" },
@@ -123,7 +123,7 @@ export default function CommandPalette() {
       </button>
 
       {open && mounted && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-start justify-center px-4 pt-[14vh]" role="dialog" aria-modal="true">
+        <div className="fixed inset-0 z-[100] flex items-start justify-center px-4 pt-[14vh]" role="dialog" aria-modal="true" aria-label="Search">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-fade-in" onClick={() => setOpen(false)} />
           <div className="relative w-full max-w-xl overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-2xl shadow-black/20 animate-fade-in">
             {/* Search row */}

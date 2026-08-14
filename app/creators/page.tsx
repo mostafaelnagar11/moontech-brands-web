@@ -94,7 +94,7 @@ function platformsFor(c: Creator): Platform[] {
 }
 
 const TABS: { key: Status; label: string }[] = [
-  { key: "pending", label: "Pending" },
+  { key: "pending", label: "Waiting" },
   { key: "approved", label: "Liked" },
   { key: "rejected", label: "Disliked" },
 ];
@@ -157,7 +157,7 @@ function Detail({
         <div className="px-7 pt-6">
           <div className="mb-5 flex items-center justify-between">
             <div className="text-xs text-neutral-400">
-              {isPending && idx >= 0 ? `${idx + 1} of ${pendingList.length} pending` : `Viewing ${c.status === "rejected" ? "disliked" : "liked"} profile`}
+              {isPending && idx >= 0 ? `${idx + 1} of ${pendingList.length} waiting on you` : `Viewing ${c.status === "rejected" ? "disliked" : "liked"} profile`}
             </div>
             {isPending && (
               <div className="flex gap-1.5">
@@ -201,9 +201,9 @@ function Detail({
                 <span className="text-xs leading-relaxed text-neutral-600">{c.bio}</span>
               </div>
             </div>
-            {/* Brand Fit — pinned to the right of the header */}
+            {/* Brand fit — pinned to the right of the header */}
             <div className="flex h-[96px] w-[96px] shrink-0 flex-col items-center justify-center rounded-2xl bg-[#059669] text-center">
-              <div className="text-[9px] font-semibold uppercase tracking-wide text-white/70">Brand Fit</div>
+              <div className="text-[9px] font-semibold uppercase tracking-wide text-white/70">Brand fit</div>
               <div className="mt-1 text-[26px] font-bold tabular-nums leading-none text-white">{c.score}%</div>
               <div className="mt-1 text-[10px] font-medium text-white/80">{scoreLabel}</div>
             </div>
@@ -214,26 +214,26 @@ function Detail({
         {c.status === "approved" && (
           <div className="mx-7 mb-6 flex items-center gap-2.5 rounded-xl border border-green-200 bg-green-50 px-4 py-3">
             <CheckCircle size={16} weight="fill" className="text-green-600" />
-            <span className="flex-1 text-[13px] font-semibold text-green-800">Liked — eligible for Ounass campaigns</span>
+            <span className="flex-1 text-[13px] font-semibold text-green-800">Liked — we&apos;ll match more creators like her</span>
             <button onClick={() => onDecide(c.id, "rejected")}
-              className="rounded-lg border border-green-200 px-2.5 py-1 text-xs text-neutral-500 transition hover:bg-white">Revoke</button>
+              className="rounded-lg border border-green-200 px-2.5 py-1 text-xs text-neutral-500 transition hover:bg-white">Dislike</button>
           </div>
         )}
         {c.status === "rejected" && (
           <div className="mx-7 mb-6 flex items-center gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
             <span className="text-red-600">✕</span>
-            <span className="flex-1 text-[13px] font-semibold text-red-800">Disliked — not assigned to any campaign</span>
+            <span className="flex-1 text-[13px] font-semibold text-red-800">Disliked — we&apos;ll stop matching creators like her</span>
             <button onClick={() => onDecide(c.id, "approved")}
               className="rounded-lg border border-red-200 px-2.5 py-1 text-xs font-medium text-[#4D2FB0] transition hover:bg-white">Like</button>
           </div>
         )}
 
-        {/* Why we recommend */}
+        {/* Why we matched */}
         <div className="mb-5 px-7">
           <div className="rounded-2xl border border-[#4D2FB0]/12 bg-[#4D2FB0]/[0.04] p-4">
             <div className="mb-3 flex items-center gap-1.5">
               <span className="text-xs">✶</span>
-              <span className="text-[11px] font-bold uppercase tracking-wide text-[#4D2FB0]">Why we recommend</span>
+              <span className="text-[11px] font-bold uppercase tracking-wide text-[#4D2FB0]">Why we matched</span>
             </div>
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
               {insights.map((ins, i) => (
@@ -259,7 +259,7 @@ function Detail({
                 <a key={i} href={platUrl} target="_blank" rel="noopener noreferrer"
                   className="relative block aspect-[9/14] cursor-pointer overflow-hidden rounded-xl bg-neutral-200">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={p.img} alt="post" loading="lazy" className="h-full w-full object-cover" />
+                  <img src={p.img} alt={`${c.name} — ${p.type}`} loading="lazy" className="h-full w-full object-cover" />
                   <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
                   <div className="absolute left-1.5 top-1.5 rounded bg-black/50 px-1.5 py-0.5 text-[9px] font-bold text-white">{p.type}</div>
                   <div className="absolute inset-x-0 bottom-2 flex items-center justify-start gap-2 px-2 text-[12px] font-bold text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.95)]">
@@ -287,8 +287,8 @@ function Detail({
       {isPending && (
         <div className="flex items-center gap-3 border-t border-black/[0.06] bg-white px-7 py-4">
           <div className="min-w-0 flex-1">
-            <div className="text-[11px] font-semibold text-neutral-400">Make a decision</div>
-            <div className="truncate text-xs text-neutral-500">Like adds <strong className="text-neutral-700">{c.name}</strong> to your Ounass campaign pool</div>
+            <div className="text-[11px] font-semibold text-neutral-400">Waiting on you</div>
+            <div className="truncate text-xs text-neutral-500">Liking <strong className="text-neutral-700">{c.name}</strong> tunes who MoonTech matches you with</div>
           </div>
           <button onClick={() => onDecide(c.id, "rejected")}
             className="flex shrink-0 items-center gap-2 rounded-xl border border-black/[0.1] bg-white px-5 py-2.5 text-sm font-semibold text-neutral-600 transition hover:bg-neutral-50 active:scale-[0.98]">

@@ -22,11 +22,10 @@ const STATS = [
   { label: "Total revenue",      value: "$34,940", change: "+12%",  sub: "vs last period", hero: true },
   { label: "Total orders",       value: "11,317",  change: "+8%",   sub: "vs last period" },
   { label: "Avg ROAS",           value: "5.8×",    change: "+0.4×", sub: "vs last period" },
-  { label: "Goal completion",    value: "97%",      change: "+3%",   sub: "vs last period" },
+  { label: "Target hit rate",    value: "97%",      change: "+3%",   sub: "vs last period" },
   { label: "Total spend",        value: "$6,025",  change: null,    sub: "Across 4 campaigns" },
-  { label: "Budget utilization", value: "92%",      change: null,    sub: "$6,025 of $6,550 committed" },
-  { label: "Active influencers", value: "24",       change: null,    sub: "86 worked with lifetime" },
-  { label: "Content live",       value: "89",       change: null,    sub: "Across all running campaigns" },
+  { label: "Budget utilisation", value: "92%",      change: null,    sub: "$6,025 of $6,550 committed" },
+  { label: "Active creators",    value: "24",       change: null,    sub: "86 worked with lifetime" },
 ];
 
 const REV_TIME = [
@@ -58,7 +57,7 @@ const RUNNING = [
     phase: "Phase 1 · Warm-up",
     dates: "Apr 1 – May 30, 2026",
     rev: 840,  revTarget: 1000, revPct: 84,
-    threshold: "80% threshold reached — Phase 2 unlocks soon",
+    threshold: "80% unlock line reached — Phase 2 unlocks soon",
     thresholdGreen: true,
     remaining: "$160",
     adsLive: 125, adsTotal: 200, adsPct: 62.5,
@@ -70,20 +69,20 @@ const RUNNING = [
     phase: "Phase 2 · Scale",
     dates: "Mar 10 – Apr 20, 2026",
     rev: 3840, revTarget: 5000, revPct: 77,
-    threshold: "On pace — 80% unlock target 3 days away",
+    threshold: "On pace — the 80% unlock line is 3 days away",
     thresholdGreen: false,
     remaining: "$1,160",
     adsLive: 96,  adsTotal: 150, adsPct: 64,
-    influencers: 38, influencerNote: "2 pending setup", influencerPct: 95,
+    influencers: 38, influencerNote: "2 not set up yet", influencerPct: 95,
     content: 142, contentNote: "88% of live ads",       contentPct: 88,
   },
 ];
 
 const PHASE_TRACKER = [
-  { name: "Spring 2026",   p1: "Active", p2: "Pending", p3: "Pending", rev: "$840",    roas: "0.84×", status: "Live" },
-  { name: "Ramadan Flash", p1: "Done",   p2: "Active",  p3: "Pending", rev: "$3,840",  roas: "1.9×",  status: "Live" },
-  { name: "Summer Push",   p1: "Done",   p2: "Done",    p3: "Done",    rev: "$11,340", roas: "6.2×",  status: "Ended" },
-  { name: "Brand Launch",  p1: "Done",   p2: "Done",    p3: "Pending", rev: "$5,400",  roas: "5.1×",  status: "Ready" },
+  { name: "Spring 2026",   p1: "Live",     p2: "Locked",   p3: "Locked",        rev: "$840",    roas: "0.84×", status: "Live" },
+  { name: "Ramadan Flash", p1: "Complete", p2: "Live",     p3: "Locked",        rev: "$3,840",  roas: "1.9×",  status: "Live" },
+  { name: "Summer Push",   p1: "Complete", p2: "Complete", p3: "Complete",      rev: "$11,340", roas: "6.2×",  status: "Complete" },
+  { name: "Brand Launch",  p1: "Complete", p2: "Complete", p3: "Ready to fund", rev: "$5,400",  roas: "5.1×",  status: "Ready to fund" },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -274,7 +273,7 @@ function KeyAverages() {
       desc: "Campaigns return $5.80 per $1 spent — above the 5× target.",
     },
     {
-      label: "Goal completion rate",
+      label: "Target hit rate",
       value: "97%",
       color: "text-green-600",
       badge: "+3% vs last",
@@ -318,7 +317,7 @@ function HowYouCompare() {
       note: "Top 18% of brands", noteCls: "text-green-600", up: true,
     },
     {
-      label: "Goal completion",
+      label: "Target hit rate",
       value: "97%", valueCls: "text-[#4D2FB0]",
       vs: "vs 84% category avg",
       note: "Phases reliably hit target", noteCls: "text-green-600", up: true,
@@ -338,7 +337,7 @@ function HowYouCompare() {
           Fashion &amp; Apparel · GCC
         </span>
       </div>
-      <p className="text-xs text-neutral-400 mt-1">Benchmarked against anonymized MoonTech brands in your category &amp; region</p>
+      <p className="text-xs text-neutral-400 mt-1">Benchmarked against anonymised MoonTech brands in your category &amp; region</p>
       <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-black/[0.05]">
         {items.map((item) => (
           <div key={item.label} className="py-4 sm:py-1 sm:px-6 first:sm:pl-0 last:sm:pr-0">
@@ -398,11 +397,10 @@ function CampaignCard({ c }: { c: typeof RUNNING[0] }) {
       </div>
 
       {/* Metric row */}
-      <div className="mt-6 grid grid-cols-3 gap-4 border-t border-black/[0.05] pt-4">
+      <div className="mt-6 grid grid-cols-2 gap-4 border-t border-black/[0.05] pt-4">
         {[
-          { label: "Ads live",    value: `${c.adsLive}`, suffix: `/${c.adsTotal}`, note: `${c.adsPct}% of plan` },
-          { label: "Influencers", value: `${c.influencers}`, suffix: "",           note: c.influencerNote },
-          { label: "Content",     value: `${c.content}`,     suffix: "",           note: c.contentNote },
+          { label: "Ads live",  value: `${c.adsLive}`,     suffix: `/${c.adsTotal}`, note: `${c.adsPct}% of plan` },
+          { label: "Creators",  value: `${c.influencers}`, suffix: "",               note: c.influencerNote },
         ].map((m) => (
           <div key={m.label}>
             <p className="text-[11px] font-medium text-neutral-400">{m.label}</p>
@@ -422,18 +420,18 @@ function CampaignCard({ c }: { c: typeof RUNNING[0] }) {
 /* ------------------------------------------------------------------ */
 function PhaseTracker() {
   const phaseDot = (v: string) =>
-    v === "Done"   ? "bg-[#4D2FB0]" :
-    v === "Active" ? "bg-amber-400" :
-                     "bg-neutral-300";
+    v === "Complete" ? "bg-[#4D2FB0]" :
+    v === "Live"     ? "bg-amber-400" :
+                       "bg-neutral-300";
   const phaseText = (v: string) =>
-    v === "Done"   ? "text-neutral-700" :
-    v === "Active" ? "text-amber-600" :
-                     "text-neutral-400";
+    v === "Complete" ? "text-neutral-700" :
+    v === "Live"     ? "text-amber-600" :
+                       "text-neutral-400";
 
   const statusCls = (v: string) =>
-    v === "Live"   ? "bg-green-50 text-green-600" :
-    v === "Ready"  ? "bg-amber-50 text-amber-600" :
-                     "bg-neutral-100 text-neutral-500";
+    v === "Live"           ? "bg-green-50 text-green-600" :
+    v === "Ready to fund"  ? "bg-amber-50 text-amber-600" :
+                             "bg-neutral-100 text-neutral-500";
 
   return (
     <div className={`${card} p-6 overflow-x-auto`}>
@@ -453,7 +451,7 @@ function PhaseTracker() {
               <td className="py-4 font-medium pr-4" style={{ color: INK }}>{row.name}</td>
               {[row.p1, row.p2, row.p3].map((p, i) => (
                 <td key={i} className="py-4 pr-3">
-                  <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${phaseText(p)}`}>
+                  <span className={`inline-flex items-center gap-1.5 whitespace-nowrap text-xs font-medium ${phaseText(p)}`}>
                     <span className={`h-1.5 w-1.5 rounded-full ${phaseDot(p)}`} />
                     {p}
                   </span>
@@ -462,7 +460,7 @@ function PhaseTracker() {
               <td className="py-4 font-medium tabular-nums text-neutral-700 pr-3">{row.rev}</td>
               <td className="py-4 font-semibold tabular-nums text-[#4D2FB0] pr-3">{row.roas}</td>
               <td className="py-4">
-                <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${statusCls(row.status)}`}>
+                <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ${statusCls(row.status)}`}>
                   {row.status === "Live" && <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-live" />}
                   {row.status}
                 </span>
@@ -524,7 +522,7 @@ export default function Dashboard() {
             <button onClick={() => router.push("/campaigns/new")}
               className="flex items-center gap-2 rounded-xl bg-[#4D2FB0] px-3 sm:px-4 py-2 text-[12px] font-semibold text-white hover:bg-[#3F2596] transition-colors">
               <Plus size={13} weight="bold" />
-              <span className="hidden sm:inline">New Campaign</span>
+              <span className="hidden sm:inline">New campaign</span>
             </button>
             <NotificationCenter />
             <div className="relative">
@@ -606,7 +604,7 @@ export default function Dashboard() {
               <div key={s.label}
                 className={`rounded-2xl p-4 sm:p-5 transition-colors ${
                   s.hero
-                    ? "bg-[#4D2FB0]"
+                    ? "col-span-2 bg-[#4D2FB0]"
                     : "bg-white border border-black/[0.06] shadow-[0_1px_2px_rgba(16,12,40,0.04)] hover:border-black/[0.12]"
                 }`}>
                 <p className={`text-[13px] font-medium ${s.hero ? "text-white/60" : "text-neutral-500"}`}>{s.label}</p>
@@ -628,9 +626,9 @@ export default function Dashboard() {
             ))}
           </div>
 
-          {/* Running Campaigns */}
+          {/* Live campaigns */}
           <div className="pt-2">
-            <h2 className="text-[16px] font-semibold tracking-tight" style={{ color: INK }}>Running campaigns</h2>
+            <h2 className="text-[16px] font-semibold tracking-tight" style={{ color: INK }}>Live campaigns</h2>
             <p className="text-[13px] text-neutral-400 mt-0.5">Live performance · updated in real time</p>
           </div>
 

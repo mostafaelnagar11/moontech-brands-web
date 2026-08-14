@@ -148,8 +148,8 @@ export default function CampaignAdsPage() {
 
     setAnnounce(
       (to === "liked"
-        ? `Liked. ${c.name}'s ad publishes within the hour and more of this phase's budget goes behind creative like it.`
-        : "Disliked. This ad will not post, and we stop matching creative like it.") +
+        ? `Liked. ${c.name}'s ad publishes within the hour and more of this phase's budget goes behind ads like it.`
+        : "Disliked. This ad will not publish, and we stop matching ads like it.") +
       (next === -1
         ? ` That's all ${after.length} decided.`
         : ` Showing ad ${next + 1} of ${after.length}.`)
@@ -263,14 +263,14 @@ export default function CampaignAdsPage() {
             <p className="mt-2 max-w-[440px] text-sm leading-relaxed text-white/60">
               {cid ? (
                 <>
-                  {campaign ? `${campaign.name} has` : "This campaign has"} no drafts to review.
-                  New creative lands here the moment a creator finishes it.
+                  {campaign ? `${campaign.name} has` : "This campaign has"} no ads to review.
+                  New ads land here the moment a creator finishes one.
                 </>
               ) : (
                 <>
-                  The link points at a campaign that isn&apos;t on your roster, so there is
-                  no creative to judge. Pick the campaign you meant and we&apos;ll open its
-                  drafts.
+                  The link points at a campaign that isn&apos;t one of your campaigns, so there are
+                  no ads to review. Pick the campaign you meant and we&apos;ll open its
+                  ads.
                 </>
               )}
             </p>
@@ -331,10 +331,10 @@ export default function CampaignAdsPage() {
 
   const explainer = (
     <>
-      These three run on every draft before it reaches you, so a go-ahead is one tap
-      rather than a review meeting. Nothing here has posted yet: Like publishes it and
-      puts more of this phase&apos;s budget behind creative like it, Dislike keeps it
-      offline and stops us matching its pattern.
+      These three run on every ad before it reaches you, so a like is one click
+      rather than a review meeting. Nothing here has published yet: Like publishes it and
+      puts more of this phase&apos;s budget behind ads like it, Dislike keeps it
+      from publishing and stops us matching its pattern.
     </>
   );
 
@@ -387,7 +387,7 @@ export default function CampaignAdsPage() {
               ad.signal === "liked"
                 ? "Liked — publishing."
                 : ad.signal === "disliked"
-                  ? "Disliked — will not post."
+                  ? "Disliked — will not publish."
                   : "Waiting on you."
             }`}
             className="relative min-h-0 flex-1"
@@ -438,7 +438,7 @@ export default function CampaignAdsPage() {
                       </span>
                     ) : (
                       <span className="flex items-center gap-1.5 rounded-full bg-black/70 px-3 py-1.5 text-[11px] font-bold text-white backdrop-blur-md">
-                        <ThumbsDown size={11} weight="fill" aria-hidden="true" /> Not posting
+                        <ThumbsDown size={11} weight="fill" aria-hidden="true" /> Not publishing
                       </span>
                     )}
                   </div>
@@ -493,7 +493,7 @@ export default function CampaignAdsPage() {
             <div className="mx-auto flex w-full max-w-[460px] items-stretch gap-3">
               <button
                 onClick={() => rate(ad, sel, "disliked")}
-                aria-label={`Dislike ${creator.name}'s ad. It will not post.`}
+                aria-label={`Dislike ${creator.name}'s ad. It will not publish.`}
                 className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-white/10 px-4 py-3.5 text-[14px] font-semibold text-white ring-1 ring-white/25 transition-colors hover:bg-white/[0.16] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
               >
                 <ThumbsDown size={18} weight="fill" aria-hidden="true" /> Dislike
@@ -510,7 +510,7 @@ export default function CampaignAdsPage() {
               </button>
             </div>
             <p className="mt-2.5 text-center text-[11px] font-medium text-white/40">
-              Nothing posts until you react
+              Nothing publishes until you like or dislike it
             </p>
           </div>
 
@@ -533,7 +533,7 @@ export default function CampaignAdsPage() {
                 <p className="min-w-0 flex-1 text-[12.5px] font-medium">
                   {toast.to === "liked"
                     ? `${toast.name}'s ad publishes within the hour.`
-                    : `${toast.name}'s ad will not post.`}
+                    : `${toast.name}'s ad will not publish.`}
                 </p>
                 <button
                   onClick={undo}
@@ -568,7 +568,7 @@ export default function CampaignAdsPage() {
                 const c = adCreator(a);
                 const current = i === sel;
                 const state =
-                  a.signal === "liked" ? "Publishing" : a.signal === "disliked" ? "Not posting" : "waiting";
+                  a.signal === "liked" ? "Publishing" : a.signal === "disliked" ? "Not publishing" : "Waiting";
                 return (
                   <li key={a.id}>
                     <button
@@ -578,7 +578,7 @@ export default function CampaignAdsPage() {
                         a.signal === "liked"
                           ? "Liked — publishing."
                           : a.signal === "disliked"
-                            ? "Disliked — will not post."
+                            ? "Disliked — will not publish."
                             : "Waiting on you."
                       }`}
                       className={`flex w-full items-center gap-3 rounded-xl p-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 ${

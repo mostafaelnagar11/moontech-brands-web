@@ -121,7 +121,7 @@ function ShowcasePanel() {
           <div className="relative h-[274px] bg-cover bg-center" style={{ backgroundImage: "url('/image-1781751940205 1@3x.png')" }}>
             <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-red-500 px-2.5 py-1 text-[10px] font-bold text-white">
               <span className="animate-live h-1.5 w-1.5 rounded-full bg-white" />
-              LIVE
+              Live
             </div>
             <div className="absolute bottom-[calc(2.5rem+4px)] left-3 h-8 w-8 overflow-hidden rounded-full border-2 border-white bg-white/30">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -142,7 +142,7 @@ function ShowcasePanel() {
       {/* Analytics card — top right */}
       <div className="absolute right-[6%] top-[5%] animate-float-b">
         <div className="w-56 rounded-2xl border border-white/90 bg-white/95 p-5 shadow-xl shadow-indigo-100/80">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-indigo-400">Campaign Reach</p>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-indigo-400">Campaign reach</p>
           <p className="mt-1.5 text-[32px] font-black leading-none text-indigo-900">12.4M</p>
           <div className="mt-1.5 flex items-center gap-2">
             <span className="text-xs font-bold text-green-500">↑ 23.5%</span>
@@ -165,7 +165,7 @@ function ShowcasePanel() {
             <div className="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-600">
               <span className="text-[8px] font-black text-white">AI</span>
             </div>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-500">Match Found</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-500">Match found</span>
             <span className="ml-auto rounded-full bg-green-100 px-2 py-0.5 text-[9px] font-black text-green-600">94%</span>
           </div>
           <div className="flex items-center gap-2">
@@ -200,7 +200,7 @@ function ShowcasePanel() {
               </div>
               <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-red-500 px-2.5 py-1 text-[10px] font-bold text-white">
                 <span className="animate-live h-1.5 w-1.5 rounded-full bg-white" />
-                LIVE AD
+                Live ad
               </div>
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 p-3">
                 <p className="text-xs font-bold text-white">2.1M ❤️ &nbsp;847K 👁</p>
@@ -216,7 +216,7 @@ function ShowcasePanel() {
           Set it.<br />It runs.<br /><span className="wc-grad-text">It pays.</span>
         </h2>
         <p className="mt-3 max-w-[26ch] text-[16px] xl:text-[22px] font-medium leading-snug text-indigo-700/55">
-          Set a budget and a target. Sourcing, briefing and scaling run themselves.
+          Set a budget and a target. Matching, briefing and scaling run themselves.
         </p>
       </div>
 
@@ -323,15 +323,15 @@ function ShowcasePanel() {
       <div className="absolute left-[30%] top-[12%] animate-float-b rounded-full border border-green-200 bg-white/90 px-3 py-1.5 shadow-sm backdrop-blur-sm">
         <span className="flex items-center gap-1.5 text-[10px] font-semibold text-green-600">
           <span className="animate-live h-1.5 w-1.5 rounded-full bg-green-500" />
-          23 Campaigns Live
+          Campaigns live · 23
         </span>
       </div>
       {/* Threads between the tagline and the revenue card. */}
       <div className="absolute bottom-[5%] left-[52%] animate-float-e rounded-full border border-indigo-200 bg-white/90 px-3 py-1.5 shadow-sm backdrop-blur-sm">
-        <span className="text-[10px] font-semibold text-indigo-600">✦ AI Matching Active</span>
+        <span className="text-[10px] font-semibold text-indigo-600">✦ Matching live</span>
       </div>
       <div className="absolute right-[5%] top-[28%] animate-float-c rounded-full border border-violet-200 bg-white/90 px-3 py-1.5 shadow-sm backdrop-blur-sm">
-        <span className="text-[10px] font-semibold text-violet-600">⚡ 1,240 Influencers</span>
+        <span className="text-[10px] font-semibold text-violet-600">⚡ Creators · 1,240</span>
       </div>
 
       {/* Floating emojis */}
@@ -373,7 +373,7 @@ function EmailStep({ email, setEmail, onNext }: { email: string; setEmail: (v: s
       <p className="mt-1 text-sm text-neutral-500">Enter your work email to sign in</p>
 
       <div className="mt-6 space-y-1.5">
-        <label className="block text-[11px] font-semibold uppercase tracking-widest text-neutral-400">Work Email</label>
+        <label className="block text-[11px] font-semibold uppercase tracking-widest text-neutral-400">Work email</label>
         <input
           type="email"
           autoFocus
@@ -525,8 +525,8 @@ function OtpStep({ email, onBack, onVerified }: { email: string; onBack: () => v
 
       <PrimaryButton onClick={verify} disabled={!complete || state === "sending" || state === "success"} className="mt-5">
         {state === "sending" ? <span className="flex items-center gap-2"><CircleNotch size={16} className="animate-spin" /> Verifying…</span>
-          : state === "success" ? <span className="flex items-center gap-2"><CheckCircle size={16} weight="fill" /> Verified!</span>
-          : "Verify Code"}
+          : state === "success" ? <span className="flex items-center gap-2"><CheckCircle size={16} weight="fill" /> Verified</span>
+          : "Verify code"}
       </PrimaryButton>
 
       <p className="mt-4 text-center text-[11px] text-neutral-300">
@@ -609,7 +609,7 @@ function PrimaryButton({ children, disabled, className = "", ...props }: React.B
 
 function BackButton({ onClick }: { onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick}
+    <button type="button" onClick={onClick} aria-label="Back"
       className="flex h-9 w-9 items-center justify-center rounded-xl border border-neutral-200 text-neutral-500 transition hover:border-neutral-300 hover:bg-neutral-50">
       <ArrowLeft size={17} weight="bold" />
     </button>

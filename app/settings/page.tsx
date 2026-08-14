@@ -139,7 +139,7 @@ export default function SettingsPage() {
               {/* Quick links */}
               <div className={`${card} overflow-hidden`}>
                 {[
-                  { icon: <EnvelopeSimple size={16} />, label: "Contact Support", onClick: () => { window.location.href = "mailto:support@moontech.com"; } },
+                  { icon: <EnvelopeSimple size={16} />, label: "Contact support", onClick: () => { window.location.href = "mailto:support@moontech.com"; } },
                   { icon: <Info size={16} />, label: "Terms & Conditions", onClick: () => {} },
                   { icon: <Question size={16} />, label: "FAQ", onClick: () => {} },
                 ].map((row) => (
@@ -194,7 +194,7 @@ export default function SettingsPage() {
                 <div className="space-y-2.5">
                   {[
                     { k: "VAT / TRN number", v: vat },
-                    { k: "Trade license", v: biz?.legalName?.trim() ? biz.legalName : "— not added" },
+                    { k: "Trade licence", v: biz?.legalName?.trim() ? biz.legalName : "— not added" },
                     { k: "Office location", v: office },
                   ].map((r) => (
                     <div key={r.k} className="flex items-center justify-between gap-3">

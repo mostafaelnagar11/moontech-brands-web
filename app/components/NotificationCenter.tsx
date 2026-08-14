@@ -22,14 +22,14 @@ interface Notif {
 }
 
 const NOTIFS: Notif[] = [
-  { id: "n1", type: "phase",   group: "Today",   time: "2m ago",  title: "Phase 2 unlocked 🎉", body: "Spring 2026 hit 84% of its Phase 1 target — the next phase is ready.", href: "/campaigns/spring-2026", cta: "Pay Phase 2 — $3,000" },
+  { id: "n1", type: "phase",   group: "Today",   time: "2m ago",  title: "Phase 2 unlocked 🎉", body: "Spring 2026 hit 84% of its Phase 1 target — the next phase is ready.", href: "/campaigns/spring-2026", cta: "Fund Phase 2 — $3,000" },
   /* This used to read "12 ads awaiting review — needs your approval before it
      goes live", which is the exact claim the signup key terms deny. */
-  { id: "n2", type: "content", group: "Today",   time: "1h ago",  title: "8 ads waiting on you", body: "Spring 2026 creative is ready to publish — nothing posts until you say so.", href: "/campaigns/ads?c=spring-2026" },
-  { id: "n3", type: "creator", group: "Today",   time: "3h ago",  title: "8 creators pending approval", body: "Fresh matches for your Ounass campaign pool.", href: "/creators" },
+  { id: "n2", type: "content", group: "Today",   time: "1h ago",  title: "8 ads waiting on you", body: "Spring 2026 ads are ready to publish — nothing publishes until you like them.", href: "/campaigns/ads?c=spring-2026" },
+  { id: "n3", type: "creator", group: "Today",   time: "3h ago",  title: "8 creators waiting on you", body: "Fresh matches for your Ounass campaign.", href: "/creators" },
   { id: "n4", type: "payment", group: "Earlier", time: "Yesterday", title: "Payment received — $500", body: "Phase 1 payment for Ramadan Flash was processed by Mamo Pay.", href: "/settings" },
   { id: "n5", type: "report",  group: "Earlier", time: "Yesterday", title: "Your weekly report is ready", body: "Revenue up 18% week over week · ROAS 5.8×. See what changed.", href: "/dashboard" },
-  { id: "n6", type: "creator", group: "Earlier", time: "2d ago",  title: "Layla Al Rashid accepted your campaign", body: "She'll start posting within 48 hours.", href: "/creators" },
+  { id: "n6", type: "creator", group: "Earlier", time: "2d ago",  title: "Layla Al Rashid accepted your campaign", body: "She'll start publishing within 48 hours.", href: "/creators" },
   { id: "n7", type: "phase",   group: "Earlier", time: "3d ago",  title: "Ramadan Flash is on pace", body: "77% of the Phase 2 target — unlock expected in about 3 days.", href: "/campaigns/ramadan-flash" },
 ];
 
@@ -90,7 +90,7 @@ export default function NotificationCenter() {
     <div ref={panelRef} className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        aria-label="Notifications"
+        aria-label={unreadCount > 0 ? `Notifications — ${unreadCount} new` : "Notifications"}
         className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-black/[0.07] bg-white text-neutral-500 hover:bg-neutral-50 transition-colors"
       >
         <Bell size={16} />

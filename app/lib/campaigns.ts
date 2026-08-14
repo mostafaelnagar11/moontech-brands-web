@@ -89,8 +89,8 @@ export const CAMPAIGNS: Campaign[] = [
     status: "Live", phases: ["Active", "Pending", "Pending"],
     phaseNo: 1, phaseName: "Warm-up", budgets: [1000, 3000, 6000],
     rev: 840, revLabel: "$840", revTarget: 1000, revPct: 84, roas: "0.84×",
-    threshold: "80% threshold reached — Phase 2 unlocks soon", thresholdGreen: true,
-    due: { label: "Pay Phase 2", phase: 2, amount: 3000,
+    threshold: "80% unlock line crossed — Phase 2 unlocks soon", thresholdGreen: true,
+    due: { label: "Fund Phase 2", phase: 2, amount: 3000,
            reason: "Phase 2 unlocked — Phase 1 hit 84%" },
     creators: 24, adsLive: 125, adsTotal: 200, content: 89,
     faces: [byId(1), byId(3), byId(9)],
@@ -100,7 +100,7 @@ export const CAMPAIGNS: Campaign[] = [
     status: "Live", phases: ["Done", "Active", "Pending"],
     phaseNo: 2, phaseName: "Scale", budgets: [500, 1500, 3000],
     rev: 3840, revLabel: "$3,840", revTarget: 5000, revPct: 77, roas: "1.9×",
-    threshold: "On pace — 80% unlock target 3 days away", thresholdGreen: false,
+    threshold: "On pace — 80% unlock line 3 days away", thresholdGreen: false,
     due: null,
     creators: 38, adsLive: 96, adsTotal: 150, content: 142,
     faces: [byId(2), byId(4), byId(6)],
@@ -112,7 +112,7 @@ export const CAMPAIGNS: Campaign[] = [
     rev: 5400, revLabel: "$5,400", revTarget: null, revPct: null, roas: "5.1×",
     threshold: null, thresholdGreen: false,
     due: { label: "Fund Phase 3", phase: 3, amount: 1590,
-           reason: "Phases 1 & 2 complete — 5.1× ROAS banked" },
+           reason: "Phases 1 & 2 complete — 5.1× ROAS delivered" },
     creators: null, adsLive: null, adsTotal: null, content: null,
     faces: [byId(5), byId(7), byId(8)],
   },
@@ -264,10 +264,10 @@ export function adChecks(a: Ad): AdCheck[] {
     { label: "Product matched to your catalogue",
       detail: `${a.product} — in stock, price synced`, clean: true },
     { label: "Paid partnership disclosed",
-      detail: `Label set on the draft · tracking code ${a.track}`, clean: true },
+      detail: `Label set on the ad · tracking code ${a.track}`, clean: true },
     rival
       ? { label: "Overlap logged, not blocked",
-          detail: `${c.name} also posts for ${rival}. Allowed under your guidelines.`, clean: false }
+          detail: `${c.name} also publishes for ${rival}. Allowed under your guidelines.`, clean: false }
       : { label: "Inside your brand guidelines",
           detail: "No competing brand in her last 90 days", clean: true },
   ];

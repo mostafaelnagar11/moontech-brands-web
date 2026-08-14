@@ -23,7 +23,7 @@ const CONTENT: {
       id: "why",
       chip: "Why am I not eligible?",
       reply:
-        "Your website ounass.com is verified — that box is ticked. The gap is traffic: we're measuring 3.2K monthly unique visitors, and guaranteed-ROAS campaigns need 5K. You're 1.8K short.\n\nThe honest reason for the minimum: campaign revenue is attributed through a unique tracking link per creator. Below roughly 5K monthly visitors, that attribution gets too noisy to guarantee a ROAS — and because we cover the difference when a guaranteed warm-up phase misses its target, a guarantee on thin traffic would be a coin flip.\n\nThe minimum is fixed — we can't waive it — but nothing else is blocking you, and it unlocks automatically the moment you cross 5K.",
+        "Your website ounass.com is verified — that box is ticked. The gap is traffic: we're measuring 3.2K monthly unique visitors, and guaranteed-ROAS campaigns need 5K. You're 1.8K short.\n\nThe honest reason for the minimum: campaign revenue is attributed through a unique tracking link per creator. Below roughly 5K monthly visitors, that attribution gets too noisy to guarantee a ROAS — and because we cover the difference when a guaranteed Warm-up phase misses its target, a guarantee on thin traffic would be a coin flip.\n\nThe minimum is fixed — we can't waive it — but nothing else is blocking you, and it unlocks automatically the moment you cross 5K.",
     },
     {
       id: "how",
@@ -157,7 +157,7 @@ export default function EligibilityAgent({ onClose }: { onClose: () => void }) {
         </div>
         <div className="mx-auto flex h-full w-full max-w-3xl items-center gap-3 px-5">
           <h1 className="text-base font-semibold" style={{ color: INK }}>Eligibility check</h1>
-          <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-[#4D2FB0]/[0.08] px-2.5 py-1 text-[11px] font-semibold text-[#4D2FB0]">✦ AI assistant</span>
+          <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-[#4D2FB0]/[0.08] px-2.5 py-1 text-[11px] font-semibold text-[#4D2FB0]">✦ MoonTech assistant</span>
         </div>
       </header>
 

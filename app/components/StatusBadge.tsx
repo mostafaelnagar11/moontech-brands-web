@@ -15,13 +15,13 @@ export default function StatusBadge({ status }: { status: CampaignStatus }) {
   if (status === "Ready") return (
     <span className="flex shrink-0 items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-600">
       <Clock size={11} weight="fill" aria-hidden="true" />
-      Ready
+      Ready to fund
     </span>
   );
   return (
     <span className="flex shrink-0 items-center gap-1.5 rounded-full border border-neutral-200 bg-neutral-50 px-2.5 py-1 text-[11px] font-semibold text-neutral-500">
       <Check size={11} weight="bold" aria-hidden="true" />
-      Ended
+      Complete
     </span>
   );
 }

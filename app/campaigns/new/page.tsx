@@ -37,7 +37,7 @@ const STEP_LABELS: Record<Step, string> = {
   budget:     "Calculator",
   building:   "Building",
   review:     "Review plan",
-  pay:        "Pay Phase 1",
+  pay:        "Fund Phase 1",
   processing: "Processing",
 };
 const STEP_NUM: Record<Step, number> = { type: 1, basics: 2, budget: 3, building: 3, review: 4, pay: 5, processing: 5 };
@@ -194,7 +194,7 @@ function getConfidence(budget: number, roas: number) {
     bar: "bg-amber-400",
     text: "text-amber-500",
     pct: 50,
-    desc: "Achievable — requires strong influencer performance.",
+    desc: "Achievable — requires strong creator performance.",
   };
   return {
     level: "Low confidence",
@@ -223,8 +223,8 @@ function StepType({ data, onChange }: { data: CampaignData; onChange: (d: Partia
         <label className={labelCls}>Campaign type</label>
         <div className="space-y-3">
           {[
-            { value: "roas" as const, title: "E-commerce — ROAS Guaranteed", desc: "Guaranteed return on ad spend with phased delivery" },
-            { value: "awareness" as const, title: "Awareness Campaign", desc: "Grow brand reach and visibility" },
+            { value: "roas" as const, title: "E-commerce — ROAS guaranteed", desc: "Guaranteed return on ad spend with phased delivery" },
+            { value: "awareness" as const, title: "Awareness campaign", desc: "Grow brand reach and visibility" },
           ].map((opt) => {
             const selected = data.type === opt.value;
             return (
@@ -253,8 +253,8 @@ function StepType({ data, onChange }: { data: CampaignData; onChange: (d: Partia
           <span className="mt-0.5 shrink-0 text-[#4D2FB0] text-sm">✦</span>
           <p className="text-sm leading-relaxed text-neutral-700">
             As a new brand, you&apos;ll start with our{" "}
-            <strong className="text-[#4D2FB0]">warm-up program</strong> — three phased campaigns that
-            help our engine learn your audience before scaling.
+            <strong className="text-[#4D2FB0]">Warm-up program</strong> — three phased campaigns that
+            help the MoonTech assistant learn your audience before scaling.
           </p>
         </div>
         <div className="rounded-2xl bg-[#4D2FB0]/[0.06] p-4">
@@ -262,7 +262,7 @@ function StepType({ data, onChange }: { data: CampaignData; onChange: (d: Partia
           <div className="flex items-start gap-3">
             <span className="text-xl shrink-0">🎯</span>
             <p className="text-sm leading-relaxed text-neutral-700">
-              We work with vetted <strong>micro-influencers &amp; community leaders</strong> — not pricey mega names — so spend goes further.
+              We work with vetted <strong>creators &amp; community leaders</strong> — not pricey big-name talent — so spend goes further.
             </p>
           </div>
         </div>
@@ -278,7 +278,7 @@ function StepBasics({ data, onChange }: { data: CampaignData; onChange: (d: Part
   const fileRef = useRef<HTMLInputElement>(null);
   return (
     <div className="space-y-5">
-      <StepIntro title="Campaign details" sub="Set your audience, schedule, and creative brief." />
+      <StepIntro title="Campaign details" sub="Set your audience, schedule, and creator brief." />
       <div>
         <label className={labelCls}>Start date</label>
         <DatePicker value={data.startDate} onChange={(v) => onChange({ startDate: v })} placeholder="Select start date" />
@@ -305,13 +305,13 @@ function StepBasics({ data, onChange }: { data: CampaignData; onChange: (d: Part
 
       <div className="flex items-center gap-3 py-1">
         <div className="flex-1 h-px bg-black/[0.07]" />
-        <span className="text-xs font-medium text-neutral-400">Campaign brief</span>
+        <span className="text-xs font-medium text-neutral-400">Creator brief</span>
         <div className="flex-1 h-px bg-black/[0.07]" />
       </div>
 
       <div>
         <label className={labelCls}>
-          What should influencers know?{" "}
+          What should creators know?{" "}
           <span className="font-normal text-neutral-400">· do&apos;s &amp; don&apos;ts</span>
         </label>
         <textarea value={data.brief} onChange={(e) => onChange({ brief: e.target.value })} rows={4}
@@ -396,7 +396,7 @@ function StepBudget({ data, onChange }: { data: CampaignData; onChange: (d: Part
           <p className="text-sm text-neutral-600 mt-1">Target ROAS</p>
           <div className="text-right">
             <p className="text-3xl font-semibold tracking-tight tabular-nums text-[#4D2FB0] leading-none">{data.roas}×</p>
-            <p className="text-xs text-neutral-400 mt-1">= ${projectedSales.toLocaleString()} in sales</p>
+            <p className="text-xs text-neutral-400 mt-1">= ${projectedSales.toLocaleString()} in revenue</p>
           </div>
         </div>
         <input
@@ -474,19 +474,19 @@ function StepReview({ data }: { data: CampaignData }) {
     {
       icon: "🎫",
       bg: "bg-red-50",
-      title: "Every influencer gets a unique tracker",
-      desc: "Revenue is attributed via unique tracking links assigned to each creator — so you know exactly which influencer drove which sale.",
+      title: "Every creator gets a unique tracker",
+      desc: "Revenue is attributed via unique tracking links assigned to each creator — so you know exactly which creator drove which sale.",
     },
     {
       icon: "🔗",
       bg: "bg-amber-50",
-      title: "E-commerce integration required before launch",
-      desc: "Our technical team sets this up with you after payment. The campaign cannot go live until the integration is confirmed.",
+      title: "E-commerce integration required before Phase 1 is live",
+      desc: "Our technical team sets this up with you after payment. The campaign stays locked until the integration is confirmed.",
     },
     {
       icon: "📊",
       bg: "bg-green-50",
-      title: "Guarantee applies to warm-up phases only",
+      title: "Guarantee applies to Warm-up phases only",
       desc: "Phases 1–3 have locked, guaranteed ROAS targets. The estimated phase beyond that is a projection — it gets more accurate as live data comes in.",
     },
   ];
@@ -576,15 +576,15 @@ function StepReview({ data }: { data: CampaignData }) {
         </div>
       </div>
 
-      {/* Approval disclaimer — no phase runs without the user's go-ahead */}
+      {/* Funding disclaimer — no phase runs until the user funds it */}
       <div className="flex items-start gap-3 rounded-2xl border border-[#4D2FB0]/12 bg-[#4D2FB0]/[0.04] p-4">
         <svg className="mt-0.5 h-4 w-4 shrink-0 text-[#4D2FB0]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <rect x="5" y="11" width="14" height="9" rx="2" />
           <path strokeLinecap="round" d="M8 11V7a4 4 0 018 0v4" />
         </svg>
         <p className="text-xs leading-relaxed text-neutral-600">
-          <strong className="text-[#3F2596]">No phase runs without your approval.</strong> Each phase
-          starts only after you review and confirm it — today you&apos;re committing to Phase 1 only.
+          <strong className="text-[#3F2596]">No phase runs until you fund it.</strong> Each phase
+          starts only after you review and fund it — today you&apos;re committing to Phase 1 only.
         </p>
       </div>
 
@@ -597,12 +597,12 @@ function StepReview({ data }: { data: CampaignData }) {
           </div>
           <div className="text-right">
             <p className="text-2xl font-semibold tracking-tight tabular-nums text-green-600 leading-none">{fmt(totalTarget)}</p>
-            <p className="mt-1 text-xs font-medium text-green-500">✓ matches your {data.roas}× goal</p>
+            <p className="mt-1 text-xs font-medium text-green-500">✓ matches your {data.roas}× target</p>
           </div>
         </div>
       </div>
 
-      {/* Before you launch accordion */}
+      {/* Before you fund Phase 1 accordion */}
       <div className="rounded-2xl border border-black/[0.06] bg-white shadow-[0_1px_2px_rgba(16,12,40,0.04)] overflow-hidden">
         <button
           onClick={() => setKnowOpen((o) => !o)}
@@ -613,7 +613,7 @@ function StepReview({ data }: { data: CampaignData }) {
               <circle cx="12" cy="12" r="10" /><path strokeLinecap="round" d="M12 8v4M12 16h.01" />
             </svg>
           </div>
-          <p className="flex-1 text-sm font-semibold text-neutral-700">Before you launch — 4 things to know</p>
+          <p className="flex-1 text-sm font-semibold text-neutral-700">Before you fund Phase 1 — 4 things to know</p>
           <svg className={`h-4 w-4 text-neutral-400 transition-transform ${knowOpen ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <polyline points="6 9 12 15 18 9" />
           </svg>
@@ -662,7 +662,7 @@ function StepReview({ data }: { data: CampaignData }) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Step 5 — Pay Phase 1                                               */
+/* Step 5 — Fund Phase 1                                              */
 /* ------------------------------------------------------------------ */
 function StepPay({
   data,
@@ -687,9 +687,9 @@ function StepPay({
   const rows = [
     { label: "Campaign",        value: data.name || "—" },
     { label: "Phase 1 budget",  value: fmt(p1Budget) },
-    { label: "ROAS target",     value: "1× (warm-up)" },
-    { label: "Expected output", value: fmt(p1Budget) },
-    { label: "VAT (5%)",        value: `$${vat.toFixed(2)}` },
+    { label: "ROAS target",     value: "1× (Warm-up)" },
+    { label: "Expected revenue", value: fmt(p1Budget) },
+    { label: "VAT (5%)",         value: `$${vat.toFixed(2)}` },
   ];
 
   return (
@@ -700,7 +700,7 @@ function StepPay({
           Due today — Phase 1 only
         </p>
         <p className="text-4xl font-semibold tracking-tight tabular-nums text-[#4D2FB0] leading-none">{fmt(p1Budget)}</p>
-        <p className="mt-2 text-sm text-neutral-500">Phases 2 &amp; 3 paid separately as you progress.</p>
+        <p className="mt-2 text-sm text-neutral-500">Phases 2 &amp; 3 funded separately as you progress.</p>
       </div>
 
       {/* Phase unlock notice */}
@@ -708,7 +708,7 @@ function StepPay({
         <span className="text-xl shrink-0">⚡</span>
         <p className="text-sm leading-relaxed text-amber-800">
           You&apos;re starting with <strong>Phase 1</strong>. The next phase only unlocks once the
-          running phase reaches <strong>80% of its revenue target</strong> — your campaign progresses
+          live phase crosses <strong>the 80% unlock line</strong> — your campaign progresses
           one phase at a time.
         </p>
       </div>
@@ -737,7 +737,7 @@ function StepPay({
         <div>
           <p className="text-sm font-semibold text-[#4D2FB0]">Secured by Mamo Pay</p>
           <p className="mt-0.5 text-xs leading-relaxed text-neutral-500">
-            Clicking &quot;Confirm&quot; will redirect you to Mamo Pay&apos;s secure checkout. Your card
+            Clicking &quot;Fund Phase 1&quot; will redirect you to Mamo Pay&apos;s secure checkout. Your card
             details are never stored by MoonTech.
           </p>
         </div>
@@ -763,7 +763,7 @@ function StepPay({
 
       {/* Confirm checkboxes */}
       <div>
-        <p className="text-sm font-semibold text-neutral-700 mb-3">Before you pay, please confirm</p>
+        <p className="text-sm font-semibold text-neutral-700 mb-3">Before you fund Phase 1, please confirm</p>
         <div className="space-y-3">
           {[
             {
@@ -811,7 +811,7 @@ function StepPay({
         </div>
       </div>
 
-      {/* Confirm & Pay button (inside content for now — real bottom bar handles it) */}
+      {/* Fund Phase 1 button (inside content for now — real bottom bar handles it) */}
       <div className="pb-2">
         <button
           onClick={canPay ? onPay : undefined}
@@ -825,7 +825,7 @@ function StepPay({
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <rect x="3" y="11" width="18" height="11" rx="2" /><path strokeLinecap="round" d="M7 11V7a5 5 0 0110 0v4" />
           </svg>
-          Confirm &amp; Pay {fmt(total)}
+          Fund Phase 1 — {fmt(total)}
         </button>
         <p className="mt-2 text-center text-xs text-neutral-400">
           Includes ${vat} VAT (5%) · Secured by Mamo Pay
@@ -880,8 +880,8 @@ function BuildingScreen({ onDone }: { onDone: () => void }) {
    sweeps the card and the header flips to the Plan ready moment with a
    "View plan" CTA that (re)opens the plan panel. */
 const WCP_TASKS = [
-  { label: "Analysing budget", chip: "mapped", delay: 0.9 },
-  { label: "Matching ROAS curve", chip: "locked", delay: 1.8 },
+  { label: "Analysing budget", chip: "Mapped", delay: 0.9 },
+  { label: "Matching ROAS curve", chip: "Locked", delay: 1.8 },
   { label: "Structuring phases", chip: "4 phases", delay: 2.7 },
 ];
 
@@ -1066,9 +1066,9 @@ function ProcessingScreen({ onDone }: { onDone: () => void }) {
 type AiMsg = { role: "ai" | "user"; text?: string; widget?: "building" };
 
 const AI_FLOW: { key: string; ask: string; title: string; chips: string[]; skip?: boolean; multi?: boolean }[] = [
-  { key: "setup",  ask: "Hi! I'm your MoonTech campaign assistant ✦\nHow would you like to set up your campaign?", title: "Setup method", chips: ["Continue with the AI assistant", "Set it up manually"] },
+  { key: "setup",  ask: "Hi! I'm the MoonTech assistant ✦\nHow would you like to set up your campaign?", title: "Setup method", chips: ["Continue with the MoonTech assistant", "Set it up manually"] },
   { key: "name",   ask: "Great — let's build it together. First, what should we call the campaign?", title: "Campaign name", chips: ["Spring 2026", "Summer Sale", "Brand Launch", "Ramadan 2026"] },
-  { key: "type",   ask: "Got it! What's the goal for this campaign?", title: "Campaign goal", chips: ["Drive sales (ROAS guaranteed)", "Grow brand awareness"] },
+  { key: "type",   ask: "Got it! What's the goal for this campaign?", title: "Campaign goal", chips: ["Drive revenue (ROAS guaranteed)", "Grow brand awareness"] },
   { key: "geo",    ask: "Which markets should it run in? Pick all that apply.", title: "Target markets", chips: ["UAE", "KSA", "Kuwait", "All GCC"], multi: true },
   { key: "gender", ask: "Who's your target audience?", title: "Target audience", chips: ["All genders", "Women only", "Men only"] },
   { key: "age",    ask: "And the age range you're after?", title: "Age range", chips: ["18–34", "25–44", "35–54", "All ages"] },
@@ -1166,7 +1166,7 @@ function AgentChat({ onComplete, onSwitchManual, onOpenPlan, planOpen }: {
       const reply = /budget|roas|target|phase|change|edit|adjust/.test(lower)
         ? "Happy to help adjust that! For now you can review every phase, budget and ROAS target in the plan panel — open it from the “Plan ready” card above. Fine-tuning via chat is coming soon."
         : /pay|launch|start|go live/.test(lower)
-        ? "Once you're happy with the plan, hit “Accept & pay Phase 1” in the plan panel — only Phase 1 is due today, the rest unlock as targets are hit."
+        ? "Once you're happy with the plan, hit “Fund Phase 1” in the plan panel — only Phase 1 is due today, the rest unlock as targets are hit."
         : "Your 4-phase plan is ready — open it anytime from the “Plan ready” card above. Ask me about budgets, phases, or how the ROAS guarantee works.";
       pushAi(reply);
       return;
@@ -1380,7 +1380,7 @@ function AgentFlow({
           <div className={`h-full ${phase === "review" ? "md:pr-[520px]" : ""}`}>
             <div className="mx-auto flex h-full w-full max-w-3xl items-center gap-3 px-5">
               <h1 className="text-base font-semibold" style={{ color: INK }}>New campaign</h1>
-              <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-[#4D2FB0]/[0.08] px-2.5 py-1 text-[11px] font-semibold text-[#4D2FB0]">✦ AI assistant</span>
+              <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-[#4D2FB0]/[0.08] px-2.5 py-1 text-[11px] font-semibold text-[#4D2FB0]">✦ MoonTech assistant</span>
             </div>
           </div>
           {/* First-run only: Help affordance on the far right (flow TBD). */}
@@ -1422,11 +1422,11 @@ function AgentFlow({
                 <div className="flex items-center gap-4">
                   {/* Closes the panel only — the user stays in the chat and can
                       reopen the plan from the "Plan ready" widget. */}
-                  <button onClick={() => setPhase("chat")} className="shrink-0 text-sm font-medium text-neutral-500 transition hover:text-neutral-700">Discard</button>
+                  <button onClick={() => setPhase("chat")} className="shrink-0 text-sm font-medium text-neutral-500 transition hover:text-neutral-700">Close plan</button>
                   <p className="flex-1" />
                   <button onClick={() => setPhase("pay")}
                     className="shrink-0 rounded-xl bg-[#4D2FB0] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#3F2596] active:scale-[0.98]">
-                    Accept &amp; pay Phase 1 →
+                    Fund Phase 1 →
                   </button>
                 </div>
               </div>
@@ -1619,7 +1619,7 @@ function WelcomeOverlay({ industry, onStart }: { industry: string; onStart: () =
               </button>
             </div>
             <p className="wc-rise mt-2.5 text-center text-[11px] text-neutral-400" style={{ animationDelay: "1.15s" }}>
-              Let&apos;s build your first campaign with the AI assistant.
+              Let&apos;s build your first campaign with the MoonTech assistant.
             </p>
           </div>
         </div>
@@ -1737,10 +1737,10 @@ export default function NewCampaign() {
   };
 
   const nextLabel =
-    step === "type"   ? "Next: Campaign basics" :
-    step === "basics" ? "Next: Budget & ROAS" :
+    step === "type"   ? "Next: campaign basics" :
+    step === "basics" ? "Next: budget & ROAS" :
     step === "budget" ? "Build my plan" :
-    step === "review" ? "Accept & pay Phase 1" : "";
+    step === "review" ? "Fund Phase 1" : "";
 
   const isLowConfidence = step === "budget" && confidence.color === "red";
 
@@ -1862,7 +1862,7 @@ export default function NewCampaign() {
                 <button onClick={handleNext}
                   className="shrink-0 rounded-xl bg-[#4D2FB0] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#3F2596] active:scale-[0.98] transition"
                 >
-                  Accept &amp; pay Phase 1 →
+                  Fund Phase 1 →
                 </button>
               </div>
             ) : (
@@ -1872,7 +1872,7 @@ export default function NewCampaign() {
                 </button>
                 <p className="hidden sm:block flex-1 text-xs leading-relaxed text-neutral-400">
                   {step === "type"   ? "Choose a name and campaign type to get started." :
-                   step === "basics" ? "Fill in your target audience and campaign brief." :
+                   step === "basics" ? "Fill in your target audience and creator brief." :
                    step === "budget" ? "Set your budget and ROAS target to build your plan." : ""}
                 </p>
                 <div className="flex-1 sm:flex-none" />

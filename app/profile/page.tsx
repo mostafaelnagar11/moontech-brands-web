@@ -59,7 +59,7 @@ export default function BusinessProfile() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
           </svg>
           <p className="flex-1 text-sm leading-relaxed text-violet-800">
-            Your <strong>VAT number and office location are required before payment</strong>. Trade license can be added any time, but completing it now speeds up campaign setup. Details are encrypted and only used for invoicing &amp; compliance.
+            Your <strong>VAT number and office location are required before payment</strong>. Trade licence can be added any time, but completing it now speeds up campaign setup. Details are encrypted and only used for invoicing &amp; compliance.
           </p>
           <div className="shrink-0 text-right">
             <p className="text-2xl font-bold text-violet-600">{sectionsDone}/3</p>
@@ -109,18 +109,18 @@ export default function BusinessProfile() {
           </div>
         </div>
 
-        {/* ── Section 2: Trade license ── */}
+        {/* ── Section 2: Trade licence ── */}
         <div className="mb-4 rounded-2xl bg-white p-5 shadow-sm">
           <div className="mb-4 flex items-center justify-between">
-            <span className="text-sm font-semibold text-[#1e1b4b]">2 · Trade license</span>
+            <span className="text-sm font-semibold text-[#1e1b4b]">2 · Trade licence</span>
             <span className="rounded-full border border-neutral-200 bg-neutral-50 px-2.5 py-1 text-[11px] font-medium text-neutral-500">
-              Optional now · needed before launch
+              Optional now · needed before you fund a phase
             </span>
           </div>
 
           <div className="space-y-4">
             <div>
-              <label className={labelCls}>Trade license number</label>
+              <label className={labelCls}>Trade licence number</label>
               <input
                 type="text"
                 value={tradeLicenseNum}
@@ -132,7 +132,7 @@ export default function BusinessProfile() {
 
             <div>
               <label className={labelCls}>
-                License document{" "}
+                Licence document{" "}
                 <span className="font-normal text-neutral-400">· PDF or image</span>
               </label>
               <label className="flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed border-neutral-200 bg-neutral-50 px-4 py-6 transition hover:border-violet-300 hover:bg-violet-50/30">
@@ -155,7 +155,7 @@ export default function BusinessProfile() {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                     </svg>
                     <p className="text-sm text-neutral-500">
-                      <span className="font-semibold text-violet-600">Click to upload</span> your trade license
+                      <span className="font-semibold text-violet-600">Click to upload</span> your trade licence
                     </p>
                   </>
                 )}
