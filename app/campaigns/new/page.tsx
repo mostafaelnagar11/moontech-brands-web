@@ -3,11 +3,13 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { CaretRight } from "@phosphor-icons/react";
 
 /* ------------------------------------------------------------------ */
 /* Design tokens                                                       */
 /* ------------------------------------------------------------------ */
 const BRAND = "#4D2FB0";
+const BRAND_HOVER = "#3F2596";
 const INK = "#191234";
 
 /* ------------------------------------------------------------------ */
@@ -361,8 +363,84 @@ function StepBasics({ data, onChange }: { data: CampaignData; onChange: (d: Part
 /* ------------------------------------------------------------------ */
 /* Step 3 — Budget & ROAS                                             */
 /* ------------------------------------------------------------------ */
+/* ------------------------------------------------------------------ */
+/* The calculator — ONE component, two homes                           */
+/*                                                                     */
+/* It is the manual wizard's budget step and, since the assistant       */
+/* stopped asking for these two numbers as chips, the answer card in    */
+/* the chat as well. Extracted rather than copied: a fixed chip like    */
+/* "$20,000+" cannot say what 20,000 at 5x is worth, and two drifting  */
+/* copies of the same sliders would be worse than either.              */
+/* ------------------------------------------------------------------ */
+function PlanCalculator({
+  budget, roas, onChange,
+}: {
+  budget: number;
+  roas: number;
+  onChange: (d: { budget?: number; roas?: number }) => void;
+}) {
+  const confidence = getConfidence(budget, roas);
+  const projected = budget * roas;
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <div className="mb-4 flex items-baseline justify-between">
+          <p className="text-sm text-neutral-600">Total campaign budget</p>
+          <p className="text-3xl font-semibold leading-none tracking-tight tabular-nums text-[#4D2FB0]">
+            ${budget.toLocaleString()}
+          </p>
+        </div>
+        <input
+          type="range" min={1000} max={80000} step={1000}
+          value={budget}
+          onChange={(e) => onChange({ budget: Number(e.target.value) })}
+          aria-label="Total campaign budget in dollars"
+          className="h-2 w-full cursor-pointer appearance-none rounded-full"
+          style={{ accentColor: BRAND }}
+        />
+        <div className="mt-2 flex justify-between text-xs font-medium text-neutral-400">
+          <span>$1,000</span><span>$80,000</span>
+        </div>
+      </div>
+
+      <div>
+        <div className="mb-4 flex items-start justify-between">
+          <p className="mt-1 text-sm text-neutral-600">Target ROAS</p>
+          <div className="text-right">
+            <p className="text-3xl font-semibold leading-none tracking-tight tabular-nums text-[#4D2FB0]">{roas}×</p>
+            <p className="mt-1 text-xs text-neutral-400">= ${projected.toLocaleString()} in revenue</p>
+          </div>
+        </div>
+        <input
+          type="range" min={1} max={12} step={1}
+          value={roas}
+          onChange={(e) => onChange({ roas: Number(e.target.value) })}
+          aria-label="Target return on ad spend, as a multiple"
+          className="h-2 w-full cursor-pointer appearance-none rounded-full"
+          style={{ accentColor: BRAND }}
+        />
+        <div className="mt-2 flex justify-between text-xs font-medium text-neutral-400">
+          <span>1×</span><span>12×</span>
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-black/[0.06] bg-white p-5 shadow-[0_1px_2px_rgba(16,12,40,0.04)]">
+        <p className="mb-3 text-[13px] font-medium text-neutral-500">Confidence score</p>
+        <div className="mb-3 h-2 w-full overflow-hidden rounded-full bg-neutral-100">
+          <div
+            className={`h-full rounded-full transition-all duration-500 ${confidence.bar}`}
+            style={{ width: `${confidence.pct}%` }}
+          />
+        </div>
+        <p className={`text-[15px] font-semibold ${confidence.text}`} role="status">{confidence.level}</p>
+        <p className="mt-1 text-sm text-neutral-400">{confidence.desc}</p>
+      </div>
+    </div>
+  );
+}
+
 function StepBudget({ data, onChange }: { data: CampaignData; onChange: (d: Partial<CampaignData>) => void }) {
-  const confidence = getConfidence(data.budget, data.roas);
   const projectedSales = data.budget * data.roas;
   const phase1 = Math.round(data.budget * 0.1);
 
@@ -370,59 +448,11 @@ function StepBudget({ data, onChange }: { data: CampaignData; onChange: (d: Part
     <div className="space-y-8">
       <StepIntro title="Budget & target ROAS" sub="Drag to shape your plan — your first three phases are guaranteed." />
 
-      {/* Budget slider */}
-      <div>
-        <div className="flex items-baseline justify-between mb-4">
-          <p className="text-sm text-neutral-600">Total campaign budget</p>
-          <p className="text-3xl font-semibold tracking-tight tabular-nums text-[#4D2FB0] leading-none">
-            ${data.budget.toLocaleString()}
-          </p>
-        </div>
-        <input
-          type="range" min={1000} max={80000} step={1000}
-          value={data.budget}
-          onChange={(e) => onChange({ budget: Number(e.target.value) })}
-          className="w-full h-2 rounded-full appearance-none cursor-pointer"
-          style={{ accentColor: BRAND }}
-        />
-        <div className="flex justify-between mt-2 text-xs text-neutral-400 font-medium">
-          <span>$1,000</span><span>$80,000</span>
-        </div>
-      </div>
-
-      {/* ROAS slider */}
-      <div>
-        <div className="flex items-start justify-between mb-4">
-          <p className="text-sm text-neutral-600 mt-1">Target ROAS</p>
-          <div className="text-right">
-            <p className="text-3xl font-semibold tracking-tight tabular-nums text-[#4D2FB0] leading-none">{data.roas}×</p>
-            <p className="text-xs text-neutral-400 mt-1">= ${projectedSales.toLocaleString()} in revenue</p>
-          </div>
-        </div>
-        <input
-          type="range" min={1} max={12} step={1}
-          value={data.roas}
-          onChange={(e) => onChange({ roas: Number(e.target.value) })}
-          className="w-full h-2 rounded-full appearance-none cursor-pointer"
-          style={{ accentColor: BRAND }}
-        />
-        <div className="flex justify-between mt-2 text-xs text-neutral-400 font-medium">
-          <span>1×</span><span>12×</span>
-        </div>
-      </div>
-
-      {/* Confidence score */}
-      <div className="rounded-2xl border border-black/[0.06] bg-white p-5 shadow-[0_1px_2px_rgba(16,12,40,0.04)]">
-        <p className="text-[13px] font-medium text-neutral-500 mb-3">Confidence score</p>
-        <div className="h-2 w-full overflow-hidden rounded-full bg-neutral-100 mb-3">
-          <div
-            className={`h-full rounded-full transition-all duration-500 ${confidence.bar}`}
-            style={{ width: `${confidence.pct}%` }}
-          />
-        </div>
-        <p className={`text-[15px] font-semibold ${confidence.text}`}>{confidence.level}</p>
-        <p className="mt-1 text-sm text-neutral-400">{confidence.desc}</p>
-      </div>
+      <PlanCalculator
+        budget={data.budget}
+        roas={data.roas}
+        onChange={(d) => onChange(d)}
+      />
 
       {/* What this builds */}
       <div className="rounded-2xl bg-[#4D2FB0]/[0.05] p-5">
@@ -1065,15 +1095,14 @@ function ProcessingScreen({ onDone }: { onDone: () => void }) {
 /* ------------------------------------------------------------------ */
 type AiMsg = { role: "ai" | "user"; text?: string; widget?: "building" };
 
-const AI_FLOW: { key: string; ask: string; title: string; chips: string[]; skip?: boolean; multi?: boolean }[] = [
+const AI_FLOW: { key: string; ask: string; title: string; chips: string[]; skip?: boolean; multi?: boolean; calculator?: boolean }[] = [
   { key: "setup",  ask: "Hi! I'm the MoonTech assistant ✦\nHow would you like to set up your campaign?", title: "Setup method", chips: ["Continue with the MoonTech assistant", "Set it up manually"] },
   { key: "name",   ask: "Great — let's build it together. First, what should we call the campaign?", title: "Campaign name", chips: ["Spring 2026", "Summer Sale", "Brand Launch", "Ramadan 2026"] },
   { key: "type",   ask: "Got it! What's the goal for this campaign?", title: "Campaign goal", chips: ["Drive revenue (ROAS guaranteed)", "Grow brand awareness"] },
   { key: "geo",    ask: "Which markets should it run in? Pick all that apply.", title: "Target markets", chips: ["UAE", "KSA", "Kuwait", "All GCC"], multi: true },
   { key: "gender", ask: "Who's your target audience?", title: "Target audience", chips: ["All genders", "Women only", "Men only"] },
   { key: "age",    ask: "And the age range you're after?", title: "Age range", chips: ["18–34", "25–44", "35–54", "All ages"] },
-  { key: "budget", ask: "What's your total budget? (USD)", title: "Total budget", chips: ["$2,000", "$5,000", "$10,000", "$20,000+"] },
-  { key: "roas",   ask: "What ROAS are you aiming for — revenue per $1 spent?", title: "ROAS target", chips: ["2× ROAS", "3× ROAS", "5× ROAS", "10× ROAS"] },
+  { key: "plan",   ask: "Now the numbers. Drag both — I'll tell you how confident I am in the target as you go.", title: "Budget & target ROAS", chips: [], calculator: true },
   { key: "brief",  ask: "Last one — anything creators should know? Any do's or don'ts?", title: "Creator brief", chips: ["Keep it casual & authentic", "No competitor mentions", "Focus on product quality"], skip: true },
 ];
 
@@ -1109,6 +1138,7 @@ function AgentChat({ onComplete, onSwitchManual, onOpenPlan, planOpen }: {
   const [typing, setTyping] = useState(false);
   const [inputVal, setInputVal] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
+  const [calc, setCalc] = useState({ budget: 10000, roas: 5 });
   const [done, setDone] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -1172,6 +1202,20 @@ function AgentChat({ onComplete, onSwitchManual, onOpenPlan, planOpen }: {
       return;
     }
     const q = AI_FLOW[stepIdx];
+    if (q.calculator) {
+      /* One step, two answers. `budget` and `roas` stay separate keys because
+         mapAnswers and the closing summary both read them by name. */
+      const budgetTxt = `$${calc.budget.toLocaleString()}`;
+      const roasTxt = `${calc.roas}×`;
+      setMessages((m) => [...m, { role: "user", text: `${budgetTxt} · ${roasTxt} ROAS` }]);
+      const nextAnswers = { ...answers, budget: budgetTxt, roas: roasTxt };
+      setAnswers(nextAnswers);
+      setInputVal("");
+      const next = stepIdx + 1;
+      setStepIdx(next);
+      pushAi(AI_FLOW[next].ask);
+      return;
+    }
     if (q.key === "setup") {
       setMessages((m) => [...m, { role: "user", text: v }]);
       setInputVal("");
@@ -1257,6 +1301,29 @@ function AgentChat({ onComplete, onSwitchManual, onOpenPlan, planOpen }: {
                   <span className="shrink-0 text-[11px] text-neutral-400">{stepIdx} of {AI_FLOW.length - 1}</span>
                 )}
               </div>
+              {current.calculator ? (
+                /* The calculator answers this step instead of a chip list. It
+                   is the same component the manual wizard uses, so the two
+                   paths cannot drift apart, and the confidence score updates
+                   as you drag rather than after you commit. */
+                <div className="px-4 pb-4 pt-2">
+                  <PlanCalculator
+                    budget={calc.budget}
+                    roas={calc.roas}
+                    onChange={(d) => setCalc((c) => ({ ...c, ...d }))}
+                  />
+                  <button
+                    onClick={() => answer(`$${calc.budget.toLocaleString()} · ${calc.roas}×`)}
+                    className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-[14px] font-semibold text-white transition-colors"
+                    style={{ backgroundColor: BRAND }}
+                    onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = BRAND_HOVER; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = BRAND; }}
+                  >
+                    Use ${calc.budget.toLocaleString()} at {calc.roas}×
+                    <CaretRight size={14} weight="bold" aria-hidden="true" />
+                  </button>
+                </div>
+              ) : (
               <div className="divide-y divide-black/[0.05]">
                 {current.chips.map((c, i) => {
                   const active = isMulti && selected.includes(c);
@@ -1297,6 +1364,7 @@ function AgentChat({ onComplete, onSwitchManual, onOpenPlan, planOpen }: {
                   </div>
                 )}
               </div>
+              )}
             </div>
           )}
           <div className={`flex items-end gap-1.5 rounded-[28px] border border-black/[0.09] py-2 pl-5 pr-2 shadow-[0_4px_20px_rgba(16,12,40,0.07)] transition focus-within:border-[#4D2FB0]/35 ${isSetup ? "bg-neutral-50" : "bg-white"}`}>
