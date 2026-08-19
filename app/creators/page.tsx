@@ -69,20 +69,6 @@ const CREATORS_SEED: Creator[] = [
     posts: [{ img: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=300&h=400&fit=crop", views: "6K", type: "Post" }, { img: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=300&h=400&fit=crop", views: "5K", type: "Reel" }, { img: "https://images.unsplash.com/photo-1493770348161-369560ae357d?w=300&h=400&fit=crop", views: "7K", type: "Post" }, { img: "https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=300&h=400&fit=crop", views: "4K", type: "Post" }, { img: "https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=300&h=400&fit=crop", views: "5K", type: "Story" }] },
 ];
 
-function fmt(n: number) {
-  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
-  if (n >= 1000) return (n / 1000).toFixed(n >= 10000 ? 0 : 1) + "K";
-  return String(n);
-}
-
-// Parse a "22K" / "1.1M" style count back into a number.
-function parseCount(s: string): number {
-  const m = s.trim().match(/^([\d.]+)\s*([KM]?)$/i);
-  if (!m) return 0;
-  const v = parseFloat(m[1]);
-  const u = m[2].toUpperCase();
-  return u === "M" ? v * 1_000_000 : u === "K" ? v * 1000 : v;
-}
 
 // Platforms a creator is active on — primary first, plus a deterministic
 // set of others so profiles show as multi-platform.
@@ -196,10 +182,10 @@ function Detail({
                 </span>
               </div>
               <div className="mb-2.5 text-xs text-neutral-400">{c.handle} · {c.niche}</div>
-              <div className="inline-flex items-start gap-2 rounded-xl border border-[#4D2FB0]/12 bg-[#4D2FB0]/[0.05] px-3 py-2">
-                <span className="shrink-0 text-xs opacity-50">✶</span>
-                <span className="text-xs leading-relaxed text-neutral-600">{c.bio}</span>
-              </div>
+              {/* The bio is the creator's own sentence, so it reads as prose
+                  rather than as a callout. The tinted box and the ✶ that used
+                  to frame it were decoration around text that needed none. */}
+              <p className="max-w-[62ch] text-xs leading-relaxed text-neutral-600">{c.bio}</p>
             </div>
             {/* Brand fit — pinned to the right of the header */}
             <div className="flex h-[96px] w-[96px] shrink-0 flex-col items-center justify-center rounded-2xl bg-[#059669] text-center">
@@ -252,33 +238,19 @@ function Detail({
         <div className={`px-7 ${isPending ? "mb-6" : "mb-8"}`}>
           <div className="mb-3 text-[11px] font-bold uppercase tracking-wide text-neutral-400">Last 5 posts</div>
           <div className="grid grid-cols-5 gap-2">
-            {c.posts.map((p, i) => {
-              const likes = parseCount(p.views);
-              const comments = Math.max(1, Math.round(likes * 0.035));
-              return (
-                <a key={i} href={platUrl} target="_blank" rel="noopener noreferrer"
-                  className="relative block aspect-[9/14] cursor-pointer overflow-hidden rounded-xl bg-neutral-200">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={p.img} alt={`${c.name} — ${p.type}`} loading="lazy" className="h-full w-full object-cover" />
-                  <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
-                  <div className="absolute left-1.5 top-1.5 rounded bg-black/50 px-1.5 py-0.5 text-[9px] font-bold text-white">{p.type}</div>
-                  <div className="absolute inset-x-0 bottom-2 flex items-center justify-start gap-2 px-2 text-[12px] font-bold text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.95)]">
-                    <span className="flex items-center gap-1">
-                      <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true" className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]">
-                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                      </svg>
-                      {fmt(likes)}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]">
-                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
-                      </svg>
-                      {fmt(comments)}
-                    </span>
-                  </div>
-                </a>
-              );
-            })}
+            {c.posts.map((p, i) => (
+              <a key={i} href={platUrl} target="_blank" rel="noopener noreferrer"
+                className="relative block aspect-[9/14] cursor-pointer overflow-hidden rounded-xl bg-neutral-200">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={p.img} alt={`${c.name} — ${p.type}`} loading="lazy" className="h-full w-full object-cover" />
+                {/* The like and comment pair used to sit here over a gradient.
+                    Both are gone, and the gradient with them — it existed only
+                    to keep that white text legible. Per-creator engagement
+                    counts are not a selection factor, so the card carries the
+                    format and the work, nothing else. */}
+                <div className="absolute left-1.5 top-1.5 rounded bg-black/50 px-1.5 py-0.5 text-[9px] font-bold text-white">{p.type}</div>
+              </a>
+            ))}
           </div>
         </div>
       </div>

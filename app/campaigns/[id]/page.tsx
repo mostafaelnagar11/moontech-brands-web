@@ -18,14 +18,14 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
-  ArrowLeft, CaretRight, Check, CheckCircle, CircleNotch, Lightning,
-  List, LockSimple, Plus, SignOut,
+  ArrowLeft, CaretRight, Check, CheckCircle, CircleNotch, Clock, Lightning,
+  List, LockSimple, Plus, SignOut, ThumbsUp, ThumbsDown,
 } from "@phosphor-icons/react";
 import Sidebar from "../../components/Sidebar";
 import NotificationCenter from "../../components/NotificationCenter";
 import CommandPalette from "../../components/CommandPalette";
 import StatusBadge from "../../components/StatusBadge";
-import { fmtUSD, PHASE_NAMES, type Campaign } from "../../lib/campaigns";
+import { adCreator, fmtUSD, PHASE_NAMES, type Campaign } from "../../lib/campaigns";
 import { useCampaign, fundPhase } from "../../lib/funding";
 import { useAdsFor, useWaitingFor } from "../../lib/adSignals";
 
@@ -66,6 +66,8 @@ export default function CampaignDetailPage() {
      review route and coming back no longer claims they still wait on you. */
   const drafts  = useAdsFor(params.id);
   const waiting = useWaitingFor(params.id);
+  const liked    = drafts.filter((a) => a.signal === "liked");
+  const disliked = drafts.filter((a) => a.signal === "disliked");
 
   const cid   = detail?.id;
   const cname = detail?.name;
@@ -259,76 +261,84 @@ export default function CampaignDetailPage() {
 
               {/* ── Threshold, verbatim from the shared data ── */}
               {detail.threshold && (
-                <div className={`rounded-2xl px-4 py-3 text-sm font-medium ${
+                <div className={`flex items-start gap-2 rounded-2xl px-4 py-3 text-sm font-medium ${
                   detail.thresholdGreen ? "bg-[#059669]/[0.08] text-[#047857]" : "bg-amber-50 text-amber-800"
                 }`}>
+                  <Clock size={16} weight="fill" aria-hidden="true" className="mt-px shrink-0" />
                   {detail.threshold}
                 </div>
               )}
 
-              {/* ── AD REVIEW ──
-                   Above the ledger, per the note at the top of this file: the
-                   ads are the thing waiting on you today, and the ledger is
-                   the thing that explains the money. Nothing in here has posted
-                   yet — the creator has finished the piece and it waits on you. */}
-              {waiting.length > 0 ? (
+              {/* ── AD REVIEW — the entry point to the flow ──
+                   Built as a card strip, the same shape as a creator's "Last 5
+                   posts", because the thing being reviewed is creative and a
+                   row of overlapping 40px thumbnails did not let you see any of
+                   it. Each card opens the review ON that ad.
+
+                   What the cards do NOT carry is the engagement pair those post
+                   cards show. These ads have not published, so a like count
+                   would be invented — and per-creator counts are exactly what
+                   the design review took off the screen. The badge is the
+                   format, and the footer is who made it. */}
+              {drafts.length > 0 && (
                 <section>
-                  <p className={`${EYEBROW} mb-2 flex items-center gap-1.5 text-amber-600`}>
-                    <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                    Ads waiting on you · {waiting.length}
-                  </p>
-                  <div className={`${CARD} overflow-hidden`}>
+                  {/* No count row. The button underneath already names the
+                      number that matters, and the ticks on the cards say which
+                      ones are settled — three more figures up here were just
+                      the same facts a second time. */}
+                  <p className={`${EYEBROW} mb-2 text-[#7C5CE0]`}>Ad review</p>
+
+                  <div className={`${CARD} p-4`}>
+                    <div className="flex gap-2 overflow-x-auto pb-1">
+                      {[...waiting, ...liked, ...disliked].slice(0, 8).map((a) => {
+                        const c = adCreator(a);
+                        return (
+                          <button
+                            key={a.id}
+                            onClick={() => router.push(`/campaigns/ads?c=${detail.id}&ad=${a.id}`)}
+                            aria-label={`${c.name}, ${a.format} for ${a.platform}. ${
+                              a.signal === "none" ? "Waiting on you." : a.signal === "liked" ? "Liked — publishing." : "Disliked — will not publish."
+                            } Open the review on this ad.`}
+                            className="group relative block aspect-[9/14] w-[92px] shrink-0 overflow-hidden rounded-xl bg-neutral-200 ring-1 ring-black/[0.06] transition hover:ring-2 hover:ring-[#4D2FB0]/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4D2FB0]"
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={a.img} alt="" loading="lazy" className="h-full w-full object-cover object-top" />
+                            <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
+                            <span aria-hidden="true" className="absolute left-1.5 top-1.5 rounded bg-black/55 px-1.5 py-0.5 text-[9px] font-bold text-white backdrop-blur-sm">
+                              {a.format}
+                            </span>
+                            {a.signal !== "none" && (
+                              <span
+                                aria-hidden="true"
+                                className={`absolute right-1.5 top-1.5 grid h-4 w-4 place-items-center rounded-full text-white ${
+                                  a.signal === "liked" ? "bg-[#059669]" : "bg-black/60"
+                                }`}
+                              >
+                                {a.signal === "liked"
+                                  ? <ThumbsUp size={9} weight="fill" />
+                                  : <ThumbsDown size={9} weight="fill" />}
+                              </span>
+                            )}
+                            <span className="absolute inset-x-0 bottom-1.5 px-2 text-left">
+                              <span className="block truncate text-[10.5px] font-bold text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.95)]">
+                                {c.name.split(" ")[0]}
+                              </span>
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
                     <button
                       onClick={() => router.push(`/campaigns/ads?c=${detail.id}`)}
-                      aria-label={`${waiting.length} ads waiting on you for ${detail.name}. Nothing publishes until you like or dislike it.`}
-                      className="flex w-full items-center gap-3 px-5 py-4 text-left hover:bg-neutral-50 transition-colors"
+                      className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl bg-neutral-100 px-4 py-2.5 text-[13px] font-semibold text-[#4D2FB0] transition-colors hover:bg-neutral-200/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4D2FB0]/40"
                     >
-                      <span className="flex shrink-0 -space-x-2" aria-hidden="true">
-                        {waiting.slice(0, 3).map((a) => (
-                          /* eslint-disable-next-line @next/next/no-img-element */
-                          <img key={a.id} src={a.img} alt="" loading="lazy"
-                            className="h-10 w-10 rounded-[10px] bg-neutral-200 object-cover object-top ring-2 ring-white" />
-                        ))}
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-semibold" style={{ color: INK }}>
-                          {waiting.length} ads waiting on you
-                        </span>
-                        <span className="mt-0.5 block truncate text-xs text-neutral-500">
-                          Nothing publishes until you like or dislike it
-                        </span>
-                      </span>
-                      <CaretRight size={14} weight="bold" aria-hidden="true" className="shrink-0 text-neutral-300" />
+                      {waiting.length > 0 ? `Review ${waiting.length} waiting on you` : "Open ad review"}
+                      <CaretRight size={13} weight="bold" aria-hidden="true" />
                     </button>
                   </div>
                 </section>
-              ) : drafts.length > 0 ? (
-                /* Every draft has a decision — but a decision can be changed,
-                   so the way back into the review stays on the page. */
-                <section>
-                  <p className={`${EYEBROW} mb-2 text-neutral-400`}>Ad review</p>
-                  <div className={`${CARD} overflow-hidden`}>
-                    <button
-                      onClick={() => router.push(`/campaigns/ads?c=${detail.id}`)}
-                      aria-label={`All ${drafts.length} ads reviewed for ${detail.name}. Open the review to change a decision.`}
-                      className="flex w-full items-center gap-3 px-5 py-4 text-left hover:bg-neutral-50 transition-colors"
-                    >
-                      <span aria-hidden="true" className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] bg-[#059669]/[0.09] text-[#047857]">
-                        <Check size={15} weight="bold" />
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-semibold" style={{ color: INK }}>
-                          All ads reviewed
-                        </span>
-                        <span className="mt-0.5 block truncate text-xs text-neutral-500">
-                          {drafts.length} decided · open the review to change one
-                        </span>
-                      </span>
-                      <CaretRight size={14} weight="bold" aria-hidden="true" className="shrink-0 text-neutral-300" />
-                    </button>
-                  </div>
-                </section>
-              ) : null}
+              )}
 
               {/* ── PHASE LEDGER ── */}
               <section>

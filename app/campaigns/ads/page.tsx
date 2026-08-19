@@ -32,12 +32,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft, CaretLeft, CaretRight, Check, Info, Keyboard,
+  ArrowLeft, CaretLeft, CaretRight, Check, Info,
   ThumbsDown, ThumbsUp, Warning, X,
   InstagramLogo, TiktokLogo, YoutubeLogo, type Icon,
 } from "@phosphor-icons/react";
 import {
-  CAMPAIGNS, adChecks, adCreator, adHero, adsFor, estReach,
+  CAMPAIGNS, adChecks, adCreator, adHero, adsFor,
   type Ad, type AdSignal, type Platform,
 } from "../../lib/campaigns";
 import { setAdSignal, useAdsFor } from "../../lib/adSignals";
@@ -45,6 +45,12 @@ import { setAdSignal, useAdsFor } from "../../lib/adSignals";
 const BRAND = "#4D2FB0";
 const BRAND_HOVER = "#3F2596";
 const INK = "#191234";
+
+const TABS: { key: AdSignal; label: string }[] = [
+  { key: "none",     label: "Waiting" },
+  { key: "liked",    label: "Liked" },
+  { key: "disliked", label: "Disliked" },
+];
 
 const PLAT_ICON: Record<Platform, Icon> = {
   Instagram: InstagramLogo,
@@ -65,6 +71,9 @@ export default function CampaignAdsPage() {
   const [cid, setCid] = useState<string | null>(null);
   const [resolved, setResolved] = useState(false);
   const [sel, setSel] = useState(0);
+  /* Which shelf the reviewer is standing on. Keyed by the signal value itself
+     so the filter is a comparison rather than a lookup table. */
+  const [tab, setTab] = useState<AdSignal>("none");
   const [infoOpen, setInfoOpen] = useState(false);
   const [toast, setToast] = useState<Toast | null>(null);
   const [announce, setAnnounce] = useState("");
@@ -84,6 +93,18 @@ export default function CampaignAdsPage() {
       : CAMPAIGNS.find((c) => adsFor(c.id).length > 0)?.id ?? null;
     setCid(id);
     setResolved(true);
+
+    /* ?ad= — the detail page's card strip opens the review ON the card that was
+       clicked, which may sit on any shelf. Resolve it against the seed data
+       (the store has no overrides yet on a cold load) so the tab and the index
+       are right on first paint rather than after a flash of the Waiting shelf. */
+    const wanted = new URLSearchParams(window.location.search).get("ad");
+    if (!id || !wanted) return;
+    const rows = adsFor(id);
+    const target = rows.find((a) => a.id === wanted);
+    if (!target) return;
+    setTab(target.signal);
+    setSel(Math.max(0, rows.filter((a) => a.signal === target.signal).findIndex((a) => a.id === wanted)));
   }, []);
 
   useEffect(() => () => window.clearTimeout(toastTimer.current), []);
@@ -96,21 +117,40 @@ export default function CampaignAdsPage() {
   /* Derived means a fresh array identity every render, so callbacks read the
      latest rows through a ref instead of closing over them — that keeps
      `rate`/`go`/the key handler stable and never one render stale. */
-  const adsRef = useRef<Ad[]>(ads);
-  adsRef.current = ads;
+  /* The tab is a FILTER, and `sel` indexes the filtered list — never `ads`.
+     One rule makes the whole screen predictable: a decision removes the ad
+     from the shelf you are standing on (waiting -> liked, liked -> disliked),
+     so `sel` stays where it is and the next ad slides under it, the way an
+     inbox behaves. The clamp below is what stops that walking off the end. */
+  const shown = ads.filter((a) => a.signal === tab);
+  const counts = {
+    none: ads.filter((a) => a.signal === "none").length,
+    liked: ads.filter((a) => a.signal === "liked").length,
+    disliked: ads.filter((a) => a.signal === "disliked").length,
+  };
+
+  const adsRef = useRef<Ad[]>(shown);
+  adsRef.current = shown;
+  const allRef = useRef<Ad[]>(ads);
+  allRef.current = ads;
+  const tabRef = useRef<AdSignal>(tab);
+  tabRef.current = tab;
+
+  useEffect(() => {
+    if (sel > 0 && sel >= shown.length) setSel(Math.max(0, shown.length - 1));
+  }, [shown.length, sel]);
 
   /* Warm the next hero so navigation never lands on a grey box. Keyed on the
      image URL, not the array, since the array is rebuilt each render. */
-  const nextImg = ads[sel + 1]?.img;
+  const nextImg = shown[sel + 1]?.img;
   useEffect(() => {
     if (!nextImg) return;
     const im = new window.Image();
     im.src = adHero(nextImg);
   }, [nextImg]);
 
-  const ad: Ad | null = ads[sel] ?? null;
+  const ad: Ad | null = shown[sel] ?? null;
   const creator = ad ? adCreator(ad) : null;
-  const decided = ads.filter((a) => a.signal !== "none").length;
   const campaign = cid ? CAMPAIGNS.find((c) => c.id === cid) ?? null : null;
 
   const go = useCallback((i: number) => {
@@ -131,28 +171,26 @@ export default function CampaignAdsPage() {
     /* Where to go next is computed from the list WITH this decision applied —
        reading the rows we rendered from would hand the reviewer back the ad
        they just rated. */
-    const after = adsRef.current.map((r) => (r.id === a.id ? { ...r, signal: to } : r));
+    const after = allRef.current.map((r) => (r.id === a.id ? { ...r, signal: to } : r));
 
     window.clearTimeout(toastTimer.current);
     setToast({ key: Date.now(), id: a.id, name: c.name, to, from });
     toastTimer.current = window.setTimeout(() => setToast(null), 4000);
 
-    /* Move to the next ad nobody has decided on. A decided ad stays in the
-       queue — you can go back and change your mind until it publishes. */
-    let next = -1;
-    for (let k = 1; k <= after.length; k++) {
-      const j = (i + k) % after.length;
-      if (after[j].signal === "none") { next = j; break; }
-    }
-    if (next !== -1) setSel(next);
+    /* The rated ad leaves this shelf, so holding `sel` still lands on the ad
+       that took its place. `remaining` is counted from the list WITH the
+       decision applied — reading the rendered rows would announce a number
+       that is one render stale. */
+    const remaining = after.filter((r) => r.signal === tabRef.current).length;
+    if (i >= remaining) setSel(Math.max(0, remaining - 1));
 
     setAnnounce(
       (to === "liked"
         ? `Liked. ${c.name}'s ad publishes within the hour and more of this phase's budget goes behind ads like it.`
         : "Disliked. This ad will not publish, and we stop matching ads like it.") +
-      (next === -1
-        ? ` That's all ${after.length} decided.`
-        : ` Showing ad ${next + 1} of ${after.length}.`)
+      (remaining === 0
+        ? " That is the last one on this shelf."
+        : ` ${remaining} left here.`)
     );
   }, []);
 
@@ -160,9 +198,19 @@ export default function CampaignAdsPage() {
     if (!toast) return;
     window.clearTimeout(toastTimer.current);
     setAdSignal(toast.id, toast.from);
-    const i = adsRef.current.findIndex((r) => r.id === toast.id);
-    if (i >= 0) setSel(i);
-    setAnnounce("Decision removed. The ad is waiting again.");
+    /* The ad returns to whichever shelf it came from, which is usually not the
+       one being looked at — so follow it, or the undo appears to do nothing. */
+    const restored = allRef.current
+      .map((r) => (r.id === toast.id ? { ...r, signal: toast.from } : r))
+      .filter((r) => r.signal === toast.from);
+    setTab(toast.from);
+    const i = restored.findIndex((r) => r.id === toast.id);
+    setSel(i >= 0 ? i : 0);
+    setAnnounce(
+      toast.from === "none"
+        ? "Decision removed. The ad is waiting on you again."
+        : "Decision changed back."
+    );
     setToast(null);
   }, [toast]);
 
@@ -240,7 +288,10 @@ export default function CampaignAdsPage() {
   );
 
   /* ── Resolving, the unknown-campaign state, and the real empty state ── */
-  if (!resolved || !cid || !ad || !creator) {
+  /* The hard empty state is for a campaign with NO ads. An empty SHELF is not
+     this: it keeps the whole chrome, because a reviewer who lands on an empty
+     Disliked tab needs the tabs to get back out. */
+  if (!resolved || !cid || ads.length === 0) {
     return (
       <div
         className="fixed inset-0 z-50 flex flex-col bg-neutral-950"
@@ -286,11 +337,15 @@ export default function CampaignAdsPage() {
     );
   }
 
-  const checks = adChecks(ad);
+  const checks = ad ? adChecks(ad) : [];
   const flagged = checks.some((c) => !c.clean);
-  const PIcon = PLAT_ICON[ad.platform];
+  /* An empty shelf has no ad, so this cannot be read at the top level the way
+     it was before the tabs existed — that is what crashed the Liked shelf the
+     moment its last ad was flipped away. Falls back to a real component so it
+     stays a valid JSX type; the stage that renders it is behind a guard. */
+  const PIcon = PLAT_ICON[ad?.platform ?? "Instagram"];
   const atStart = sel === 0;
-  const atEnd = sel === ads.length - 1;
+  const atEnd = sel === shown.length - 1;
 
   /* The three checks — same rows in the rail and in the small-viewport modal,
      so the two can never drift apart. */
@@ -348,16 +403,38 @@ export default function CampaignAdsPage() {
       {/* ── 1 · TOP BAR ── */}
       <TopBar>
         <p className="mx-auto shrink-0 text-center text-[12px] font-medium tabular-nums text-white/70">
-          {sel + 1} of {ads.length} · {decided} decided
+          {shown.length === 0 ? "Nothing here" : `${sel + 1} of ${shown.length}`}
         </p>
 
         <div className="ml-auto flex shrink-0 items-center gap-2">
-          <AllCampaignsLink />
-
-          <span className="hidden items-center gap-2 rounded-xl bg-white/[0.06] px-3 py-1.5 text-[11px] font-medium text-white/55 ring-1 ring-white/10 md:flex">
-            <Keyboard size={13} weight="fill" aria-hidden="true" className="text-white/40" />
-            ← → navigate · L like · D dislike · Esc exit
-          </span>
+          {/* ── THE THREE SHELVES ──
+               Same three words and the same pill idiom the creators screen
+               already uses, adapted to this dark bar. The counts live on the
+               pills, which is why the counter beside them carries position
+               only. They sit where "All campaigns" and the keyboard legend
+               used to: the top-left back link is already the way out, and the
+               shortcuts still work without a chip announcing them. */}
+          <div role="tablist" aria-label="Ad review shelves" className="flex items-center gap-1 rounded-xl bg-white/[0.06] p-1 ring-1 ring-white/10">
+            {TABS.map((t) => {
+              const on = tab === t.key;
+              return (
+                <button
+                  key={t.key}
+                  role="tab"
+                  aria-selected={on}
+                  onClick={() => { setTab(t.key); setSel(0); }}
+                  className={`flex min-h-[36px] items-center gap-1.5 rounded-lg px-3 text-[12.5px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 ${
+                    on ? "bg-white text-neutral-900" : "text-white/60 hover:text-white"
+                  }`}
+                >
+                  {t.label}
+                  <span className={`tabular-nums ${on ? "text-neutral-400" : "text-white/35"}`}>
+                    {counts[t.key]}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
 
           {/* The rail carries the checks on wide viewports; below lg they
               come back behind the ⓘ, as on the phone. */}
@@ -382,8 +459,31 @@ export default function CampaignAdsPage() {
       <div className="flex min-h-0 flex-1">
         {/* ── 2 · CENTER STAGE ── */}
         <div className="relative flex min-w-0 flex-1 flex-col">
+          {!ad || !creator ? (
+            <main className="flex min-h-0 flex-1 flex-col items-center justify-center px-6 py-16 text-center">
+              <p className="text-xl font-bold text-white">
+                {tab === "none" ? "Nothing waiting on you"
+                  : tab === "liked" ? "No likes yet"
+                  : "No dislikes yet"}
+              </p>
+              <p className="mt-2 max-w-[420px] text-sm leading-relaxed text-white/55">
+                {tab === "none" ? "Every ad here has been decided. New ones land the moment a creator finishes them."
+                  : tab === "liked" ? "Ads you like publish within the hour and collect here."
+                  : "Ads you dislike never publish. They collect here so you can change your mind."}
+              </p>
+              {counts.none > 0 && tab !== "none" && (
+                <button
+                  onClick={() => { setTab("none"); setSel(0); }}
+                  className="mt-7 inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2.5 text-[13px] font-semibold text-white ring-1 ring-white/20 transition-colors hover:bg-white/[0.16] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                >
+                  {counts.none} waiting on you
+                </button>
+              )}
+            </main>
+          ) : (
+          <>
           <section
-            aria-label={`Ad ${sel + 1} of ${ads.length}. ${creator.name}, ${ad.format} for ${ad.platform}. ${
+            aria-label={`Ad ${sel + 1} of ${shown.length}. ${creator.name}, ${ad.format} for ${ad.platform}. ${
               ad.signal === "liked"
                 ? "Liked — publishing."
                 : ad.signal === "disliked"
@@ -479,7 +579,7 @@ export default function CampaignAdsPage() {
 
                   {/* No view count. Nothing here has posted. */}
                   <p className="ad-shadow mt-2 text-[11px] font-medium text-white/70">
-                    {ad.product} · est. {estReach(creator.followers)} reach · sent {ad.submitted}
+                    {ad.product}
                   </p>
                 </div>
               </div>
@@ -491,27 +591,47 @@ export default function CampaignAdsPage() {
               image cap above is written against it. */}
           <div className="flex h-[112px] shrink-0 flex-col justify-center border-t border-white/10 px-6">
             <div className="mx-auto flex w-full max-w-[460px] items-stretch gap-3">
-              <button
-                onClick={() => rate(ad, sel, "disliked")}
-                aria-label={`Dislike ${creator.name}'s ad. It will not publish.`}
-                className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-white/10 px-4 py-3.5 text-[14px] font-semibold text-white ring-1 ring-white/25 transition-colors hover:bg-white/[0.16] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
-              >
-                <ThumbsDown size={18} weight="fill" aria-hidden="true" /> Dislike
-              </button>
-              <button
-                onClick={() => rate(ad, sel, "liked")}
-                aria-label={`Like ${creator.name}'s ad. It publishes within the hour.`}
-                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = BRAND_HOVER; }}
-                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = BRAND; }}
-                style={{ backgroundColor: BRAND }}
-                className="flex flex-[1.4] items-center justify-center gap-2 rounded-2xl px-4 py-3.5 text-[14px] font-semibold text-white ring-1 ring-white/25 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
-              >
-                <ThumbsUp size={18} weight="fill" aria-hidden="true" /> Like
-              </button>
+              {ad.signal === "none" ? (
+                <>
+                  <button
+                    onClick={() => rate(ad, sel, "disliked")}
+                    aria-label={`Dislike ${creator.name}'s ad. It will not publish.`}
+                    className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-white/10 px-4 py-3.5 text-[14px] font-semibold text-white ring-1 ring-white/25 transition-colors hover:bg-white/[0.16] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+                  >
+                    <ThumbsDown size={18} weight="fill" aria-hidden="true" /> Dislike
+                  </button>
+                  <button
+                    onClick={() => rate(ad, sel, "liked")}
+                    aria-label={`Like ${creator.name}'s ad. It publishes within the hour.`}
+                    onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = BRAND_HOVER; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = BRAND; }}
+                    style={{ backgroundColor: BRAND }}
+                    className="flex flex-[1.4] items-center justify-center gap-2 rounded-2xl px-4 py-3.5 text-[14px] font-semibold text-white ring-1 ring-white/25 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+                  >
+                    <ThumbsUp size={18} weight="fill" aria-hidden="true" /> Like
+                  </button>
+                </>
+              ) : (
+                /* One button, no state pill: the shelf you are standing on
+                   names the state, and the creative carries its own pill. */
+                <button
+                  onClick={() => rate(ad, sel, ad.signal === "liked" ? "disliked" : "liked")}
+                  aria-label={ad.signal === "liked"
+                    ? `Dislike ${creator.name}'s ad instead. It will not publish.`
+                    : `Like ${creator.name}'s ad instead. It publishes within the hour.`}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-white/10 px-4 py-3.5 text-[14px] font-semibold text-white ring-1 ring-white/25 transition-colors hover:bg-white/[0.16] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+                >
+                  {ad.signal === "liked"
+                    ? <><ThumbsDown size={18} weight="fill" aria-hidden="true" /> Dislike instead</>
+                    : <><ThumbsUp size={18} weight="fill" aria-hidden="true" /> Like instead</>}
+                </button>
+              )}
             </div>
-            <p className="mt-2.5 text-center text-[11px] font-medium text-white/40">
-              Nothing publishes until you like or dislike it
-            </p>
+            {ad.signal === "none" && (
+              <p className="mt-2.5 text-center text-[11px] font-medium text-white/40">
+                Nothing publishes until you like or dislike it
+              </p>
+            )}
           </div>
 
           {/* ── Undo receipt — inside the stage column so it centres on the
@@ -544,11 +664,17 @@ export default function CampaignAdsPage() {
               </div>
             </div>
           )}
+          </>
+          )}
         </div>
 
-        {/* ── 3 · RIGHT RAIL — the checks, and the whole queue ── */}
-        <aside className="hidden w-[320px] shrink-0 flex-col border-l border-white/10 lg:flex">
-          <div className="shrink-0 border-b border-white/10 p-4">
+        {/* ── 3 · RIGHT RAIL — the checks. The queue list that used to sit
+                 below them is gone: the tabs name every shelf, the arrows and
+                 the counter carry position, and a 6-row list of the same
+                 thumbnails already on the stage was the third thing on screen
+                 saying where you are. ── */}
+        <aside className="hidden w-[320px] shrink-0 flex-col overflow-y-auto border-l border-white/10 lg:flex">
+          <div className={`shrink-0 p-4 ${ad ? "" : "hidden"}`}>
             <h2 className="text-[13px] font-semibold text-white">Checked before it reached you</h2>
             <div className="mt-3">
               <CheckRows dark />
@@ -556,69 +682,6 @@ export default function CampaignAdsPage() {
             <p className="mt-3 text-[11.5px] leading-relaxed text-white/45">{explainer}</p>
           </div>
 
-          <div className="flex min-h-0 flex-1 flex-col">
-            <div className="flex shrink-0 items-center justify-between px-4 pb-2 pt-4">
-              <h2 className="text-[13px] font-semibold text-white">The queue</h2>
-              <span className="text-[11px] font-medium tabular-nums text-white/40">
-                {decided} of {ads.length} decided
-              </span>
-            </div>
-            <ul className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3 pb-4">
-              {ads.map((a, i) => {
-                const c = adCreator(a);
-                const current = i === sel;
-                const state =
-                  a.signal === "liked" ? "Publishing" : a.signal === "disliked" ? "Not publishing" : "Waiting";
-                return (
-                  <li key={a.id}>
-                    <button
-                      onClick={() => go(i)}
-                      aria-current={current ? "true" : undefined}
-                      aria-label={`Ad ${i + 1} of ${ads.length}. ${c.name}, ${a.format} for ${a.platform}. ${
-                        a.signal === "liked"
-                          ? "Liked — publishing."
-                          : a.signal === "disliked"
-                            ? "Disliked — will not publish."
-                            : "Waiting on you."
-                      }`}
-                      className={`flex w-full items-center gap-3 rounded-xl p-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 ${
-                        current
-                          ? "bg-white/[0.12] ring-1 ring-white/25"
-                          : "hover:bg-white/[0.06]"
-                      }`}
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={a.img}
-                        alt=""
-                        loading="lazy"
-                        className="h-[52px] w-[39px] shrink-0 rounded-md bg-white/10 object-cover"
-                      />
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-[12.5px] font-semibold text-white">{c.name}</span>
-                        <span className="mt-0.5 block truncate text-[11px] text-white/45">
-                          {a.format} · {a.platform}
-                        </span>
-                        <span
-                          className={`mt-1 inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
-                            a.signal === "liked"
-                              ? "bg-[#059669]/20 text-[#4ADE9B]"
-                              : a.signal === "disliked"
-                                ? "bg-white/10 text-white/55"
-                                : "bg-amber-400/15 text-amber-300"
-                          }`}
-                        >
-                          {a.signal === "liked" && <ThumbsUp size={9} weight="fill" aria-hidden="true" />}
-                          {a.signal === "disliked" && <ThumbsDown size={9} weight="fill" aria-hidden="true" />}
-                          {state}
-                        </span>
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
         </aside>
       </div>
 
