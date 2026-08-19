@@ -101,6 +101,33 @@ input[type="range"]::-moz-range-thumb {
   box-shadow: 0 2px 8px rgba(77,47,176,0.35);
 }
 
+/* Compact sliders (the chat calculator): the input's own background is a
+   brand-to-quiet gradient that shows the filled portion of the track, so the
+   painted track goes transparent and the thumb becomes a white dot with a
+   brand ring — reads as "grab me" against the fill. Scoped so the manual
+   wizard's sliders keep the solid-purple thumb above. */
+input[type="range"].range-fill::-webkit-slider-runnable-track {
+  background: transparent;
+}
+input[type="range"].range-fill::-webkit-slider-thumb {
+  height: 18px;
+  width: 18px;
+  background: #fff;
+  border: 3px solid #4D2FB0;
+  margin-top: -5px;
+  box-shadow: 0 1px 4px rgba(16,12,40,0.3);
+}
+input[type="range"].range-fill::-moz-range-track {
+  background: transparent;
+}
+input[type="range"].range-fill::-moz-range-thumb {
+  height: 18px;
+  width: 18px;
+  background: #fff;
+  border: 3px solid #4D2FB0;
+  box-shadow: 0 1px 4px rgba(16,12,40,0.3);
+}
+
 /* ══════════════════════════════════════════════════════════════════
    Welcome celebration overlay (wc-)
    Base states are reduced-motion-safe: everything visible, checkmark

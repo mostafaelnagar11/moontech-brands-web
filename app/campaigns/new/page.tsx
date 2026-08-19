@@ -382,6 +382,10 @@ function PlanCalculator({
 }) {
   const confidence = getConfidence(budget, roas);
   const projected = budget * roas;
+  /* Track-fill stops for the compact sliders: brand up to the thumb, quiet after. */
+  const budgetPct = ((budget - 1000) / (80000 - 1000)) * 100;
+  const roasPct = ((roas - 1) / (12 - 1)) * 100;
+  const fill = (pct: number) => ({ background: `linear-gradient(to right, ${BRAND} ${pct}%, #E9E7F2 ${pct}%)` });
 
   /* The chat answer card is a tight space under a question and above a
      commit button, so it gets the compact register: label and value on
@@ -406,8 +410,8 @@ function PlanCalculator({
               value={budget}
               onChange={(e) => onChange({ budget: Number(e.target.value) })}
               aria-label="Total campaign budget in dollars"
-              className="h-2 min-w-0 flex-1 cursor-pointer appearance-none rounded-full"
-              style={{ accentColor: BRAND }}
+              className="range-fill h-2 min-w-0 flex-1 cursor-pointer appearance-none rounded-full outline-none focus-visible:ring-2 focus-visible:ring-[#4D2FB0]/40 focus-visible:ring-offset-2"
+              style={{ ...fill(budgetPct) }}
             />
             <span className="w-12 shrink-0 text-right text-[11px] font-medium tabular-nums text-neutral-400">$80,000</span>
           </div>
@@ -432,18 +436,22 @@ function PlanCalculator({
               value={roas}
               onChange={(e) => onChange({ roas: Number(e.target.value) })}
               aria-label="Target return on ad spend, as a multiple"
-              className="h-2 min-w-0 flex-1 cursor-pointer appearance-none rounded-full"
-              style={{ accentColor: BRAND }}
+              className="range-fill h-2 min-w-0 flex-1 cursor-pointer appearance-none rounded-full outline-none focus-visible:ring-2 focus-visible:ring-[#4D2FB0]/40 focus-visible:ring-offset-2"
+              style={{ ...fill(roasPct) }}
             />
             <span className="w-12 shrink-0 text-right text-[11px] font-medium tabular-nums text-neutral-400">12×</span>
           </div>
         </div>
 
-        {/* Confidence — one slim strip: gauge chip, level, reason. min-h pins
-            the row so tier changes mid-drag never shift the layout; the desc
-            wraps within its own column at narrow widths. */}
-        <div className="flex min-h-[44px] items-center gap-3.5 rounded-xl border border-black/[0.06] bg-white px-4 py-3 shadow-[0_1px_2px_rgba(16,12,40,0.04)]">
-          <div className="h-1.5 w-20 shrink-0 overflow-hidden rounded-full bg-neutral-100" aria-hidden="true">
+        {/* Confidence — a tier-tinted callout, not a gray box: the whole strip
+            carries the verdict's colour. min-h pins the row so tier changes
+            mid-drag never shift the layout; the desc wraps within its column. */}
+        <div className={`flex min-h-[44px] items-center gap-3.5 rounded-xl border px-4 py-3 transition-colors duration-300 ${
+          { green: "border-green-600/15 bg-green-500/[0.07]",
+            amber: "border-amber-500/20 bg-amber-400/[0.09]",
+            red:   "border-red-600/15 bg-red-500/[0.06]" }[confidence.color as "green" | "amber" | "red"]
+        }`}>
+          <div className="h-1.5 w-20 shrink-0 overflow-hidden rounded-full bg-black/[0.07]" aria-hidden="true">
             <div
               className={`h-full rounded-full transition-all duration-500 ${confidence.bar}`}
               style={{ width: `${confidence.pct}%` }}
@@ -452,7 +460,7 @@ function PlanCalculator({
           <p className={`shrink-0 text-[13px] font-semibold ${confidence.text}`} role="status">
             {confidence.level}
           </p>
-          <p className="min-w-0 flex-1 text-[13px] leading-snug text-neutral-400">{confidence.desc}</p>
+          <p className="min-w-0 flex-1 text-[13px] leading-snug text-neutral-500">{confidence.desc}</p>
         </div>
       </div>
     );
