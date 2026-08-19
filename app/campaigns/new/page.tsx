@@ -373,14 +373,91 @@ function StepBasics({ data, onChange }: { data: CampaignData; onChange: (d: Part
 /* copies of the same sliders would be worse than either.              */
 /* ------------------------------------------------------------------ */
 function PlanCalculator({
-  budget, roas, onChange,
+  budget, roas, onChange, compact,
 }: {
   budget: number;
   roas: number;
   onChange: (d: { budget?: number; roas?: number }) => void;
+  compact?: boolean;
 }) {
   const confidence = getConfidence(budget, roas);
   const projected = budget * roas;
+
+  /* The chat answer card is a tight space under a question and above a
+     commit button, so it gets the compact register: label and value on
+     one baseline, bounds flanking the track, confidence as a slim strip.
+     The wizard step is a full page and keeps the roomier original. */
+  if (compact) {
+    return (
+      <div className="space-y-5">
+        {/* Budget — label and value share a baseline; bounds flank the track.
+            Fixed w-12 flanks keep both sliders' tracks vertically aligned. */}
+        <div>
+          <div className="flex items-baseline justify-between gap-3">
+            <p className="text-[13px] font-medium" style={{ color: INK }}>Total campaign budget</p>
+            <p className="text-xl font-semibold leading-none tracking-tight tabular-nums text-[#4D2FB0]">
+              ${budget.toLocaleString()}
+            </p>
+          </div>
+          <div className="mt-2 flex items-center gap-2.5">
+            <span className="w-12 shrink-0 text-[11px] font-medium tabular-nums text-neutral-400">$1,000</span>
+            <input
+              type="range" min={1000} max={80000} step={1000}
+              value={budget}
+              onChange={(e) => onChange({ budget: Number(e.target.value) })}
+              aria-label="Total campaign budget in dollars"
+              className="h-2 min-w-0 flex-1 cursor-pointer appearance-none rounded-full"
+              style={{ accentColor: BRAND }}
+            />
+            <span className="w-12 shrink-0 text-right text-[11px] font-medium tabular-nums text-neutral-400">$80,000</span>
+          </div>
+        </div>
+
+        {/* ROAS — the projection rides the value's baseline as a live equation:
+            inputs in brand purple, the outcome in ink. */}
+        <div>
+          <div className="flex items-baseline justify-between gap-3">
+            <p className="text-[13px] font-medium" style={{ color: INK }}>Target ROAS</p>
+            <p className="flex items-baseline gap-2">
+              <span className="text-xl font-semibold leading-none tracking-tight tabular-nums text-[#4D2FB0]">{roas}×</span>
+              <span className="text-xs text-neutral-400">
+                = <span className="font-medium tabular-nums" style={{ color: INK }}>${projected.toLocaleString()}</span> projected revenue
+              </span>
+            </p>
+          </div>
+          <div className="mt-2 flex items-center gap-2.5">
+            <span className="w-12 shrink-0 text-[11px] font-medium tabular-nums text-neutral-400">1×</span>
+            <input
+              type="range" min={1} max={12} step={1}
+              value={roas}
+              onChange={(e) => onChange({ roas: Number(e.target.value) })}
+              aria-label="Target return on ad spend, as a multiple"
+              className="h-2 min-w-0 flex-1 cursor-pointer appearance-none rounded-full"
+              style={{ accentColor: BRAND }}
+            />
+            <span className="w-12 shrink-0 text-right text-[11px] font-medium tabular-nums text-neutral-400">12×</span>
+          </div>
+        </div>
+
+        {/* Confidence — one slim strip: gauge chip, tier dot + level, reason.
+            min-h pins the row so tier changes mid-drag never shift the layout;
+            the desc wraps within its own column at narrow wizard widths. */}
+        <div className="flex min-h-[40px] items-center gap-3 rounded-xl border border-black/[0.06] bg-white px-3.5 py-2.5 shadow-[0_1px_2px_rgba(16,12,40,0.04)]">
+          <div className="h-1.5 w-20 shrink-0 overflow-hidden rounded-full bg-neutral-100" aria-hidden="true">
+            <div
+              className={`h-full rounded-full transition-all duration-500 ${confidence.bar}`}
+              style={{ width: `${confidence.pct}%` }}
+            />
+          </div>
+          <p className={`flex shrink-0 items-center gap-1.5 text-[13px] font-semibold ${confidence.text}`} role="status">
+            <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${confidence.bar}`} />
+            {confidence.level}
+          </p>
+          <p className="min-w-0 flex-1 text-[13px] leading-snug text-neutral-400">{confidence.desc}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -439,7 +516,6 @@ function PlanCalculator({
     </div>
   );
 }
-
 function StepBudget({ data, onChange }: { data: CampaignData; onChange: (d: Partial<CampaignData>) => void }) {
   const projectedSales = data.budget * data.roas;
   const phase1 = Math.round(data.budget * 0.1);
@@ -1308,6 +1384,7 @@ function AgentChat({ onComplete, onSwitchManual, onOpenPlan, planOpen }: {
                    as you drag rather than after you commit. */
                 <div className="px-4 pb-4 pt-2">
                   <PlanCalculator
+                    compact
                     budget={calc.budget}
                     roas={calc.roas}
                     onChange={(d) => setCalc((c) => ({ ...c, ...d }))}
