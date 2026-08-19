@@ -299,28 +299,28 @@ export default function CampaignDetailPage() {
                             aria-label={`${c.name}, ${a.format} for ${a.platform}. ${
                               a.signal === "none" ? "Waiting on you." : a.signal === "liked" ? "Liked — publishing." : "Disliked — will not publish."
                             } Open the review on this ad.`}
-                            className="group relative block aspect-[9/14] w-[92px] shrink-0 overflow-hidden rounded-xl bg-neutral-200 ring-1 ring-black/[0.06] transition hover:ring-2 hover:ring-[#4D2FB0]/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4D2FB0]"
+                            className="group relative block aspect-[9/14] w-[132px] shrink-0 overflow-hidden rounded-2xl bg-neutral-200 ring-1 ring-black/[0.06] transition hover:ring-2 hover:ring-[#4D2FB0]/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4D2FB0]"
                           >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src={a.img} alt="" loading="lazy" className="h-full w-full object-cover object-top" />
                             <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
-                            <span aria-hidden="true" className="absolute left-1.5 top-1.5 rounded bg-black/55 px-1.5 py-0.5 text-[9px] font-bold text-white backdrop-blur-sm">
+                            <span aria-hidden="true" className="absolute left-2 top-2 rounded-md bg-black/55 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm">
                               {a.format}
                             </span>
                             {a.signal !== "none" && (
                               <span
                                 aria-hidden="true"
-                                className={`absolute right-1.5 top-1.5 grid h-4 w-4 place-items-center rounded-full text-white ${
+                                className={`absolute right-2 top-2 grid h-5 w-5 place-items-center rounded-full text-white ${
                                   a.signal === "liked" ? "bg-[#059669]" : "bg-black/60"
                                 }`}
                               >
                                 {a.signal === "liked"
-                                  ? <ThumbsUp size={9} weight="fill" />
-                                  : <ThumbsDown size={9} weight="fill" />}
+                                  ? <ThumbsUp size={11} weight="fill" />
+                                  : <ThumbsDown size={11} weight="fill" />}
                               </span>
                             )}
-                            <span className="absolute inset-x-0 bottom-1.5 px-2 text-left">
-                              <span className="block truncate text-[10.5px] font-bold text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.95)]">
+                            <span className="absolute inset-x-0 bottom-2 px-2.5 text-left">
+                              <span className="block truncate text-[12px] font-bold text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.95)]">
                                 {c.name.split(" ")[0]}
                               </span>
                             </span>
