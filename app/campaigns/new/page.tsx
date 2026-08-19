@@ -389,7 +389,7 @@ function PlanCalculator({
      The wizard step is a full page and keeps the roomier original. */
   if (compact) {
     return (
-      <div className="space-y-5">
+      <div className="space-y-6">
         {/* Budget — label and value share a baseline; bounds flank the track.
             Fixed w-12 flanks keep both sliders' tracks vertically aligned. */}
         <div>
@@ -399,7 +399,7 @@ function PlanCalculator({
               ${budget.toLocaleString()}
             </p>
           </div>
-          <div className="mt-2 flex items-center gap-2.5">
+          <div className="mt-3 flex items-center gap-2.5">
             <span className="w-12 shrink-0 text-[11px] font-medium tabular-nums text-neutral-400">$1,000</span>
             <input
               type="range" min={1000} max={80000} step={1000}
@@ -413,19 +413,19 @@ function PlanCalculator({
           </div>
         </div>
 
-        {/* ROAS — the projection rides the value's baseline as a live equation:
-            inputs in brand purple, the outcome in ink. */}
+        {/* ROAS — the projection is a live equation, but on its own quiet
+            line: inputs in brand purple, the outcome in ink. */}
         <div>
-          <div className="flex items-baseline justify-between gap-3">
-            <p className="text-[13px] font-medium" style={{ color: INK }}>Target ROAS</p>
-            <p className="flex items-baseline gap-2">
-              <span className="text-xl font-semibold leading-none tracking-tight tabular-nums text-[#4D2FB0]">{roas}×</span>
-              <span className="text-xs text-neutral-400">
+          <div className="flex items-start justify-between gap-3">
+            <p className="mt-0.5 text-[13px] font-medium" style={{ color: INK }}>Target ROAS</p>
+            <div className="text-right">
+              <p className="text-xl font-semibold leading-none tracking-tight tabular-nums text-[#4D2FB0]">{roas}×</p>
+              <p className="mt-1.5 text-xs text-neutral-400">
                 = <span className="font-medium tabular-nums" style={{ color: INK }}>${projected.toLocaleString()}</span> projected revenue
-              </span>
-            </p>
+              </p>
+            </div>
           </div>
-          <div className="mt-2 flex items-center gap-2.5">
+          <div className="mt-3 flex items-center gap-2.5">
             <span className="w-12 shrink-0 text-[11px] font-medium tabular-nums text-neutral-400">1×</span>
             <input
               type="range" min={1} max={12} step={1}
@@ -439,18 +439,17 @@ function PlanCalculator({
           </div>
         </div>
 
-        {/* Confidence — one slim strip: gauge chip, tier dot + level, reason.
-            min-h pins the row so tier changes mid-drag never shift the layout;
-            the desc wraps within its own column at narrow wizard widths. */}
-        <div className="flex min-h-[40px] items-center gap-3 rounded-xl border border-black/[0.06] bg-white px-3.5 py-2.5 shadow-[0_1px_2px_rgba(16,12,40,0.04)]">
+        {/* Confidence — one slim strip: gauge chip, level, reason. min-h pins
+            the row so tier changes mid-drag never shift the layout; the desc
+            wraps within its own column at narrow widths. */}
+        <div className="flex min-h-[44px] items-center gap-3.5 rounded-xl border border-black/[0.06] bg-white px-4 py-3 shadow-[0_1px_2px_rgba(16,12,40,0.04)]">
           <div className="h-1.5 w-20 shrink-0 overflow-hidden rounded-full bg-neutral-100" aria-hidden="true">
             <div
               className={`h-full rounded-full transition-all duration-500 ${confidence.bar}`}
               style={{ width: `${confidence.pct}%` }}
             />
           </div>
-          <p className={`flex shrink-0 items-center gap-1.5 text-[13px] font-semibold ${confidence.text}`} role="status">
-            <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${confidence.bar}`} />
+          <p className={`shrink-0 text-[13px] font-semibold ${confidence.text}`} role="status">
             {confidence.level}
           </p>
           <p className="min-w-0 flex-1 text-[13px] leading-snug text-neutral-400">{confidence.desc}</p>
