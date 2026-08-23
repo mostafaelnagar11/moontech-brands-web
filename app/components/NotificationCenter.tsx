@@ -5,10 +5,16 @@ import { useRouter } from "next/navigation";
 import {
   Bell, Lightning, Images, UsersThree, CreditCard, ChartLineUp, Checks,
 } from "@phosphor-icons/react";
+import {
+  CAMPAIGNS, adsFor, duePhase, fmtUSD, nextPhase, phaseTitle,
+} from "../lib/campaigns";
 
 const INK = "#191234";
 
-type NotifType = "phase" | "content" | "creator" | "payment" | "report";
+/* Every alert is now about a phase, because a campaign IS a phase — so
+   "phase" stopped telling the types apart. `ladder` is the class of event
+   that moves a brand along its ladder: an unlock, a pace check. */
+type NotifType = "ladder" | "content" | "creator" | "payment" | "report";
 
 interface Notif {
   id: string;
@@ -21,20 +27,83 @@ interface Notif {
   cta?: string;
 }
 
+/* ------------------------------------------------------------------ */
+/* The seed.                                                          */
+/*                                                                    */
+/* A campaign is a phase, so every alert is about ONE PHASE: there is */
+/* no brand-chosen name to drop into a sentence, and nothing here may */
+/* imply that a brand has several campaigns running at once. Titles   */
+/* come from phaseTitle, so an alert and the card it opens can never  */
+/* disagree about what the thing is called.                           */
+/*                                                                    */
+/* The figures are read off the SEED rather than the funded roster:   */
+/* an alert records what was true when it fired, and funding a phase  */
+/* today must not rewrite yesterday's sentence.                       */
+/*                                                                    */
+/* Two brands appear below, each on its own ladder — Ounass two rungs */
+/* in with Phase 3 unlocked and waiting on payment, Luna still        */
+/* climbing to its own 80% line. Nothing is totalled across them.     */
+/* ------------------------------------------------------------------ */
+const seed = (id: string) => CAMPAIGNS.find((c) => c.id === id)!;
+
+const OU_LIVE = seed("ounass-phase-2");
+const LU_LIVE = seed("luna-phase-2");
+const LU_PAID = seed("luna-phase-1");   // the phase that receipt belongs to
+const LU_NEXT = nextPhase(LU_LIVE)!;    // what Luna's 80% line unlocks
+
+/* duePhase only ever returns a Ready phase carrying a `due`, and a `due`
+   funds the phase it sits on — so the CTA below is Phase 3 paying for
+   Phase 3, never a sibling. */
+const OU_DUE = duePhase("ounass")!;
+const OU_FUND = OU_DUE.due!;
+
 const NOTIFS: Notif[] = [
-  { id: "n1", type: "phase",   group: "Today",   time: "2m ago",  title: "Phase 2 unlocked 🎉", body: "Spring 2026 hit 84% of its Phase 1 target — the next phase is ready.", href: "/campaigns/spring-2026", cta: "Fund Phase 2 — $3,000" },
+  { id: "n1", type: "ladder",  group: "Today",   time: "2m ago",
+    title: `${phaseTitle(OU_DUE.phaseNo)} unlocked 🎉`,
+    body: `${phaseTitle(OU_LIVE.phaseNo)} reached ${OU_LIVE.revPct}% of its ${fmtUSD(OU_LIVE.revTarget!)} target — the next rung is ready to fund.`,
+    href: `/campaigns/${OU_DUE.id}`,
+    cta: `${OU_FUND.label} — ${fmtUSD(OU_FUND.amount)}` },
   /* This used to read "12 ads awaiting review — needs your approval before it
-     goes live", which is the exact claim the signup key terms deny. */
-  { id: "n2", type: "content", group: "Today",   time: "1h ago",  title: "8 ads waiting on you", body: "Spring 2026 ads are ready to publish — nothing publishes until you like them.", href: "/campaigns/ads?c=spring-2026" },
-  { id: "n3", type: "creator", group: "Today",   time: "3h ago",  title: "8 creators waiting on you", body: "Fresh matches for your Ounass campaign.", href: "/creators" },
-  { id: "n4", type: "payment", group: "Earlier", time: "Yesterday", title: "Payment received — $500", body: "Phase 1 payment for Ramadan Flash was processed by Mamo Pay.", href: "/settings" },
-  { id: "n5", type: "report",  group: "Earlier", time: "Yesterday", title: "Your weekly report is ready", body: "Revenue up 18% week over week · ROAS 5.8×. See what changed.", href: "/dashboard" },
-  { id: "n6", type: "creator", group: "Earlier", time: "2d ago",  title: "Layla Al Rashid accepted your campaign", body: "She'll start publishing within 48 hours.", href: "/creators" },
-  { id: "n7", type: "phase",   group: "Earlier", time: "3d ago",  title: "Ramadan Flash is on pace", body: "77% of the Phase 2 target — unlock expected in about 3 days.", href: "/campaigns/ramadan-flash" },
+     goes live", which is the exact claim the signup key terms deny. The count
+     is DERIVED from the drafts sitting on the phase, so the bell and the
+     review screen cannot disagree about how much is waiting.
+
+     It counts UNDECIDED drafts, not every draft on the phase. Two of the
+     eight already carry a signal, and a draft you have judged is not
+     waiting on you — the campaigns list says 6, so this has to say 6. */
+  { id: "n2", type: "content", group: "Today",   time: "1h ago",
+    title: `${adsFor(OU_LIVE.id).filter((a) => a.signal === "none").length} ads waiting on you`,
+    body: `Drafts from ${phaseTitle(OU_LIVE.phaseNo)} are ready to publish — nothing publishes until you like them.`,
+    href: `/campaigns/ads?c=${OU_LIVE.id}` },
+  { id: "n3", type: "creator", group: "Today",   time: "3h ago",
+    title: "8 creators waiting on you",
+    body: `Fresh matches for ${phaseTitle(OU_LIVE.phaseNo)}.`,
+    href: "/creators" },
+  { id: "n4", type: "payment", group: "Earlier", time: "Yesterday",
+    title: `Payment received — ${fmtUSD(LU_PAID.budget)}`,
+    body: `Mamo Pay processed Luna Beauty's funding for ${phaseTitle(LU_PAID.phaseNo)}.`,
+    href: `/campaigns/${LU_PAID.id}` },
+  /* ROAS is PER PHASE: this is what Phase 2 returned on the budget Phase 2
+     was given, against the multiple guaranteed on it. Never a figure pooled
+     across the ladder or across brands. */
+  { id: "n5", type: "report",  group: "Earlier", time: "Yesterday",
+    title: "Your weekly report is ready",
+    body: `${phaseTitle(OU_LIVE.phaseNo)} is up 18% week over week — ${OU_LIVE.roas} on the ${fmtUSD(OU_LIVE.budget)} it was given, against ${OU_LIVE.guaranteedRoas}× guaranteed.`,
+    href: "/dashboard" },
+  { id: "n6", type: "creator", group: "Earlier", time: "2d ago",
+    title: `Layla Al Rashid joined ${phaseTitle(OU_LIVE.phaseNo)}`,
+    body: "She'll start publishing within 48 hours.",
+    href: "/creators" },
+  /* Three days old, so it reports where Luna's Phase 2 stood THEN — below
+     the 55% the seed shows today, because a phase's revenue only climbs. */
+  { id: "n7", type: "ladder",  group: "Earlier", time: "3d ago",
+    title: `${phaseTitle(LU_LIVE.phaseNo)} is on pace`,
+    body: `Luna Beauty was 45% of the way to this phase's ${fmtUSD(LU_LIVE.revTarget!)} target — ${phaseTitle(LU_NEXT.phaseNo)} unlocks at 80%.`,
+    href: `/campaigns/${LU_LIVE.id}` },
 ];
 
 const TYPE_STYLE: Record<NotifType, { icon: React.ReactNode; tile: string }> = {
-  phase:   { icon: <Lightning size={15} weight="fill" />,  tile: "bg-[#4D2FB0]/[0.08] text-[#4D2FB0]" },
+  ladder:  { icon: <Lightning size={15} weight="fill" />,  tile: "bg-[#4D2FB0]/[0.08] text-[#4D2FB0]" },
   content: { icon: <Images size={15} weight="fill" />,     tile: "bg-amber-50 text-amber-600" },
   creator: { icon: <UsersThree size={15} weight="fill" />, tile: "bg-teal-50 text-teal-600" },
   payment: { icon: <CreditCard size={15} weight="fill" />, tile: "bg-green-50 text-green-600" },

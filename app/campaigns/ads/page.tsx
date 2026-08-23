@@ -37,10 +37,12 @@ import {
   InstagramLogo, TiktokLogo, YoutubeLogo, type Icon,
 } from "@phosphor-icons/react";
 import {
-  CAMPAIGNS, adChecks, adCreator, adHero, adsFor,
+  CAMPAIGNS, adChecks, adCreator, adHero, adsFor, fmtUSD, livePhase, phaseTitle,
   type Ad, type AdSignal, type Platform,
 } from "../../lib/campaigns";
 import { setAdSignal, useAdsFor } from "../../lib/adSignals";
+import { useActiveBrandId } from "../../lib/brand";
+import { useCampaign, useRoster } from "../../lib/funding";
 
 const BRAND = "#4D2FB0";
 const BRAND_HOVER = "#3F2596";
@@ -63,6 +65,16 @@ type Toast = { key: number; id: string; name: string; to: AdSignal; from: AdSign
 export default function CampaignAdsPage() {
   const router = useRouter();
 
+  /* The active brand's ladder, and the one phase of it that is RUNNING —
+     phases run in sequence, so there is at most one. The no-param fallback
+     below opens it, and it is read through a ref because that effect runs
+     once on mount, before a brand switch could change the answer. */
+  const brandId = useActiveBrandId();
+  const roster = useRoster();
+  const live = livePhase(brandId, roster);
+  const liveRef = useRef(live);
+  liveRef.current = live;
+
   /* ?c= is read in an effect, exactly as app/campaigns/page.tsx does, so
      this route never needs a Suspense boundary. `resolved` separates "the
      effect has not run yet" (skeleton) from "the effect ran and found no
@@ -83,14 +95,19 @@ export default function CampaignAdsPage() {
   useEffect(() => {
     const q = new URLSearchParams(window.location.search).get("c");
     /* An UNKNOWN ?c= resolves to nothing. It must never fall back to another
-       campaign: silently substituting one means a reviewer rates Spring
-       2026's creative believing it belongs to the campaign they asked for,
-       and a like publishes it. No id at all is a different case — the route
-       was opened without context, so the first campaign with drafts is a
-       fair default. */
+       phase: silently substituting one means a reviewer rates Phase 3's
+       creative believing it belongs to the phase they asked for, and a like
+       publishes it. A KNOWN id is honoured whichever brand's ladder it sits
+       on, so a deep link stays valid across a brand switch.
+
+       No id at all is a different case — the route was opened without
+       context, so we open the active brand's LIVE phase: drafts are cut for
+       whatever is running, and only one phase runs at a time. Taking "the
+       first phase that has drafts" instead used to reach past this brand
+       into another one's ladder, which no screen may do. */
     const id = q
       ? (CAMPAIGNS.some((c) => c.id === q) ? q : null)
-      : CAMPAIGNS.find((c) => adsFor(c.id).length > 0)?.id ?? null;
+      : liveRef.current?.id ?? null;
     setCid(id);
     setResolved(true);
 
@@ -151,7 +168,9 @@ export default function CampaignAdsPage() {
 
   const ad: Ad | null = shown[sel] ?? null;
   const creator = ad ? adCreator(ad) : null;
-  const campaign = cid ? CAMPAIGNS.find((c) => c.id === cid) ?? null : null;
+  /* Funding applied and looked up across brands, so a phase funded on the
+     detail route reads back with the budget it is actually spending. */
+  const campaign = useCampaign(cid ?? "") ?? null;
 
   const go = useCallback((i: number) => {
     setSel((s) => (i < 0 || i >= adsRef.current.length ? s : i));
@@ -258,19 +277,23 @@ export default function CampaignAdsPage() {
     <header className="flex h-[60px] shrink-0 items-center gap-3 border-b border-white/10 px-4">
       <button
         onClick={back}
-        aria-label={campaign ? `Back to ${campaign.name}` : "Back to all campaigns"}
+        aria-label={campaign ? `Back to ${phaseTitle(campaign.phaseNo)}` : "Back to all campaigns"}
         className="flex min-w-0 items-center gap-2 rounded-xl px-2.5 py-2 text-white/70 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
       >
         <ArrowLeft size={18} weight="bold" aria-hidden="true" className="shrink-0" />
         <span className="max-w-[190px] truncate text-[12.5px] font-semibold">
-          Back to {campaign?.name ?? "campaigns"}
+          Back to {campaign ? phaseTitle(campaign.phaseNo) : "campaigns"}
         </span>
       </button>
       <span aria-hidden="true" className="hidden h-6 w-px shrink-0 bg-white/10 sm:block" />
       <div className="hidden min-w-0 shrink-0 sm:block">
         <p className="text-[15px] font-semibold leading-tight text-white">Ad review</p>
+        {/* The back link already names the phase, so repeating it here said
+            nothing twice. This carries the fact a like actually spends
+            against: THIS phase's budget, which is the only budget behind
+            anything published from this queue. */}
         <p className="truncate text-[11px] leading-tight text-white/50">
-          {campaign?.name ?? "Campaign"}
+          {campaign ? `${fmtUSD(campaign.budget)} phase budget` : "No phase selected"}
         </p>
       </div>
       {children}
@@ -309,19 +332,19 @@ export default function CampaignAdsPage() {
         ) : (
           <main className="flex min-h-0 flex-1 flex-col items-center justify-center px-6 py-16 text-center">
             <p className="text-2xl font-bold text-white">
-              {cid ? "Nothing waiting on you" : "We can't find that campaign"}
+              {cid ? "Nothing waiting on you" : "We can't find that phase"}
             </p>
             <p className="mt-2 max-w-[440px] text-sm leading-relaxed text-white/60">
               {cid ? (
                 <>
-                  {campaign ? `${campaign.name} has` : "This campaign has"} no ads to review.
-                  New ads land here the moment a creator finishes one.
+                  {campaign ? `${phaseTitle(campaign.phaseNo)} has` : "This phase has"} no ads to
+                  review. New ads land here the moment a creator finishes one.
                 </>
               ) : (
                 <>
-                  The link points at a campaign that isn&apos;t one of your campaigns, so there are
-                  no ads to review. Pick the campaign you meant and we&apos;ll open its
-                  ads.
+                  This link points at a phase we can&apos;t find, so there are no ads to review.
+                  Open the phase you meant from your campaigns and we&apos;ll show the drafts
+                  waiting on it.
                 </>
               )}
             </p>
@@ -329,7 +352,7 @@ export default function CampaignAdsPage() {
               onClick={back}
               className="mt-7 inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2.5 text-[13px] font-semibold text-white ring-1 ring-white/20 transition-colors hover:bg-white/[0.16] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
             >
-              {cid ? "Back to campaign" : "All campaigns"}
+              {cid ? "Back to phase" : "All campaigns"}
             </button>
           </main>
         )}

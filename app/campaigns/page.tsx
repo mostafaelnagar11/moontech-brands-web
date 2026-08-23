@@ -1,30 +1,36 @@
 "use client";
 
 /* ------------------------------------------------------------------ */
-/* Campaigns list — ported from the MoonTech mobile app, re-expressed  */
-/* for a desktop browser. Same sections, same data, same words:        */
-/* Live masthead → Phases waiting on you → Ads waiting on you →        */
-/* filter → cards → Archive.                                           */
+/* Campaigns list — THE LADDER.                                        */
 /*                                                                     */
-/* Everything derives from useRoster() so a phase funded on the detail  */
-/* route is already applied when you come back here.                   */
+/* A campaign is a phase, so this screen is the active brand's ladder   */
+/* in phase order: what has finished, the one thing running, what is    */
+/* unlocked, and what is still queued behind it.                        */
 /*                                                                     */
-/* NOTE — this screen never prints a portfolio lifetime revenue total.  */
-/* The masthead figure is live-phase revenue only.                     */
+/* The ladder is UNBOUNDED — a brand can be on Phase 2 or Phase 20 —    */
+/* so nothing here may assume a length. Completed phases collapse into  */
+/* the Archive rather than growing the grid forever.                    */
+/*                                                                     */
+/* Everything derives from useRoster(), which is already scoped to the  */
+/* active brand and sorted by phase, so a phase funded on the detail    */
+/* route is applied when you come back here.                            */
+/*                                                                     */
+/* NOTE — never print a total across brands, and never a lifetime       */
+/* total. The masthead figure is the running phase's revenue.           */
 /* ------------------------------------------------------------------ */
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  CaretRight, CheckCircle, Clock, Lightning, List, Megaphone, Plus, SignOut,
+  CaretRight, CheckCircle, Clock, Lightning, List, LockSimple, Megaphone, SignOut,
 } from "@phosphor-icons/react";
 import Sidebar from "../components/Sidebar";
 import NotificationCenter from "../components/NotificationCenter";
 import CommandPalette from "../components/CommandPalette";
 import StatusBadge from "../components/StatusBadge";
 import {
-  CAMPAIGNS, adsFor, fmtUSD,
-  type Ad, type Campaign, type CampaignStatus, type PhaseState,
+  CAMPAIGNS, adsFor, fmtUSD, phaseHasStarted, phaseTitle, prevPhase,
+  type Ad, type Campaign, type CampaignStatus,
 } from "../lib/campaigns";
 import { useRoster } from "../lib/funding";
 import { useAdOverrides } from "../lib/adSignals";
@@ -35,7 +41,7 @@ import { useAdOverrides } from "../lib/adSignals";
 const BRAND = "#4D2FB0";
 const INK = "#191234";
 
-const STATUS_FILTERS = ["All", "Live", "Ready", "Ended"] as const;
+const STATUS_FILTERS = ["All", "Live", "Ready", "Locked", "Ended"] as const;
 type StatusFilter = (typeof STATUS_FILTERS)[number];
 
 /* The filter VALUES are the stored campaign statuses; the labels are the
@@ -44,25 +50,26 @@ const FILTER_LABEL: Record<StatusFilter, string> = {
   All: "All",
   Live: "Live",
   Ready: "Ready to fund",
+  Locked: "Queued",
   Ended: "Complete",
 };
 
-/* byte-identical to the mobile phase stepper */
-const segCls = (v: PhaseState) =>
-  v === "Done" ? "keyline-grad" : v === "Active" ? "bg-amber-400" : "bg-[#E5E4EC]";
-
 /* ------------------------------------------------------------------ */
-/* The three states a card can be in                                   */
+/* The two states a card can be in                                     */
 /*                                                                     */
-/* Funding a phase clears revTarget/revPct and leaves the campaign      */
-/* Live with no numbers yet, so "has a measured target" and "is         */
-/* running" are two different questions. A funded phase is DEPLOYING:   */
-/* live, but nothing measured — it must not be described as banked.     */
+/* A phase gets its target the moment it is funded — budget × the       */
+/* multiple guaranteed on it — so anything that has run, or is running, */
+/* is METERED and shows revenue against that target.                    */
+/*                                                                     */
+/* A phase that has not run is QUEUED. Its revenue is zero and its      */
+/* ROAS is undefined, so printing them would read as failure rather     */
+/* than as "not started". What it honestly has is the money it will     */
+/* deploy and the multiple promised on it.                              */
 /* ------------------------------------------------------------------ */
-type CardState = "metered" | "deploying" | "banked";
+type CardState = "metered" | "queued";
 
 const cardState = (c: Campaign): CardState =>
-  c.revPct !== null ? "metered" : c.status === "Live" ? "deploying" : "banked";
+  c.revTarget !== null ? "metered" : "queued";
 
 /* ------------------------------------------------------------------ */
 /* Campaign card — one component, three bodies                         */
@@ -70,11 +77,13 @@ const cardState = (c: Campaign): CardState =>
 function CampaignCard({ c, i, onOpen }: { c: Campaign; i: number; onOpen: (id: string) => void }) {
   const state = cardState(c);
   const metered = state === "metered";
+  const title = phaseTitle(c.phaseNo);
+  const before = prevPhase(c);
   const label = metered
-    ? `${c.name}, live, Phase ${c.phaseNo} ${c.phaseName}, ${fmtUSD(c.rev)} of ${fmtUSD(c.revTarget!)}, ${c.revPct} percent of the phase target, ${c.roas} ROAS. Open campaign details.`
-    : state === "deploying"
-      ? `${c.name}, live, Phase ${c.phaseNo} ${c.phaseName}, ${c.revLabel} revenue so far, ${c.roas} ROAS. Open campaign details.`
-      : `${c.name}, ${c.status.toLowerCase()}, Phase ${c.phaseNo} ${c.phaseName}, ${c.revLabel} revenue, ${c.roas} ROAS. Open campaign details.`;
+    ? `${title}, ${c.status.toLowerCase()}, ${fmtUSD(c.rev)} of ${fmtUSD(c.revTarget!)}, ${c.revPct} percent of this phase's target, ${c.roas} ROAS. Open phase.`
+    : c.status === "Ready"
+      ? `${title}, ready to fund, ${fmtUSD(c.budget)} to deploy at a guaranteed ${c.guaranteedRoas} times. Open phase.`
+      : `${title}, queued, ${fmtUSD(c.budget)} reserved. Unlocks when the running phase crosses its 80% line. Open phase.`;
 
   return (
     <button
@@ -86,14 +95,10 @@ function CampaignCard({ c, i, onOpen }: { c: Campaign; i: number; onOpen: (id: s
       {/* Row 1 — identity */}
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h3 className="truncate text-[15px] font-semibold" style={{ color: INK }}>{c.name}</h3>
-          <p className="mt-0.5 truncate text-xs text-neutral-500">
-            {metered
-              ? c.dates
-              : c.due
-                ? `Phase ${c.phaseNo} · ${c.phaseName} — ready to fund`
-                : `Phase ${c.phaseNo} · ${c.phaseName}`}
-          </p>
+          <h3 className="truncate text-[15px] font-semibold" style={{ color: INK }}>{title}</h3>
+          {/* The name is the phase, so the second line carries the only
+              other fact of identity a phase has: its own window. */}
+          <p className="mt-0.5 truncate text-xs text-neutral-500">{c.dates}</p>
         </div>
         <StatusBadge status={c.status} />
       </div>
@@ -108,7 +113,16 @@ function CampaignCard({ c, i, onOpen }: { c: Campaign; i: number; onOpen: (id: s
                 of {fmtUSD(c.revTarget!)}
               </span>
             </p>
-            <p className="text-sm font-semibold tabular-nums text-[#4D2FB0]">{c.revPct}%</p>
+            <span className="flex shrink-0 items-baseline gap-2">
+              {/* A phase funded a moment ago is metered but has earned
+                  nothing, so its ROAS is "—". Printing "— ROAS" reads as a
+                  broken number; until there is revenue, the honest figure
+                  is the multiple it is promised. */}
+              <span className="rounded-full bg-[#F6F4FC] px-2 py-0.5 text-[11px] font-semibold tabular-nums text-[#4D2FB0]">
+                {c.rev > 0 ? `${c.roas} ROAS` : `${c.guaranteedRoas}× guaranteed`}
+              </span>
+              <span className="text-sm font-semibold tabular-nums text-[#4D2FB0]">{c.revPct}%</span>
+            </span>
           </div>
 
           {/* THE SIGNATURE — the 80% unlock line */}
@@ -138,53 +152,47 @@ function CampaignCard({ c, i, onOpen }: { c: Campaign; i: number; onOpen: (id: s
           )}
         </>
       ) : (
-        /* Row 2B — banked, or deploying: the same figure, honestly labelled.
-           A phase funded a moment ago has earned nothing new yet, so its
-           revLabel is money banked to date — not a finished total. */
+        /* Row 2B — a phase that has not run. Its revenue is $0 and its
+           ROAS is undefined, so the honest figures are the budget it
+           will deploy and the multiple guaranteed on it. */
         <>
           <div className="mt-4 flex items-end justify-between gap-3">
             <div className="min-w-0">
               <p className="text-[26px] font-bold leading-none tabular-nums" style={{ color: INK }}>
-                {c.revLabel}
+                {fmtUSD(c.budget)}
               </p>
               <p className="mt-1.5 text-[11px] font-medium text-neutral-500">
-                {state === "deploying" ? "revenue so far" : "revenue across completed phases"}
+                {c.status === "Ready" ? "ready to deploy" : "reserved for this phase"}
               </p>
             </div>
             <span className="shrink-0 rounded-full bg-[#F6F4FC] px-2 py-0.5 text-[11px] font-semibold tabular-nums text-[#4D2FB0]">
-              {c.roas} ROAS
+              {c.guaranteedRoas}× guaranteed
             </span>
           </div>
-          {c.threshold && (
+          {c.status === "Ready" && c.due ? (
             <p className="mt-2.5 flex items-start gap-1.5 text-xs font-medium text-[#4D2FB0]">
               <Lightning size={13} weight="fill" aria-hidden="true" className="mt-px shrink-0" />
-              {c.threshold}
+              {c.due.reason}
+            </p>
+          ) : (
+            <p className="mt-2.5 flex items-start gap-1.5 text-xs font-medium text-neutral-400">
+              <LockSimple size={13} weight="fill" aria-hidden="true" className="mt-px shrink-0" />
+              {before
+                ? `Unlocks when ${phaseTitle(before.phaseNo)} crosses its 80% line`
+                : "Unlocks when the phase before it crosses its 80% line"}
             </p>
           )}
         </>
       )}
 
-      {/* Spacer — keeps the stepper on the card's floor so a row of cards
-          aligns on the same line however tall their bodies are. */}
-      <div aria-hidden="true" className="min-h-[1.25rem] flex-1" />
+      {/* Spacer — floats the crew strip to the card's floor so a row of
+          cards aligns on the same line however tall their bodies are.
 
-      {/* Row 4 — phase stepper */}
-      <div className="flex items-center justify-between gap-3 border-t border-black/[0.06] pt-3.5">
-        <div className="flex items-center gap-1.5">
-          <span className="sr-only">{`Phase 1 ${c.phases[0]}, Phase 2 ${c.phases[1]}, Phase 3 ${c.phases[2]}`}</span>
-          {c.phases.map((p, j) => (
-            <span key={j} aria-hidden="true" className="flex flex-col items-center gap-1">
-              <span className={`h-[5px] w-9 rounded-full ${segCls(p)}`} />
-              <span className="text-[10px] font-semibold text-neutral-500">P{j + 1}</span>
-            </span>
-          ))}
-        </div>
-        {metered && (
-          <span className="shrink-0 rounded-full bg-[#F6F4FC] px-2 py-0.5 text-[11px] font-semibold tabular-nums text-[#4D2FB0]">
-            {c.roas} ROAS
-          </span>
-        )}
-      </div>
+          There is no phase stepper here any more. The ladder is unbounded
+          and this list IS the ladder, so a fixed three-segment strip on
+          every card was both impossible and a second drawing of the
+          screen it sits on. */}
+      <div aria-hidden="true" className="min-h-[1.25rem] flex-1" />
 
       {/* Row 5 — the crew. Keyed off the crew itself, not off the metering:
           a just-funded phase still has its matched creators. */}
@@ -206,7 +214,11 @@ function CampaignCard({ c, i, onOpen }: { c: Campaign; i: number; onOpen: (id: s
 }
 
 /* ------------------------------------------------------------------ */
-/* Archive — ended campaigns stop being cards                          */
+/* Archive — completed phases stop being cards.                        */
+/*                                                                     */
+/* This is what makes an unbounded ladder survive: a brand twelve       */
+/* phases in has eleven finished, and eleven cards would bury the one   */
+/* thing that is actually running.                                      */
 /* ------------------------------------------------------------------ */
 function ArchiveBlock({
   rows, delay, showEyebrow, onOpen,
@@ -228,7 +240,7 @@ function ArchiveBlock({
           <button
             key={c.id}
             onClick={() => onOpen(c.id)}
-            aria-label={`${c.name}, ended, all three phases complete, ${c.revLabel}, ${c.roas} ROAS. Open campaign details.`}
+            aria-label={`${phaseTitle(c.phaseNo)}, complete, ${c.revLabel} earned, ${c.roas} ROAS. Open phase.`}
             className={`flex w-full items-center gap-3.5 px-4 py-3.5 text-left transition-colors hover:bg-neutral-50 sm:px-5 ${
               i > 0 ? "border-t border-black/[0.06]" : ""
             }`}
@@ -237,8 +249,8 @@ function ArchiveBlock({
               <CheckCircle size={17} weight="fill" className="text-neutral-400" />
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm font-semibold" style={{ color: INK }}>{c.name}</span>
-              <span className="mt-0.5 block text-xs text-neutral-500">All 3 phases complete</span>
+              <span className="block truncate text-sm font-semibold" style={{ color: INK }}>{phaseTitle(c.phaseNo)}</span>
+              <span className="mt-0.5 block text-xs text-neutral-500">{c.dates}</span>
             </span>
             <span className="shrink-0 text-right">
               <span className="block text-sm font-semibold tabular-nums" style={{ color: INK }}>{c.revLabel}</span>
@@ -270,13 +282,17 @@ export default function CampaignsPage() {
   const roster = useRoster();
   const open = (id: string) => router.push(`/campaigns/${id}`);
 
+  /* At most one phase can be awaiting payment, because only the phase
+     after the running one can be unlocked. */
   const actions = roster.filter((c) => c.due);
+  const nextDue = actions[0];
 
   /* Drafts still waiting on the brand, per campaign. useWaitingFor is a hook,
      so it can't be called inside a loop — the overrides are read once and
      applied exactly the way useAdsFor applies them. */
   const overrides = useAdOverrides();
   const adQueue: { c: Campaign; waiting: Ad[] }[] = roster
+    .filter(phaseHasStarted)
     .map((c) => ({
       c,
       waiting: adsFor(c.id).filter((a) => (overrides[a.id] ?? a.signal) === "none"),
@@ -284,16 +300,11 @@ export default function CampaignsPage() {
     .filter((r) => r.waiting.length > 0);
   const adsWaiting = adQueue.reduce((s, r) => s + r.waiting.length, 0);
 
-  /* IN FLIGHT means live, which is the same question the Live chip asks —
-     never revPct, which funding nulls. The bar can only average the phases
-     that HAVE a target; the deploying ones are counted and named instead, so
-     the headline figure and the phase count can't contradict each other. */
-  const inFlight = roster.filter((c) => c.status === "Live");
-  const meteredFlight = inFlight.filter((c) => c.revTarget !== null);
-  const deployingCount = inFlight.length - meteredFlight.length;
-  const flightRev = meteredFlight.reduce((s, c) => s + c.rev, 0);
-  const flightTarget = meteredFlight.reduce((s, c) => s + (c.revTarget ?? 0), 0);
-  const flightPct = flightTarget ? Math.round((flightRev / flightTarget) * 100) : 0;
+  /* Phases run one after another, never side by side, so a brand has AT
+     MOST ONE live phase. There is nothing to combine and nothing to
+     average: the headline IS the running phase, and it always has a
+     target because funding sets one. */
+  const live = roster.find((c) => c.status === "Live");
   const count = (s: CampaignStatus) => roster.filter((c) => c.status === s).length;
 
   /* The three headline panels sit in one row. Either of the two action panels
@@ -316,23 +327,26 @@ export default function CampaignsPage() {
 
   const EMPTY: Record<StatusFilter, { title: string; body: string; cta?: string; act?: () => void }> = {
     Live: {
-      title: "Nothing live right now",
-      body: "Fund a ready phase and it is live within the hour.",
+      title: "Nothing running right now",
+      body: "Phases run one at a time. Fund the unlocked phase and it is live within the hour.",
       cta: "See what's ready", act: () => setFilter("Ready"),
     },
     Ready: {
       title: "Nothing waiting on you",
-      body: "Every funded phase is live.",
-      cta: "See what's live", act: () => setFilter("Live"),
+      body: "The running phase unlocks the next one when it crosses 80% of its target.",
+      cta: "See what's running", act: () => setFilter("Live"),
+    },
+    Locked: {
+      title: "Nothing queued",
+      body: "Phases appear here once the phase ahead of them is under way.",
     },
     Ended: {
-      title: "No completed campaigns yet",
-      body: "Phases you finish are archived here with their final ROAS.",
+      title: "No completed phases yet",
+      body: "Phases you finish are archived here with the revenue and ROAS they earned.",
     },
     All: {
-      title: "You have no campaigns yet",
-      body: "Every campaign runs in three guaranteed phases. You only fund the phase about to run.",
-      cta: "New campaign", act: () => router.push("/campaigns/new"),
+      title: "Your ladder is being set up",
+      body: "You work through phases one at a time, each with its own budget and its own guaranteed return. Your first phase appears here once it is ready.",
     },
   };
   const empty = EMPTY[filter];
@@ -367,11 +381,18 @@ export default function CampaignsPage() {
           <CommandPalette />
 
           <div className="ml-auto flex shrink-0 items-center gap-2">
-            <button onClick={() => router.push("/campaigns/new")}
-              className="flex items-center gap-2 rounded-xl bg-[#4D2FB0] px-3 py-2 text-[12px] font-semibold text-white transition-colors hover:bg-[#3F2596] sm:px-4">
-              <Plus size={13} weight="bold" />
-              <span className="hidden sm:inline">New campaign</span>
-            </button>
+            {/* A brand does not create campaigns — the ladder is already
+                theirs. The only thing to start is the phase that has
+                unlocked, so this is the fund CTA and nothing when the
+                ladder has nothing waiting. */}
+            {nextDue && (
+              <button onClick={() => open(nextDue.id)}
+                className="flex items-center gap-2 rounded-xl bg-[#4D2FB0] px-3 py-2 text-[12px] font-semibold text-white transition-colors hover:bg-[#3F2596] sm:px-4">
+                <Lightning size={13} weight="fill" />
+                <span className="hidden sm:inline">{nextDue.due!.label} — {fmtUSD(nextDue.due!.amount)}</span>
+                <span className="sm:hidden">Fund</span>
+              </button>
+            )}
             <NotificationCenter />
             <div className="relative">
               <button onClick={() => setUserMenuOpen((o) => !o)}
@@ -409,43 +430,61 @@ export default function CampaignsPage() {
               style={{ animationDelay: "0s" }}
             >
               <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-green-600">
-                <span aria-hidden="true" className="animate-live h-1.5 w-1.5 rounded-full bg-green-500" />
-                Live · {inFlight.length}
-              </p>
-              <p className="mt-2 text-[32px] font-bold leading-none tabular-nums" style={{ color: INK }}>
-                {fmtUSD(flightRev)}
-              </p>
-              <p className="mt-2 text-xs text-neutral-500">
-                of <span className="font-semibold tabular-nums">{fmtUSD(flightTarget)}</span>{" "}
-                across {inFlight.length} live phase{inFlight.length === 1 ? "" : "s"}
-                {deployingCount > 0 && (
-                  <span className="text-neutral-400"> · {deployingCount} funded, not measured yet</span>
-                )}
+                <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${live ? "animate-live bg-green-500" : "bg-neutral-300"}`} />
+                {live ? "Running now" : "Nothing running"}
               </p>
 
-              {/* mt-auto pins the meter to the bottom so all three panels in
-                  the row end on the same line. */}
-              <div className="mt-auto pt-5">
-                <div className="mb-2 flex items-baseline justify-between gap-2">
-                  <span className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400">
-                    Combined phase progress
-                  </span>
-                  <span className="text-sm font-semibold tabular-nums text-[#4D2FB0]">{flightPct}%</span>
-                </div>
-                <div
-                  role="img"
-                  aria-label={
-                    `Live phase revenue ${fmtUSD(flightRev)} of a ${fmtUSD(flightTarget)} combined target, ${flightPct} percent.` +
-                    (deployingCount > 0
-                      ? ` ${deployingCount} further phase${deployingCount === 1 ? "" : "s"} funded, not measured yet.`
-                      : "")
-                  }
-                  className="h-1.5 rounded-full bg-[#EFEBFA]"
-                >
-                  <div className="bar-fill keyline-grad h-full rounded-full"
-                    style={{ width: `${flightPct}%`, "--bd": ".2s" } as React.CSSProperties} />
-                </div>
-              </div>
+              {live ? (
+                <>
+                  <p className="mt-2 text-[32px] font-bold leading-none tabular-nums" style={{ color: INK }}>
+                    {fmtUSD(live.rev)}
+                  </p>
+                  <p className="mt-2 text-xs text-neutral-500">
+                    of <span className="font-semibold tabular-nums">{fmtUSD(live.revTarget!)}</span> on{" "}
+                    <span className="font-semibold text-neutral-600">{phaseTitle(live.phaseNo)}</span>
+                  </p>
+
+                  {/* mt-auto pins the meter to the bottom so all three panels
+                      in the row end on the same line. */}
+                  <div className="mt-auto pt-5">
+                    <div className="mb-2 flex items-baseline justify-between gap-2">
+                      <span className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400">
+                        Toward the 80% unlock line
+                      </span>
+                      <span className="text-sm font-semibold tabular-nums text-[#4D2FB0]">{live.revPct}%</span>
+                    </div>
+                    {/* The notch belongs here as much as on the card: this is
+                        the number that decides whether the next phase opens. */}
+                    <div
+                      role="img"
+                      aria-label={`${phaseTitle(live.phaseNo)} has earned ${fmtUSD(live.rev)} of its ${fmtUSD(live.revTarget!)} target, ${live.revPct} percent. ${
+                        (live.revPct ?? 0) >= 80
+                          ? "Past the 80% unlock line."
+                          : `${80 - (live.revPct ?? 0)} percentage points below the 80% unlock line.`
+                      }`}
+                      className="relative h-1.5 rounded-full bg-[#EFEBFA]"
+                    >
+                      <div className="bar-fill keyline-grad h-full rounded-full"
+                        style={{ width: `${Math.min(live.revPct ?? 0, 100)}%`, "--bd": ".2s" } as React.CSSProperties} />
+                      <span aria-hidden="true" className={`unlock-notch ${(live.revPct ?? 0) >= 80 ? "unlock-notch--crossed" : ""}`} />
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="mt-2 text-[32px] font-bold leading-none text-neutral-300">—</p>
+                  <p className="mt-2 text-xs text-neutral-500">
+                    No phase is running. Phases run one at a time.
+                  </p>
+                  <div className="mt-auto pt-5">
+                    <p className="text-[11px] font-medium text-neutral-400">
+                      {count("Ready") > 0
+                        ? "Fund the unlocked phase below to start it."
+                        : "Your next phase unlocks when the one before it crosses 80%."}
+                    </p>
+                  </div>
+                </>
+              )}
             </section>
 
             {/* Phases waiting on you */}
@@ -454,14 +493,16 @@ export default function CampaignsPage() {
                 className="animate-fade-in flex h-full flex-col overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-sm"
                 style={{ animationDelay: ".07s" }}
               >
+                {/* Sequential phases mean this can only ever hold one row,
+                    so it is titled in the singular rather than counted. */}
                 <p className="px-5 pb-2 pt-5 text-[11px] font-bold uppercase tracking-wide text-[#7C5CE0]">
-                  Phases waiting on you · {actions.length}
+                  Waiting on you
                 </p>
                 {actions.map((c, i) => (
                   <button
                     key={c.id}
                     onClick={() => open(c.id)}
-                    aria-label={`${c.due!.label} for ${c.name}, ${fmtUSD(c.due!.amount)} plus 5% VAT. Open campaign details.`}
+                    aria-label={`${c.due!.label}, ${fmtUSD(c.due!.amount)} plus 5% VAT. ${c.due!.reason}. Open phase.`}
                     className={`flex w-full items-center gap-3 px-5 py-3.5 text-left transition-colors hover:bg-neutral-50 ${
                       i > 0 ? "border-t border-black/[0.06]" : "border-t border-black/[0.06]"
                     }`}
@@ -470,7 +511,7 @@ export default function CampaignsPage() {
                       <Lightning size={17} weight="fill" />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-semibold" style={{ color: INK }}>{c.name}</span>
+                      <span className="block truncate text-sm font-semibold" style={{ color: INK }}>{phaseTitle(c.phaseNo)}</span>
                       <span className="mt-0.5 block truncate text-xs text-neutral-500">{c.due!.reason}</span>
                     </span>
                     {/* The pay modal charges this amount plus 5% VAT, so the
@@ -485,9 +526,9 @@ export default function CampaignsPage() {
               </section>
             )}
 
-            {/* Ads waiting on you — the list owns what waits on you, and finished ads
-                need you as much as an unfunded phase does. Nothing here has
-                posted; each row is one campaign's queue. */}
+            {/* Ads waiting on you — the ladder owns what waits on you, and
+                finished ads need you as much as an unfunded phase does.
+                Nothing here has posted; drafts belong to the running phase. */}
             {adQueue.length > 0 && (
               <section
                 className="animate-fade-in flex h-full flex-col overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-sm"
@@ -501,7 +542,7 @@ export default function CampaignsPage() {
                   <button
                     key={c.id}
                     onClick={() => router.push(`/campaigns/ads?c=${c.id}`)}
-                    aria-label={`${waiting.length} ads waiting on you for ${c.name}. Nothing publishes until you like or dislike it. Open ad review.`}
+                    aria-label={`${waiting.length} ads waiting on you for ${phaseTitle(c.phaseNo)}. Nothing publishes until you like or dislike it. Open ad review.`}
                     className={`flex w-full items-center gap-3 px-5 py-3.5 text-left transition-colors hover:bg-neutral-50 ${
                       i > 0 ? "border-t border-black/[0.06]" : "border-t border-black/[0.06]"
                     }`}
@@ -518,7 +559,7 @@ export default function CampaignsPage() {
                         {waiting.length} ads waiting on you
                       </span>
                       <span className="mt-0.5 block truncate text-xs text-neutral-500">
-                        {c.name} · Nothing publishes until you like or dislike it
+                        {phaseTitle(c.phaseNo)} · Nothing publishes until you like or dislike it
                       </span>
                     </span>
                     <CaretRight size={14} weight="bold" aria-hidden="true" className="shrink-0 text-neutral-300" />

@@ -1,11 +1,27 @@
 "use client";
 
+/* ------------------------------------------------------------------ */
+/* Dashboard — ONE brand, ONE ladder.                                  */
+/*                                                                     */
+/* Everything on this screen is scoped to the active brand and derived  */
+/* from useRoster(), which is that brand's phases in order with any     */
+/* optimistic funding already applied. Nothing totals across brands.    */
+/*                                                                     */
+/* Phases run strictly in sequence, so there is at most one Live phase  */
+/* and at most one phase waiting to be paid for. The screen is written  */
+/* in the singular throughout: no "campaigns", no fixed three rungs.    */
+/* ------------------------------------------------------------------ */
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { List, Plus, SignOut } from "@phosphor-icons/react";
+import { CheckCircle, Clock, Lightning, List, SignOut } from "@phosphor-icons/react";
 import Sidebar from "../components/Sidebar";
 import NotificationCenter from "../components/NotificationCenter";
 import CommandPalette from "../components/CommandPalette";
+import StatusBadge from "../components/StatusBadge";
+import { duePhase, fmtUSD, phaseTitle, type Campaign } from "../lib/campaigns";
+import { useRoster } from "../lib/funding";
+import { useActiveBrand } from "../lib/brand";
 
 /* ------------------------------------------------------------------ */
 /* Design tokens                                                       */
@@ -15,19 +31,36 @@ const INK = "#191234";
 const card = "rounded-2xl bg-white border border-black/[0.06] shadow-[0_1px_2px_rgba(16,12,40,0.04)]";
 
 /* ------------------------------------------------------------------ */
-/* Data                                                                 */
+/* Ladder arithmetic                                                   */
+/*                                                                     */
+/* FUNDED means paid for — Live or Ended. A Ready phase has been        */
+/* unlocked but not bought, and a Locked one cannot be bought at all,   */
+/* so neither has a budget committed or a dollar earned: they stay out  */
+/* of every total here or the totals overstate what the brand spent.    */
+/*                                                                     */
+/* `rev` and `budget` are per phase, which is what makes summing them   */
+/* along a single brand's ladder legitimate. Two brands are never       */
+/* added together.                                                     */
 /* ------------------------------------------------------------------ */
+const fundedPhases = (roster: Campaign[]) =>
+  roster.filter((c) => c.status === "Live" || c.status === "Ended");
 
-const STATS = [
-  { label: "Total revenue",      value: "$34,940", change: "+12%",  sub: "vs last period", hero: true },
-  { label: "Total orders",       value: "11,317",  change: "+8%",   sub: "vs last period" },
-  { label: "Avg ROAS",           value: "5.8×",    change: "+0.4×", sub: "vs last period" },
-  { label: "Target hit rate",    value: "97%",      change: "+3%",   sub: "vs last period" },
-  { label: "Total spend",        value: "$6,025",  change: null,    sub: "Across 4 campaigns" },
-  { label: "Budget utilisation", value: "92%",      change: null,    sub: "$6,025 of $6,550 committed" },
-  { label: "Active creators",    value: "24",       change: null,    sub: "86 worked with lifetime" },
-];
+const sumBy = (rows: Campaign[], pick: (c: Campaign) => number) =>
+  rows.reduce((s, c) => s + pick(c), 0);
 
+/* A phase is measurable only once it has a target. Funding sets the
+   target and resets the percentage to 0, so "funded" and "has a number
+   worth judging" are close but not identical — guard for it. */
+const meteredPhases = (rows: Campaign[]) => rows.filter((c) => c.revPct !== null);
+
+/* ------------------------------------------------------------------ */
+/* Revenue over time chart                                             */
+/*                                                                     */
+/* A fixed twelve-month trend, and the one block on this screen that is */
+/* NOT derived from the roster: a phase stores a window ("Feb 10 –      */
+/* Apr 12, 2026") and a single revenue figure, never a monthly series,  */
+/* so there is nothing per-month to read off the ladder yet.            */
+/* ------------------------------------------------------------------ */
 const REV_TIME = [
   { month: "Jan", rev: 300,   orders: 75 },
   { month: "Feb", rev: 300,   orders: 75 },
@@ -43,51 +76,6 @@ const REV_TIME = [
   { month: "Dec", rev: 200,   orders: 50 },
 ];
 
-const REV_CAMPAIGNS = [
-  { name: "Spring 2026",    rev: 17000, target: 20000 },
-  { name: "Summer 2025",    rev: 11000, target: 12000 },
-  { name: "Ramadan Flash",  rev: 5000,  target: 6000 },
-  { name: "Eid Collection", rev: 0,     target: 10000 },
-];
-
-const RUNNING = [
-  {
-    id: "spring-2026",
-    name: "Spring 2026",
-    phase: "Phase 1 · Warm-up",
-    dates: "Apr 1 – May 30, 2026",
-    rev: 840,  revTarget: 1000, revPct: 84,
-    threshold: "80% unlock line reached — Phase 2 unlocks soon",
-    thresholdGreen: true,
-    remaining: "$160",
-    adsLive: 125, adsTotal: 200, adsPct: 62.5,
-    influencers: 24, influencerNote: "All deployed",   influencerPct: 100,
-    content: 89,  contentNote: "71% of live ads",      contentPct: 71,
-  },
-  {
-    name: "Ramadan Flash",
-    phase: "Phase 2 · Scale",
-    dates: "Mar 10 – Apr 20, 2026",
-    rev: 3840, revTarget: 5000, revPct: 77,
-    threshold: "On pace — the 80% unlock line is 3 days away",
-    thresholdGreen: false,
-    remaining: "$1,160",
-    adsLive: 96,  adsTotal: 150, adsPct: 64,
-    influencers: 38, influencerNote: "2 not set up yet", influencerPct: 95,
-    content: 142, contentNote: "88% of live ads",       contentPct: 88,
-  },
-];
-
-const PHASE_TRACKER = [
-  { name: "Spring 2026",   p1: "Live",     p2: "Locked",   p3: "Locked",        rev: "$840",    roas: "0.84×", status: "Live" },
-  { name: "Ramadan Flash", p1: "Complete", p2: "Live",     p3: "Locked",        rev: "$3,840",  roas: "1.9×",  status: "Live" },
-  { name: "Summer Push",   p1: "Complete", p2: "Complete", p3: "Complete",      rev: "$11,340", roas: "6.2×",  status: "Complete" },
-  { name: "Brand Launch",  p1: "Complete", p2: "Complete", p3: "Ready to fund", rev: "$5,400",  roas: "5.1×",  status: "Ready to fund" },
-];
-
-/* ------------------------------------------------------------------ */
-/* Revenue over time chart                                             */
-/* ------------------------------------------------------------------ */
 function RevenueOverTimeChart() {
   const W = 700, H = 210, PL = 46, PR = 46, PT = 14, PB = 8;
   const cW = W - PL - PR, cH = H - PT - PB;
@@ -186,107 +174,40 @@ function RevenueOverTimeChart() {
 }
 
 /* ------------------------------------------------------------------ */
-/* Revenue per campaign chart                                          */
+/* Ladder averages                                                     */
+/*                                                                     */
+/* Averages over the phases THIS brand has funded — never over other    */
+/* brands, and never over rungs it has not paid for.                    */
 /* ------------------------------------------------------------------ */
-function RevenueByCampaignChart() {
-  const W = 700, H = 180, PL = 46, PR = 10, PT = 10, PB = 8;
-  const cW = W - PL - PR, cH = H - PT - PB;
-  const maxVal = 22000;
-  const n = REV_CAMPAIGNS.length;
-  const groupW = cW / n;
-  const barW = Math.min(groupW * 0.22, 32);
-  const gap = 6;
-  const r = barW / 2;
+function LadderAverages({ funded }: { funded: Campaign[] }) {
+  const metered = meteredPhases(funded);
+  const crossed = metered.filter((c) => c.revPct! >= 80);
+  const revPer = funded.length ? Math.round(sumBy(funded, (c) => c.rev) / funded.length) : 0;
+  /* creators is null until a phase is funded, and every row here is
+     funded, so the ?? 0 is a type guard rather than a real case. */
+  const crewPer = funded.length ? Math.round(sumBy(funded, (c) => c.creators ?? 0) / funded.length) : 0;
 
-  const bH  = (v: number) => Math.max((v / maxVal) * cH, v > 0 ? 4 : 0);
-  const cx  = (i: number) => PL + (i + 0.5) * groupW;
-  const yLabels = ["$20k","$16k","$12k","$8k","$4k","$0"];
-
-  return (
-    <div>
-      <svg viewBox={`0 0 ${W} ${H + 50}`} className="w-full" style={{ height: 240 }}>
-        {yLabels.map((l, i) => {
-          const y = PT + (i / (yLabels.length - 1)) * cH;
-          return (
-            <g key={l}>
-              <line x1={PL} y1={y} x2={W - PR} y2={y} stroke="#f4f4f6" strokeWidth="1" />
-              <text x={PL - 8} y={y + 3.5} textAnchor="end" fontSize="9.5" fill="#b3b3bb">{l}</text>
-            </g>
-          );
-        })}
-        {REV_CAMPAIGNS.map((d, i) => {
-          const revBH = bH(d.rev);
-          const tarBH = bH(d.target);
-          const x = cx(i);
-          const pct = Math.round((d.rev / d.target) * 100);
-          return (
-            <g key={i}>
-              <title>{`${d.name} — $${d.rev.toLocaleString()} of $${d.target.toLocaleString()} target (${pct}%)`}</title>
-              {d.rev > 0 ? (
-                <>
-                  <rect x={x - barW - gap / 2} y={PT + cH - revBH}
-                    width={barW} height={revBH} rx={Math.min(r, revBH / 2)} ry={Math.min(r, revBH / 2)} fill={BRAND} />
-                  <text x={x - gap / 2 - barW / 2} y={PT + cH - revBH - 7}
-                    textAnchor="middle" fontSize="9.5" fontWeight="600" fill={BRAND}>
-                    {`${pct}%`}
-                  </text>
-                </>
-              ) : (
-                <text x={x - gap / 2 - barW / 2} y={PT + cH - 7}
-                  textAnchor="middle" fontSize="9.5" fontWeight="500" fill="#b3b3bb">
-                  0%
-                </text>
-              )}
-              <rect x={x + gap / 2} y={PT + cH - tarBH}
-                width={barW} height={tarBH} rx={Math.min(r, tarBH / 2)} ry={Math.min(r, tarBH / 2)}
-                fill="#EDE9FB" />
-            </g>
-          );
-        })}
-        {REV_CAMPAIGNS.map((d, i) => (
-          <text key={d.name} x={cx(i)} y={H + 26}
-            textAnchor="middle" fontSize="10.5" fontWeight="500" fill="#71717a">{d.name}</text>
-        ))}
-      </svg>
-      <div className="mt-1 flex items-center gap-5 text-xs text-neutral-500">
-        <span className="flex items-center gap-2">
-          <span className="h-2.5 w-2.5 rounded-[3px] bg-[#4D2FB0]" />Revenue
-        </span>
-        <span className="flex items-center gap-2">
-          <span className="h-2.5 w-2.5 rounded-[3px] bg-[#EDE9FB] border border-[#ddd4f5]" />Target
-        </span>
-      </div>
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/* Key averages                                                        */
-/* ------------------------------------------------------------------ */
-function KeyAverages() {
   const items = [
     {
-      label: "Avg ROAS",
-      value: "5.8×",
+      label: "Revenue per funded phase",
+      value: funded.length ? fmtUSD(revPer) : "—",
       color: "text-[#4D2FB0]",
-      badge: "+0.4× vs last",
-      desc: "Campaigns return $5.80 per $1 spent — above the 5× target.",
+      desc: "What one rung of this ladder has brought back, on average.",
     },
     {
-      label: "Target hit rate",
-      value: "97%",
-      color: "text-green-600",
-      badge: "+3% vs last",
-      desc: "97% of committed phases hit their revenue target.",
-    },
-    {
-      label: "Avg phase duration",
-      value: "6.2 days",
+      label: "Past the 80% line",
+      value: metered.length ? `${crossed.length} of ${metered.length}` : "—",
       color: "",
-      badge: "1.1d faster",
-      desc: "Phases completing faster — stronger creator performance.",
+      desc: "Reaching 80% of its own target is what unlocks the next phase.",
+    },
+    {
+      label: "Creators per funded phase",
+      value: funded.length ? String(crewPer) : "—",
+      color: "",
+      desc: "Matched creators working a single phase, on average.",
     },
   ];
+
   return (
     <div className="flex flex-col flex-1 divide-y divide-black/[0.05]">
       {items.map((item) => (
@@ -296,8 +217,8 @@ function KeyAverages() {
             <p className="mt-0.5 text-xs leading-relaxed text-neutral-400">{item.desc}</p>
           </div>
           <div className="shrink-0 text-right">
-            <p className={`text-xl font-semibold tracking-tight tabular-nums ${item.color}`} style={item.color ? undefined : { color: INK }}>{item.value}</p>
-            <p className="mt-0.5 text-xs font-medium text-green-600">↑ {item.badge}</p>
+            <p className={`text-xl font-semibold tracking-tight tabular-nums ${item.color}`}
+              style={item.color ? undefined : { color: INK }}>{item.value}</p>
           </div>
         </div>
       ))}
@@ -307,100 +228,161 @@ function KeyAverages() {
 
 /* ------------------------------------------------------------------ */
 /* How you compare                                                     */
+/*                                                                     */
+/* Our side of every row is computed from this brand's funded phases;   */
+/* only the category figure is a benchmark constant, and the verdict     */
+/* line is derived from the comparison so the two can never disagree.   */
+/*                                                                     */
+/* No category label: the workspace does not store one per brand, and   */
+/* calling a grocery brand "Fashion & Apparel" would be a fabrication.  */
 /* ------------------------------------------------------------------ */
-function HowYouCompare() {
-  const items = [
+function HowYouCompare({ funded }: { funded: Campaign[] }) {
+  const spend = sumBy(funded, (c) => c.budget);
+  const revenue = sumBy(funded, (c) => c.rev);
+  const metered = meteredPhases(funded);
+  const crossed = metered.filter((c) => c.revPct! >= 80).length;
+
+  const rows = [
     {
-      label: "Avg ROAS",
-      value: "5.8×", valueCls: "text-[#4D2FB0]",
-      vs: "vs 4.1× category avg",
-      note: "Top 18% of brands", noteCls: "text-green-600", up: true,
+      label: "Blended ROAS",
+      value: spend ? `${(revenue / spend).toFixed(1)}×` : "—",
+      ours: spend ? revenue / spend : null, cat: 4.1, catLabel: "vs 4.1× category avg",
+      good: "Ahead of comparable brands", bad: "Behind comparable brands",
     },
     {
-      label: "Target hit rate",
-      value: "97%", valueCls: "text-[#4D2FB0]",
-      vs: "vs 84% category avg",
-      note: "Phases reliably hit target", noteCls: "text-green-600", up: true,
+      label: "Phases past the 80% line",
+      value: metered.length ? `${Math.round((crossed / metered.length) * 100)}%` : "—",
+      ours: metered.length ? (crossed / metered.length) * 100 : null, cat: 84, catLabel: "vs 84% category avg",
+      good: "Unlocking the next rung reliably", bad: "Opportunity — unlock pace",
     },
     {
-      label: "Repeat-purchase rate",
-      value: "11%", valueCls: "text-amber-500",
-      vs: "vs 16% category avg",
-      note: "Opportunity — retention", noteCls: "text-amber-600", up: false,
+      label: "Revenue per funded phase",
+      value: funded.length ? fmtUSD(Math.round(revenue / funded.length)) : "—",
+      ours: funded.length ? revenue / funded.length : null, cat: 3200, catLabel: "vs $3,200 category avg",
+      good: "Bigger return per rung", bad: "Opportunity — return per rung",
     },
   ];
+
   return (
     <div className={`${card} p-6`}>
       <div className="flex flex-wrap items-center gap-2.5">
         <h3 className="text-[15px] font-semibold" style={{ color: INK }}>How you compare</h3>
         <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-[11px] font-medium text-neutral-500">
-          Fashion &amp; Apparel · GCC
+          GCC · comparable ladder stage
         </span>
       </div>
-      <p className="text-xs text-neutral-400 mt-1">Benchmarked against anonymised MoonTech brands in your category &amp; region</p>
+      <p className="text-xs text-neutral-400 mt-1">
+        Benchmarked against anonymised MoonTech brands at a similar point on their own ladder
+      </p>
       <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-black/[0.05]">
-        {items.map((item) => (
-          <div key={item.label} className="py-4 sm:py-1 sm:px-6 first:sm:pl-0 last:sm:pr-0">
-            <p className="text-[13px] font-medium text-neutral-500">{item.label}</p>
-            <div className="mt-1.5 flex items-baseline gap-2 flex-wrap">
-              <p className={`text-[26px] font-semibold tracking-tight tabular-nums ${item.valueCls}`}>{item.value}</p>
-              <p className="text-xs text-neutral-400">{item.vs}</p>
+        {rows.map((r) => {
+          const up = r.ours !== null && r.ours >= r.cat;
+          return (
+            <div key={r.label} className="py-4 sm:py-1 sm:px-6 first:sm:pl-0 last:sm:pr-0">
+              <p className="text-[13px] font-medium text-neutral-500">{r.label}</p>
+              <div className="mt-1.5 flex items-baseline gap-2 flex-wrap">
+                <p className={`text-[26px] font-semibold tracking-tight tabular-nums ${up ? "text-[#4D2FB0]" : "text-amber-500"}`}>
+                  {r.value}
+                </p>
+                <p className="text-xs text-neutral-400">{r.catLabel}</p>
+              </div>
+              <p className={`mt-1 text-xs font-medium ${up ? "text-green-600" : "text-amber-600"}`}>
+                {up ? "↑" : "↓"} {up ? r.good : r.bad}
+              </p>
             </div>
-            <p className={`mt-1 text-xs font-medium ${item.noteCls}`}>{item.up ? "↑" : "↓"} {item.note}</p>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/* Running campaign card                                               */
+/* The current phase                                                   */
+/*                                                                     */
+/* Singular on purpose. A brand runs one phase at a time, so this is    */
+/* one card, never a grid of concurrent programmes. Its title is the    */
+/* phase number — a brand never names anything.                        */
 /* ------------------------------------------------------------------ */
-function CampaignCard({ c }: { c: typeof RUNNING[0] }) {
-  const fmt = (n: number) => `$${n.toLocaleString()}`;
+function CurrentPhaseCard({ c, onOpen }: { c: Campaign; onOpen: () => void }) {
+  /* A phase funded a moment ago has a target but nothing measured yet,
+     so the meter only draws once there is a percentage to draw. */
+  const pct = c.revPct;
+  const target = c.revTarget;
+
   return (
     <div className={`${card} p-5 flex flex-col transition-colors hover:border-black/[0.12]`}>
       <div className="flex items-start justify-between gap-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <h3 className="text-[15px] font-semibold" style={{ color: INK }}>{c.name}</h3>
-            <span className="flex items-center gap-1.5 rounded-full bg-green-50 px-2 py-0.5 text-[11px] font-medium text-green-600">
-              <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-live" />Live
-            </span>
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="text-[15px] font-semibold" style={{ color: INK }}>{phaseTitle(c.phaseNo)}</h3>
+            <StatusBadge status={c.status} />
           </div>
-          <p className="text-xs text-neutral-400 mt-1">{c.phase} · {c.dates}</p>
+          <p className="text-xs text-neutral-400 mt-1">{c.dates}</p>
         </div>
-        <button className="shrink-0 rounded-lg px-2.5 py-1.5 text-[13px] font-medium text-neutral-400 hover:text-[#4D2FB0] hover:bg-[#4D2FB0]/[0.06] transition-colors">
+        <button onClick={onOpen}
+          className="shrink-0 rounded-lg px-2.5 py-1.5 text-[13px] font-medium text-neutral-400 hover:text-[#4D2FB0] hover:bg-[#4D2FB0]/[0.06] transition-colors">
           View →
         </button>
       </div>
 
-      {/* Revenue progress */}
+      {/* Revenue against THIS phase's own target — budget × the multiple
+          guaranteed on this phase, never a portfolio figure. */}
       <div className="mt-6">
         <div className="flex items-baseline justify-between gap-2">
           <p className="text-[26px] font-semibold tracking-tight tabular-nums leading-none" style={{ color: INK }}>
-            {fmt(c.rev)}{" "}
-            <span className="text-sm font-normal tracking-normal text-neutral-400">of {fmt(c.revTarget)} target</span>
+            {c.revLabel}{" "}
+            <span className="text-sm font-normal tracking-normal text-neutral-400">
+              {target !== null ? `of ${fmtUSD(target)} target` : "banked so far"}
+            </span>
           </p>
-          <p className="text-sm font-semibold tabular-nums text-[#4D2FB0]">{c.revPct}%</p>
+          {pct !== null && <p className="text-sm font-semibold tabular-nums text-[#4D2FB0]">{pct}%</p>}
         </div>
-        <div className="mt-3.5 h-2 w-full rounded-full bg-[#EFEBFA]">
-          <div className="h-full rounded-full bg-[#4D2FB0] transition-all" style={{ width: `${c.revPct}%` }} />
-        </div>
+
+        {pct !== null && (
+          <>
+            <div className="relative mt-3.5 h-2 w-full rounded-full bg-[#EFEBFA]">
+              <div className="h-full rounded-full bg-[#4D2FB0] transition-all" style={{ width: `${pct}%` }} />
+              {/* The 80% line is the whole mechanic: cross it and the next
+                  rung becomes fundable. Mark it rather than imply it. */}
+              <span aria-hidden="true" className="absolute -inset-y-1 left-[80%] w-px bg-[#4D2FB0]/40" />
+            </div>
+            <span className="sr-only">
+              {pct >= 80
+                ? "Past the 80% unlock line."
+                : `${80 - pct} percentage points below the 80% unlock line.`}
+            </span>
+          </>
+        )}
+
         <div className="mt-2.5 flex items-baseline justify-between gap-2">
-          <p className={`text-xs font-medium ${c.thresholdGreen ? "text-green-600" : "text-amber-600"}`}>
-            {c.thresholdGreen ? "✓" : "◷"} {c.threshold}
-          </p>
-          <p className="shrink-0 text-xs text-neutral-400">{c.remaining} remaining</p>
+          {c.threshold && (
+            <p className={`flex items-start gap-1.5 text-xs font-medium ${c.thresholdGreen ? "text-green-600" : "text-amber-600"}`}>
+              {c.thresholdGreen
+                ? <CheckCircle size={13} weight="fill" aria-hidden="true" className="mt-px shrink-0" />
+                : <Clock size={13} weight="fill" aria-hidden="true" className="mt-px shrink-0" />}
+              {c.threshold}
+            </p>
+          )}
+          {target !== null && (
+            <p className="shrink-0 text-xs text-neutral-400">
+              {fmtUSD(Math.max(target - c.rev, 0))} to target
+            </p>
+          )}
         </div>
       </div>
 
-      {/* Metric row */}
-      <div className="mt-6 grid grid-cols-2 gap-4 border-t border-black/[0.05] pt-4">
+      {/* Metric row — all three belong to this phase alone. */}
+      <div className="mt-6 grid grid-cols-3 gap-4 border-t border-black/[0.05] pt-4">
         {[
-          { label: "Ads live",  value: `${c.adsLive}`,     suffix: `/${c.adsTotal}`, note: `${c.adsPct}% of plan` },
-          { label: "Creators",  value: `${c.influencers}`, suffix: "",               note: c.influencerNote },
+          {
+            label: "Ads live",
+            value: String(c.adsLive ?? 0),
+            suffix: c.adsTotal ? `/${c.adsTotal}` : "",
+            note: c.adsTotal ? `${Math.round(((c.adsLive ?? 0) / c.adsTotal) * 100)}% of plan` : "deploying",
+          },
+          { label: "Creators", value: String(c.creators ?? 0), suffix: "", note: "on this phase" },
+          { label: "ROAS", value: c.roas, suffix: "", note: `${c.guaranteedRoas}× guaranteed` },
         ].map((m) => (
           <div key={m.label}>
             <p className="text-[11px] font-medium text-neutral-400">{m.label}</p>
@@ -415,60 +397,126 @@ function CampaignCard({ c }: { c: typeof RUNNING[0] }) {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* Phase completion tracker                                            */
-/* ------------------------------------------------------------------ */
-function PhaseTracker() {
-  const phaseDot = (v: string) =>
-    v === "Complete" ? "bg-[#4D2FB0]" :
-    v === "Live"     ? "bg-amber-400" :
-                       "bg-neutral-300";
-  const phaseText = (v: string) =>
-    v === "Complete" ? "text-neutral-700" :
-    v === "Live"     ? "text-amber-600" :
-                       "text-neutral-400";
+/* Nothing running. Either the next rung is bought and this is a blink
+   between phases, or the brand is waiting on a payment. */
+function NoPhaseRunningCard({ due, onFund }: { due: Campaign | undefined; onFund: () => void }) {
+  return (
+    <div className={`${card} p-5 flex flex-col justify-center`}>
+      <h3 className="text-[15px] font-semibold" style={{ color: INK }}>No phase running</h3>
+      <p className="mt-1.5 max-w-sm text-xs leading-relaxed text-neutral-400">
+        {due
+          ? `${phaseTitle(due.phaseNo)} is unlocked and waiting on payment. Fund it and it is live within the hour.`
+          : "Nothing is live and nothing is waiting on you. Your next phase unlocks when the current one crosses its 80% line."}
+      </p>
+      {due && (
+        <button onClick={onFund}
+          className="mt-5 inline-flex w-fit items-center gap-2 rounded-full bg-[#4D2FB0]/[0.08] px-4 py-2 text-xs font-semibold transition-colors hover:bg-[#4D2FB0]/[0.14]"
+          style={{ color: BRAND }}>
+          <Lightning size={13} weight="fill" />
+          Fund Phase {due.phaseNo} — {fmtUSD(due.due!.amount)}
+        </button>
+      )}
+    </div>
+  );
+}
 
-  const statusCls = (v: string) =>
-    v === "Live"           ? "bg-green-50 text-green-600" :
-    v === "Ready to fund"  ? "bg-amber-50 text-amber-600" :
-                             "bg-neutral-100 text-neutral-500";
-
+/* ------------------------------------------------------------------ */
+/* Phase ladder                                                        */
+/*                                                                     */
+/* One row per rung, in the order the brand works through them. The     */
+/* ladder is UNBOUNDED, so this renders whatever the roster holds —     */
+/* three rungs or twelve — and never draws a fixed-length stepper.      */
+/*                                                                     */
+/* A rung that has not been paid for has no numbers of its own: Ready   */
+/* and Locked print an em dash rather than a $0 that reads like a       */
+/* failure. Locked is not even openable — it has no creators, no ads    */
+/* and nothing to look at — so it gets no link and, above all, no fund  */
+/* button: its predecessor has not crossed the 80% line.                */
+/* ------------------------------------------------------------------ */
+function PhaseLadder({
+  roster, brandName, onOpen,
+}: { roster: Campaign[]; brandName: string; onOpen: (id: string) => void }) {
   return (
     <div className={`${card} p-6 overflow-x-auto`}>
-      <h3 className="text-[15px] font-semibold" style={{ color: INK }}>Phase completion tracker</h3>
-      <p className="text-xs text-neutral-400 mt-1 mb-4">Status of each phase across all campaigns</p>
-      <table className="w-full min-w-[560px] text-[13px]">
-        <thead>
-          <tr className="border-b border-black/[0.05]">
-            {["Campaign","Phase 1","Phase 2","Phase 3","Revenue","ROAS","Status"].map((h) => (
-              <th key={h} className="pb-3 text-left text-xs font-medium text-neutral-400">{h}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-black/[0.04]">
-          {PHASE_TRACKER.map((row) => (
-            <tr key={row.name} className="hover:bg-neutral-50/60 transition-colors">
-              <td className="py-4 font-medium pr-4" style={{ color: INK }}>{row.name}</td>
-              {[row.p1, row.p2, row.p3].map((p, i) => (
-                <td key={i} className="py-4 pr-3">
-                  <span className={`inline-flex items-center gap-1.5 whitespace-nowrap text-xs font-medium ${phaseText(p)}`}>
-                    <span className={`h-1.5 w-1.5 rounded-full ${phaseDot(p)}`} />
-                    {p}
-                  </span>
-                </td>
+      <h3 className="text-[15px] font-semibold" style={{ color: INK }}>Phase ladder</h3>
+      <p className="text-xs text-neutral-400 mt-1 mb-4">
+        Every phase {brandName} has run or has queued, in order — one runs at a time
+      </p>
+
+      {roster.length === 0 ? (
+        <p className="py-6 text-[13px] text-neutral-400">
+          This brand has no phases yet. MoonTech builds the ladder, so the first rung appears here once it is matched.
+        </p>
+      ) : (
+        <table className="w-full min-w-[640px] text-[13px]">
+          <thead>
+            <tr className="border-b border-black/[0.05]">
+              {["Phase", "Status", "Budget", "Revenue", "ROAS", ""].map((h, i) => (
+                <th key={h || i} className="pb-3 text-left text-xs font-medium text-neutral-400">{h}</th>
               ))}
-              <td className="py-4 font-medium tabular-nums text-neutral-700 pr-3">{row.rev}</td>
-              <td className="py-4 font-semibold tabular-nums text-[#4D2FB0] pr-3">{row.roas}</td>
-              <td className="py-4">
-                <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ${statusCls(row.status)}`}>
-                  {row.status === "Live" && <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-live" />}
-                  {row.status}
-                </span>
-              </td>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-black/[0.04]">
+            {roster.map((c) => {
+              const funded = c.status === "Live" || c.status === "Ended";
+              const target = c.revTarget ?? c.budget * c.guaranteedRoas;
+              return (
+                <tr key={c.id} className="hover:bg-neutral-50/60 transition-colors">
+                  <td className="py-4 pr-4">
+                    <p className="font-medium" style={{ color: INK }}>{phaseTitle(c.phaseNo)}</p>
+                    <p className="mt-0.5 text-[11px] text-neutral-400">{c.dates}</p>
+                  </td>
+                  <td className="py-4 pr-3"><StatusBadge status={c.status} /></td>
+                  <td className="py-4 pr-3">
+                    <p className={`font-medium tabular-nums ${funded ? "text-neutral-700" : "text-neutral-400"}`}>
+                      {fmtUSD(c.budget)}
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-neutral-400">
+                      {funded
+                        ? `${fmtUSD(target)} target`
+                        : c.status === "Ready" ? "due now" : "not payable yet"}
+                    </p>
+                  </td>
+                  <td className="py-4 pr-3">
+                    {funded ? (
+                      <>
+                        <p className="font-medium tabular-nums text-neutral-700">{c.revLabel}</p>
+                        {c.revPct !== null && (
+                          <div className="relative mt-1.5 h-1 w-24 rounded-full bg-[#EFEBFA]">
+                            <div className="h-full rounded-full bg-[#4D2FB0]" style={{ width: `${Math.min(c.revPct, 100)}%` }} />
+                            <span aria-hidden="true" className="absolute -inset-y-0.5 left-[80%] w-px bg-[#4D2FB0]/40" />
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <span className="text-neutral-300">—</span>
+                    )}
+                  </td>
+                  <td className="py-4 pr-3">
+                    {funded ? (
+                      <>
+                        <p className="font-semibold tabular-nums text-[#4D2FB0]">{c.roas}</p>
+                        <p className="mt-0.5 text-[11px] text-neutral-400">{c.guaranteedRoas}× guaranteed</p>
+                      </>
+                    ) : (
+                      <span className="text-neutral-300">—</span>
+                    )}
+                  </td>
+                  <td className="py-4 text-right">
+                    {c.status !== "Locked" && (
+                      <button onClick={() => onOpen(c.id)}
+                        aria-label={`Open ${phaseTitle(c.phaseNo)}`}
+                        className="rounded-lg px-2.5 py-1.5 text-[13px] font-medium text-neutral-400 hover:text-[#4D2FB0] hover:bg-[#4D2FB0]/[0.06] transition-colors">
+                        View →
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }
@@ -487,6 +535,72 @@ export default function Dashboard() {
   const [mobileOpen, setMobileOpen]     = useState(false);
   const [dateFilter, setDateFilter]     = useState<DateFilter>("Last 30 days");
   const [filterOpen, setFilterOpen]     = useState(false);
+
+  /* The active brand's ladder, in phase order, with optimistic funding
+     applied — a phase paid for on the detail route is already Live here. */
+  const brand = useActiveBrand();
+  const roster = useRoster();
+  const open = (id: string) => router.push(`/campaigns/${id}`);
+
+  /* Phases are strictly sequential: one Live at most, one payable at most. */
+  const live = roster.find((c) => c.status === "Live");
+  const due = duePhase(brand.id, roster);
+
+  const funded = fundedPhases(roster);
+  const spend = sumBy(funded, (c) => c.budget);
+  const revenue = sumBy(funded, (c) => c.rev);
+  const ended = roster.filter((c) => c.status === "Ended").length;
+  /* The guarantee is per phase, so it is quoted off a specific rung —
+     the one running, or the one waiting to be bought. */
+  const quoted = live ?? due;
+
+  /* Written out rather than pluralised inline: a brand on its first rung
+     reads "the one phase", not "the 1 phases". */
+  const fundedLabel =
+    funded.length === 0 ? "No funded phases yet"
+      : funded.length === 1 ? `The one phase ${brand.name} has funded`
+        : `Across the ${funded.length} phases ${brand.name} has funded`;
+
+  const stats: { label: string; value: string; sub: string; hero?: boolean }[] = [
+    {
+      label: "Revenue to date", value: fmtUSD(revenue), hero: true,
+      sub: `${brand.name} · summed along this ladder only`,
+    },
+    {
+      label: "Blended ROAS",
+      value: spend ? `${(revenue / spend).toFixed(1)}×` : "—",
+      sub: spend ? `${fmtUSD(revenue)} back on ${fmtUSD(spend)} funded` : "Nothing funded yet",
+    },
+    {
+      label: "Committed spend", value: fmtUSD(spend),
+      sub: `Across ${funded.length} funded phase${funded.length === 1 ? "" : "s"}`,
+    },
+    {
+      label: "Guarantee on this phase",
+      value: quoted ? `${quoted.guaranteedRoas}×` : "—",
+      sub: quoted
+        ? `${fmtUSD(quoted.budget)} × ${quoted.guaranteedRoas} = ${fmtUSD(quoted.budget * quoted.guaranteedRoas)}`
+        : "No phase running or waiting",
+    },
+    {
+      label: "Current phase",
+      value: live ? (live.revPct !== null ? `${live.revPct}%` : "Live") : "—",
+      sub: live
+        ? live.revTarget !== null
+          ? `${phaseTitle(live.phaseNo)} · ${fmtUSD(live.rev)} of ${fmtUSD(live.revTarget)}`
+          : `${phaseTitle(live.phaseNo)} · deploying`
+        : "Nothing running right now",
+    },
+    {
+      label: "Phases complete", value: String(ended),
+      sub: `${roster.length} on the ladder so far`,
+    },
+    {
+      label: "Creators on this phase",
+      value: live?.creators != null ? String(live.creators) : "—",
+      sub: live?.adsTotal ? `${live.adsLive} of ${live.adsTotal} ads live` : "Nothing running right now",
+    },
+  ];
 
   return (
     <div className="flex h-screen bg-[#F7F7F8] overflow-hidden"
@@ -519,11 +633,19 @@ export default function Dashboard() {
           <CommandPalette />
 
           <div className="flex items-center gap-2 ml-auto shrink-0">
-            <button onClick={() => router.push("/campaigns/new")}
-              className="flex items-center gap-2 rounded-xl bg-[#4D2FB0] px-3 sm:px-4 py-2 text-[12px] font-semibold text-white hover:bg-[#3F2596] transition-colors">
-              <Plus size={13} weight="bold" />
-              <span className="hidden sm:inline">New campaign</span>
-            </button>
+            {/* A brand cannot create a campaign, so the primary action is the
+                one thing that is actually waiting on it: the unlocked phase.
+                Nothing due, no button — an empty CTA would invent work. */}
+            {due && (
+              <button onClick={() => open(due.id)}
+                aria-label={`Fund Phase ${due.phaseNo}, ${fmtUSD(due.due!.amount)} plus VAT`}
+                className="flex items-center gap-2 rounded-xl bg-[#4D2FB0] px-3 sm:px-4 py-2 text-[12px] font-semibold text-white hover:bg-[#3F2596] transition-colors">
+                <Lightning size={13} weight="fill" />
+                <span className="hidden sm:inline">
+                  Fund Phase {due.phaseNo} — {fmtUSD(due.due!.amount)}
+                </span>
+              </button>
+            )}
             <NotificationCenter />
             <div className="relative">
               <button onClick={() => setUserMenuOpen((o) => !o)}
@@ -554,14 +676,24 @@ export default function Dashboard() {
             <div>
               <h2 className="text-[20px] sm:text-[24px] font-semibold tracking-tight" style={{ color: INK }}>Welcome back, Mostafa</h2>
               <p className="text-[13px] text-neutral-400 mt-1" suppressHydrationWarning>
+                {brand.name} ·{" "}
                 {new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
               </p>
             </div>
             <div className="flex items-center gap-2.5 self-start sm:self-auto">
-              {/* Live badge */}
-              <span className="flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1.5 text-[12px] font-medium text-green-700">
-                <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />2 live campaigns
-              </span>
+              {/* One phase runs at a time, so this names it instead of
+                  counting campaigns that cannot exist side by side. */}
+              {live ? (
+                <span className="flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1.5 text-[12px] font-medium text-green-700">
+                  <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+                  {phaseTitle(live.phaseNo)} is live
+                </span>
+              ) : (
+                <span className="flex items-center gap-1.5 rounded-full bg-neutral-100 px-3 py-1.5 text-[12px] font-medium text-neutral-500">
+                  <span className="h-1.5 w-1.5 rounded-full bg-neutral-300" />
+                  Nothing live right now
+                </span>
+              )}
               {/* Date filter */}
               <div className="relative">
                 <button
@@ -598,9 +730,9 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Stats */}
+          {/* Stats — every figure here belongs to the active brand alone */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {STATS.map((s) => (
+            {stats.map((s) => (
               <div key={s.label}
                 className={`rounded-2xl p-4 sm:p-5 transition-colors ${
                   s.hero
@@ -612,59 +744,47 @@ export default function Dashboard() {
                   style={s.hero ? undefined : { color: INK }}>
                   {s.value}
                 </p>
-                <p className="mt-2.5 text-xs">
-                  {s.change ? (
-                    <>
-                      <span className={`font-medium ${s.hero ? "text-white" : "text-green-600"}`}>↑ {s.change.replace("+", "")}</span>{" "}
-                      <span className={s.hero ? "text-white/50" : "text-neutral-400"}>{s.sub}</span>
-                    </>
-                  ) : (
-                    <span className="text-neutral-400">{s.sub}</span>
-                  )}
-                </p>
+                <p className={`mt-2.5 text-xs ${s.hero ? "text-white/50" : "text-neutral-400"}`}>{s.sub}</p>
               </div>
             ))}
           </div>
 
-          {/* Live campaigns */}
+          {/* The phase running now — singular, because only one can be */}
           <div className="pt-2">
-            <h2 className="text-[16px] font-semibold tracking-tight" style={{ color: INK }}>Live campaigns</h2>
-            <p className="text-[13px] text-neutral-400 mt-0.5">Live performance · updated in real time</p>
+            <h2 className="text-[16px] font-semibold tracking-tight" style={{ color: INK }}>Running now</h2>
+            <p className="text-[13px] text-neutral-400 mt-0.5">
+              {brand.name} runs one phase at a time · updated in real time
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {RUNNING.map((c) => <CampaignCard key={c.name} c={c} />)}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {live
+              ? <CurrentPhaseCard c={live} onOpen={() => open(live.id)} />
+              : <NoPhaseRunningCard due={due} onFund={() => due && open(due.id)} />}
             <div className={`${card} p-5 flex flex-col`}>
-              <h3 className="text-[15px] font-semibold" style={{ color: INK }}>Key averages</h3>
-              <p className="text-xs text-neutral-400 mt-1 mb-3">Across all completed phases</p>
-              <KeyAverages />
+              <h3 className="text-[15px] font-semibold" style={{ color: INK }}>Ladder averages</h3>
+              <p className="text-xs text-neutral-400 mt-1 mb-3">{fundedLabel}</p>
+              <LadderAverages funded={funded} />
             </div>
           </div>
+
+          {/* The ladder itself */}
+          <PhaseLadder roster={roster} brandName={brand.name} onOpen={open} />
 
           {/* Performance Overview */}
           <div className="pt-2">
             <h2 className="text-[16px] font-semibold tracking-tight" style={{ color: INK }}>Performance overview</h2>
-            <p className="text-[13px] text-neutral-400 mt-0.5">Revenue trends across months and campaigns</p>
+            <p className="text-[13px] text-neutral-400 mt-0.5">Revenue booked month by month</p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className={`${card} p-5`}>
-              <h3 className="text-[15px] font-semibold" style={{ color: INK }}>Revenue over time</h3>
-              <p className="text-xs text-neutral-400 mt-1 mb-4">Monthly revenue generated across all campaigns</p>
-              <RevenueOverTimeChart />
-            </div>
-            <div className={`${card} p-5`}>
-              <h3 className="text-[15px] font-semibold" style={{ color: INK }}>Revenue per campaign</h3>
-              <p className="text-xs text-neutral-400 mt-1 mb-4">How each campaign contributed to total revenue vs. target</p>
-              <RevenueByCampaignChart />
-            </div>
+          <div className={`${card} p-5`}>
+            <h3 className="text-[15px] font-semibold" style={{ color: INK }}>Revenue over time</h3>
+            <p className="text-xs text-neutral-400 mt-1 mb-4">Monthly revenue and orders for {brand.name}</p>
+            <RevenueOverTimeChart />
           </div>
-
-          {/* Phase tracker */}
-          <PhaseTracker />
 
           {/* How you compare — bottom */}
-          <HowYouCompare />
+          <HowYouCompare funded={funded} />
 
         </main>
       </div>

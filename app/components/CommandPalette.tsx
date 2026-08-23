@@ -4,32 +4,42 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import {
-  MagnifyingGlass, ClockCounterClockwise, House, Megaphone, UsersThree,
-  Plus, Gear, CreditCard, Question, ArrowElbowDownLeft, type Icon,
+  MagnifyingGlass, House, Megaphone, UsersThree,
+  Gear, CreditCard, Question, ArrowElbowDownLeft, type Icon,
 } from "@phosphor-icons/react";
+import { phaseTitle, type CampaignStatus } from "../lib/campaigns";
+import { useActiveBrand } from "../lib/brand";
+import { useRoster } from "../lib/funding";
 
 const INK = "#191234";
 
 type Item = { id: string; label: string; icon: Icon; href: string };
 type Group = { title: string; items: Item[] };
 
-const GROUPS: Group[] = [
-  {
-    title: "Recent campaigns",
-    items: [
-      { id: "r-spring", label: "Spring 2026", icon: ClockCounterClockwise, href: "/campaigns/spring-2026" },
-      { id: "r-ramadan", label: "Ramadan Flash", icon: ClockCounterClockwise, href: "/campaigns/ramadan-flash" },
-      { id: "r-launch", label: "Brand Launch", icon: ClockCounterClockwise, href: "/campaigns/brand-launch" },
-      { id: "r-summer", label: "Summer Push", icon: ClockCounterClockwise, href: "/campaigns/summer-push" },
-    ],
-  },
+/* The state words the campaigns list uses, so a palette row and a status
+   chip never disagree. They also widen what a row can be found by — the
+   filter below matches `label` and nothing else. */
+const STATE_WORD: Record<CampaignStatus, string> = {
+  Live: "Live",
+  Ready: "Ready to fund",
+  Locked: "Queued",
+  Ended: "Complete",
+};
+
+/* The rows that do not depend on which brand you are in. The campaign
+   rows do — they are the active brand's ladder — so they are built in the
+   component below.
+
+   There is no "new campaign" row: a brand cannot create a campaign at
+   all. It works through the ladder it already has, and the Awareness type
+   is coming soon, not creatable. */
+const STATIC_GROUPS: Group[] = [
   {
     title: "Navigate to",
     items: [
       { id: "n-dash", label: "Dashboard", icon: House, href: "/dashboard" },
       { id: "n-camp", label: "Campaigns", icon: Megaphone, href: "/campaigns" },
       { id: "n-creators", label: "Creators", icon: UsersThree, href: "/creators" },
-      { id: "n-new", label: "Create new campaign", icon: Plus, href: "/campaigns/new" },
     ],
   },
   {
@@ -50,6 +60,14 @@ export default function CommandPalette() {
   const [mounted, setMounted] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+
+  /* A campaign IS a phase, so the palette's campaign rows are the active
+     brand's ladder — the brand named none of them, and no other brand's
+     rungs are mixed in. useRoster is already phase-ordered with funding
+     applied, so a phase paid for on the detail route shows its new state
+     here without a reload. */
+  const roster = useRoster();
+  const brand = useActiveBrand();
 
   useEffect(() => setMounted(true), []);
 
@@ -77,13 +95,33 @@ export default function CommandPalette() {
     }
   }, [open]);
 
+  /* Mapped, never sliced: the ladder is unbounded, so a brand sitting on
+     Phase 12 gets twelve rows. Each label carries the rung name and the
+     state because the filter below reads `label` and nothing else — a bare
+     "Phase 4" would be unfindable. */
+  const allGroups = useMemo<Group[]>(() => {
+    if (!roster.length) return STATIC_GROUPS;
+    return [
+      {
+        title: `${brand.name} phases`,
+        items: roster.map((c) => ({
+          id: `p-${c.id}`,
+          label: `${phaseTitle(c.phaseNo)} — ${STATE_WORD[c.status]}`,
+          icon: Megaphone,
+          href: `/campaigns/${c.id}`,
+        })),
+      },
+      ...STATIC_GROUPS,
+    ];
+  }, [roster, brand.name]);
+
   const groups = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return GROUPS;
-    return GROUPS
+    if (!q) return allGroups;
+    return allGroups
       .map((g) => ({ ...g, items: g.items.filter((it) => it.label.toLowerCase().includes(q)) }))
       .filter((g) => g.items.length > 0);
-  }, [query]);
+  }, [query, allGroups]);
 
   const flat = useMemo(() => groups.flatMap((g) => g.items), [groups]);
   const activeId = flat[active]?.id;

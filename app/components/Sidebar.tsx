@@ -8,6 +8,7 @@ import {
   Gear, Question, SignOut, X,
 } from "@phosphor-icons/react";
 import { BRANDS, type Brand } from "../data";
+import { useActiveBrand, setActiveBrand } from "../lib/brand";
 
 type NavItem = { icon: ReactNode; label: string; href: string; badge?: string };
 const NAV_MENU: NavItem[] = [
@@ -46,7 +47,12 @@ function SidebarContent({
 }) {
   const router = useRouter();
   const [brandMenuOpen, setBrandMenuOpen] = useState(false);
-  const [activeBrand, setActiveBrand] = useState(BRANDS[0]);
+  /* The switch lives in app/lib/brand.ts, not here: each brand owns its own
+     ladder of phases, so picking a brand has to move the campaigns list, the
+     detail route and the dashboard with it. Local state moved the sidebar and
+     nothing else. Both sidebar copies — desktop and mobile drawer — read the
+     same store, so they can never disagree. */
+  const activeBrand = useActiveBrand();
   const [customLogo, setCustomLogo] = useState<string | null>(null);
   useEffect(() => {
     try { const l = localStorage.getItem("moontech_logo"); if (l) setCustomLogo(l); } catch {}
@@ -94,7 +100,7 @@ function SidebarContent({
             <div className="absolute top-full left-0 right-0 z-50 mt-1 overflow-hidden rounded-xl border border-neutral-100 bg-white shadow-xl shadow-neutral-200/60">
               <p className="px-3 pb-1 pt-2.5 text-[9px] font-medium uppercase tracking-widest text-neutral-400">Switch brand</p>
               {BRANDS.map((b) => (
-                <button key={b.id} onClick={() => { setActiveBrand(b); setBrandMenuOpen(false); }}
+                <button key={b.id} onClick={() => { setActiveBrand(b.id); setBrandMenuOpen(false); }}
                   className={`flex w-full items-center gap-2.5 px-3 py-2.5 text-left transition hover:bg-neutral-50 ${activeBrand.id === b.id ? "bg-violet-50/60" : ""}`}>
                   <div className="flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-md text-[10px] font-medium text-white"
                     style={{ backgroundColor: markSrc(b) ? "#fff" : b.color }}>

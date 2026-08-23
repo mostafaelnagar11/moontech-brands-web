@@ -18,15 +18,15 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
-  ArrowLeft, CaretRight, Check, CheckCircle, CircleNotch, Clock, Lightning,
-  List, LockSimple, Plus, SignOut, ThumbsUp, ThumbsDown,
+  ArrowLeft, CaretRight, CheckCircle, CircleNotch, Clock, Lightning,
+  List, LockSimple, SignOut, ThumbsUp, ThumbsDown,
 } from "@phosphor-icons/react";
 import Sidebar from "../../components/Sidebar";
 import NotificationCenter from "../../components/NotificationCenter";
 import CommandPalette from "../../components/CommandPalette";
 import StatusBadge from "../../components/StatusBadge";
-import { adCreator, fmtUSD, PHASE_NAMES, type Campaign } from "../../lib/campaigns";
-import { useCampaign, fundPhase } from "../../lib/funding";
+import { adCreator, fmtUSD, nextPhase, phaseHasStarted, phaseTitle, type Campaign } from "../../lib/campaigns";
+import { useCampaign, useRoster, fundPhase } from "../../lib/funding";
 import { useAdsFor, useWaitingFor } from "../../lib/adSignals";
 
 /* ------------------------------------------------------------------ */
@@ -48,6 +48,8 @@ export default function CampaignDetailPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const detail = useCampaign(params.id);
+  /* The brand's own ladder — this phase's siblings, in order. */
+  const roster = useRoster();
 
   const [activeNav, setActiveNav]       = useState("Campaigns");
   const [collapsed, setCollapsed]       = useState(false);
@@ -69,8 +71,8 @@ export default function CampaignDetailPage() {
   const liked    = drafts.filter((a) => a.signal === "liked");
   const disliked = drafts.filter((a) => a.signal === "disliked");
 
-  const cid   = detail?.id;
-  const cname = detail?.name;
+  const cid    = detail?.id;
+  const cphase = detail?.phaseNo;
 
   /* The payment SUCCEEDS here, so this is where the phase gets funded.
      Done / Escape / backdrop are pure dismissals — a user who reads the
@@ -78,15 +80,17 @@ export default function CampaignDetailPage() {
      and the effect bails once payState is "done", so neither the funding
      nor the announcement can fire twice. */
   useEffect(() => {
-    if (payState !== "processing" || !cid || !payDue) return;
-    const phase = payDue.phase;
+    if (payState !== "processing" || !cid || !cphase || !payDue) return;
     const t = window.setTimeout(() => {
+      /* The record that is paid for is the record that changes. A phase
+         carries its own `due`, so the id and the money can never point
+         at two different campaigns. */
       fundPhase(cid);
-      setAnnounce(`Phase ${phase} funded. ${cname} is now live.`);
+      setAnnounce(`${phaseTitle(cphase)} funded and now live.`);
       setPayState("done");
     }, 1400);
     return () => window.clearTimeout(t);
-  }, [payState, payDue, cid, cname]);
+  }, [payState, payDue, cid, cphase]);
 
   /* Escape closes the pay dialog — a modal on the web owes you a key. */
   useEffect(() => {
@@ -105,13 +109,24 @@ export default function CampaignDetailPage() {
 
   if (!detail) return null;
 
-  /* Three states, not two. A phase funded a second ago is Live with no
-     target yet: it has banked money but nothing measured, so it is
-     neither `metered` nor `banked`. */
+  /* Two states. Funding a phase gives it its target immediately —
+     budget × the multiple guaranteed on it — so anything that has run,
+     or is running, is metered. A phase that has not run has no target
+     and no revenue worth printing. */
   const pct = detail.revPct;
   const target = detail.revTarget;
-  const metered   = pct !== null && target !== null;
-  const deploying = pct === null && detail.status === "Live";
+  const metered = pct !== null && target !== null;
+
+  /* The successor, for the "nothing waiting on you" copy — a lookup, not
+     a comparison against a fixed ladder length. */
+  const after = nextPhase(detail, roster);
+
+  /* Performance figures. ROAS is recomputed from this phase's own money
+     rather than read off the stored string, so the bar and the label can
+     never disagree with each other. */
+  const roasNum = detail.budget > 0 ? detail.rev / detail.budget : 0;
+  const guaranteeMet = roasNum >= detail.guaranteedRoas;
+  const scaleMax = Math.max(detail.budget, detail.rev);
 
   const due = detail.due;
   const amount = payDue?.amount ?? 0;
@@ -168,16 +183,14 @@ export default function CampaignDetailPage() {
             <ArrowLeft size={15} weight="bold" />
           </button>
 
-          <h1 className="text-[15px] font-semibold text-[#191234] shrink-0 truncate">{detail.name}</h1>
+          <h1 className="text-[15px] font-semibold text-[#191234] shrink-0 truncate">{phaseTitle(detail.phaseNo)}</h1>
 
           <CommandPalette />
 
           <div className="flex items-center gap-2 ml-auto shrink-0">
-            <button onClick={() => router.push("/campaigns/new")}
-              className="flex items-center gap-2 rounded-xl bg-[#4D2FB0] px-3 sm:px-4 py-2 text-[12px] font-semibold text-white hover:bg-[#3F2596] transition-colors">
-              <Plus size={13} weight="bold" />
-              <span className="hidden sm:inline">New campaign</span>
-            </button>
+            {/* No create action: a brand does not make campaigns, and the
+                one thing to do on this page — funding it — already has a
+                primary button in the rail. */}
             <NotificationCenter />
             <div className="relative">
               <button onClick={() => setUserMenuOpen((o) => !o)}
@@ -215,8 +228,11 @@ export default function CampaignDetailPage() {
                 <div className="flex flex-wrap items-center gap-2">
                   <StatusBadge status={detail.status} />
                   <span className="text-xs text-neutral-500">{detail.dates}</span>
+                  {/* A phase that has not run has no ROAS — printing the
+                      placeholder as "— ROAS" reads like a broken number.
+                      What it does have is the multiple it is promised. */}
                   <span className="ml-auto rounded-full bg-[#F6F4FC] px-2.5 py-1 text-[11px] font-semibold tabular-nums text-[#4D2FB0]">
-                    {detail.roas} ROAS
+                    {detail.rev > 0 ? `${detail.roas} ROAS` : `${detail.guaranteedRoas}× guaranteed`}
                   </span>
                 </div>
 
@@ -248,12 +264,20 @@ export default function CampaignDetailPage() {
                     </span>
                   </>
                 ) : (
+                  /* Not started. Its revenue is $0 and its ROAS undefined,
+                     so the honest headline is the money it will deploy and
+                     what that money is promised to return. */
                   <>
                     <p className="mt-5 text-[34px] font-bold leading-none tabular-nums" style={{ color: INK }}>
-                      {detail.revLabel}
+                      {fmtUSD(detail.budget)}
                     </p>
                     <p className="mt-2 text-xs text-neutral-500">
-                      {deploying ? "revenue so far" : "revenue across completed phases"}
+                      {detail.status === "Ready" ? "ready to deploy" : "reserved for this phase"} ·
+                      metered against{" "}
+                      <span className="font-semibold tabular-nums">
+                        {fmtUSD(detail.budget * detail.guaranteedRoas)}
+                      </span>{" "}
+                      at your guaranteed {detail.guaranteedRoas}×
                     </p>
                   </>
                 )}
@@ -280,7 +304,11 @@ export default function CampaignDetailPage() {
                    would be invented — and per-creator counts are exactly what
                    the design review took off the screen. The badge is the
                    format, and the footer is who made it. */}
-              {drafts.length > 0 && (
+              {/* Drafts are seeded against every phase that can run, so this
+                  has to ask whether the phase has actually STARTED. A Ready
+                  or Locked phase showing creative would be claiming work no
+                  creator has been briefed to do. */}
+              {phaseHasStarted(detail) && drafts.length > 0 && (
                 <section>
                   {/* No count row. The button underneath already names the
                       number that matters, and the ticks on the cards say which
@@ -340,58 +368,112 @@ export default function CampaignDetailPage() {
                 </section>
               )}
 
-              {/* ── PHASE LEDGER ── */}
-              <section>
-                <p className={`${EYEBROW} mb-2 text-[#7C5CE0]`}>Phase ledger</p>
-                <div className={`${CARD} overflow-hidden`}>
-                  {detail.phases.map((p, j) => {
-                    const state =
-                      p === "Done" ? "Complete"
-                        : p === "Active" ? "Live"
-                        : due && due.phase === j + 1 ? "Ready to fund"
-                        : `Locked until Phase ${j} crosses the 80% unlock line`;
-                    const tone =
-                      p === "Done" ? "text-[#047857]"
-                        : p === "Active" ? "text-amber-700"
-                        : due && due.phase === j + 1 ? "text-[#4D2FB0]"
-                        : "text-neutral-500";
-                    return (
-                      <div key={j}
-                        className={`flex items-center gap-3 px-5 py-4 ${j > 0 ? "border-t border-black/[0.06]" : ""}`}>
-                        <span aria-hidden="true" className={`grid h-[22px] w-[22px] shrink-0 place-items-center rounded-full text-[10px] font-bold ${
-                          p === "Done" ? "bg-[#059669] text-white"
-                            : p === "Active" ? "bg-amber-400 text-white"
-                            : "bg-neutral-100 text-neutral-500"
-                        }`}>
-                          {p === "Done" ? <Check size={11} weight="bold" /> : j + 1}
-                        </span>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-semibold" style={{ color: INK }}>
-                            Phase {j + 1} · {PHASE_NAMES[j]}
-                          </p>
-                          <p className={`mt-0.5 text-xs ${tone}`}>{state}</p>
-                          {p === "Active" && metered && (
-                            <>
-                              <p className="mt-1.5 text-[11px] tabular-nums text-neutral-500">
-                                {fmtUSD(detail.rev)} of {fmtUSD(target)}
-                              </p>
-                              <div className="mt-1 h-1 w-full max-w-[180px] rounded-full bg-[#EFEBFA]">
-                                <div className="keyline-grad h-full rounded-full" style={{ width: `${pct}%` }} />
-                              </div>
-                            </>
-                          )}
+              {/* ── PHASE PERFORMANCE ──
+                   The money card above answers "how far to the unlock line".
+                   This answers the two questions it cannot: is this phase
+                   delivering the multiple it PROMISED, and what is each
+                   creator and each published ad actually returning.
+
+                   Every figure divides two numbers this phase already owns.
+                   Nothing here is estimated, and nothing repeats the
+                   Delivery rail — that counts ads and crew, this rates them. */}
+              {metered ? (
+                <section className={`${CARD} p-5`}>
+                  <p className={`${EYEBROW} mb-4 text-[#7C5CE0]`}>Phase performance</p>
+
+                  {/* ROAS against the guarantee — the number the brand bought.
+                      The bar is scaled to the guarantee, so a full bar means
+                      the promise is met and overflow is capped visually while
+                      the label still tells the truth. */}
+                  <div>
+                    <div className="flex items-baseline justify-between gap-2">
+                      <span className="text-xs font-medium text-neutral-500">Return against your guarantee</span>
+                      <span className="text-sm font-bold tabular-nums" style={{ color: INK }}>
+                        {roasNum.toFixed(1)}× <span className="font-medium text-neutral-400">of {detail.guaranteedRoas}×</span>
+                      </span>
+                    </div>
+                    <div
+                      role="img"
+                      aria-label={`Returning ${roasNum.toFixed(1)} times the money deployed, against a guaranteed ${detail.guaranteedRoas} times.`}
+                      className="relative mt-2 h-2.5 rounded-full bg-[#EFEBFA]"
+                    >
+                      <div className={`h-full rounded-full ${guaranteeMet ? "bg-[#059669]" : "keyline-grad"}`}
+                        style={{ width: `${Math.min((roasNum / detail.guaranteedRoas) * 100, 100)}%` }} />
+                    </div>
+                    <p className={`mt-1.5 text-[11px] font-medium ${guaranteeMet ? "text-[#047857]" : "text-neutral-500"}`}>
+                      {guaranteeMet
+                        ? `Guarantee met — ${roasNum.toFixed(1)}× on the money deployed.`
+                        : roasNum === 0
+                          ? "Nothing earned yet. The guarantee is measured when the phase closes."
+                          : `${Math.round((roasNum / detail.guaranteedRoas) * 100)}% of the multiple promised on this phase.`}
+                    </p>
+                  </div>
+
+                  {/* Spend against return, drawn on ONE scale so the multiple
+                      is legible as length rather than as arithmetic. */}
+                  <div className="mt-5 border-t border-black/[0.06] pt-4">
+                    <p className="mb-3 text-xs font-medium text-neutral-500">Deployed against earned</p>
+                    <div className="space-y-2.5">
+                      {[
+                        { k: "Deployed", v: detail.budget, cls: "bg-[#CFC4F0]" },
+                        { k: "Earned",   v: detail.rev,    cls: "keyline-grad" },
+                      ].map((row) => (
+                        <div key={row.k} className="flex items-center gap-3">
+                          <span className="w-[62px] shrink-0 text-[11px] font-medium text-neutral-500">{row.k}</span>
+                          <span className="h-2.5 min-w-0 flex-1 rounded-full bg-[#F4F2F9]">
+                            <span className={`block h-full rounded-full ${row.cls}`}
+                              style={{ width: `${scaleMax ? Math.max((row.v / scaleMax) * 100, 1.5) : 0}%` }} />
+                          </span>
+                          <span className="w-[74px] shrink-0 text-right text-xs font-semibold tabular-nums" style={{ color: INK }}>
+                            {fmtUSD(row.v)}
+                          </span>
                         </div>
-                        <div className="shrink-0 text-right">
-                          <p className="text-sm font-semibold tabular-nums" style={{ color: INK }}>
-                            {fmtUSD(detail.budgets[j])}
-                          </p>
-                          <p className="text-[11px] text-neutral-500">phase budget</p>
-                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Per-unit efficiency. Each of these is a division of two
+                      figures on this phase, so they cannot drift from it. */}
+                  <div className="mt-5 grid grid-cols-2 gap-x-4 gap-y-4 border-t border-black/[0.06] pt-4 sm:grid-cols-3">
+                    {[
+                      { k: "Revenue per creator",
+                        v: detail.creators ? fmtUSD(Math.round(detail.rev / detail.creators)) : "—" },
+                      { k: "Cost per creator",
+                        v: detail.creators ? fmtUSD(Math.round(detail.budget / detail.creators)) : "—" },
+                      { k: "Revenue per live ad",
+                        v: detail.adsLive ? fmtUSD(Math.round(detail.rev / detail.adsLive)) : "—" },
+                    ].map((m) => (
+                      <div key={m.k}>
+                        <p className="text-[17px] font-bold leading-none tabular-nums" style={{ color: INK }}>{m.v}</p>
+                        <p className="mt-1 text-[11px] leading-tight text-neutral-500">{m.k}</p>
                       </div>
-                    );
-                  })}
-                </div>
-              </section>
+                    ))}
+                  </div>
+                </section>
+              ) : (
+                /* Not funded: there is no performance to chart. What can be
+                   stated honestly is the arithmetic of the offer. */
+                <section className={`${CARD} p-5`}>
+                  <p className={`${EYEBROW} mb-4 text-[#7C5CE0]`}>What this phase commits to</p>
+                  <div className="grid grid-cols-3 gap-4">
+                    {[
+                      { k: "Budget", v: fmtUSD(detail.budget) },
+                      { k: "Guarantee", v: `${detail.guaranteedRoas}×` },
+                      { k: "Revenue target", v: fmtUSD(detail.budget * detail.guaranteedRoas) },
+                    ].map((m) => (
+                      <div key={m.k}>
+                        <p className="text-[19px] font-bold leading-none tabular-nums" style={{ color: INK }}>{m.v}</p>
+                        <p className="mt-1 text-[11px] leading-tight text-neutral-500">{m.k}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="mt-4 border-t border-black/[0.06] pt-3.5 text-xs text-neutral-500">
+                    Creators are matched and drafts are cut once this phase is funded, so there is
+                    nothing to measure until then.
+                  </p>
+                </section>
+              )}
+
             </div>
 
             {/* ══════════════ RIGHT — the decision, then delivery ══════════════ */}
@@ -403,16 +485,16 @@ export default function CampaignDetailPage() {
                 <section className={`${CARD} p-5`}>
                   <p className={`${EYEBROW} flex items-center gap-1.5 text-[#7C5CE0]`}>
                     <Lightning size={12} weight="fill" aria-hidden="true" />
-                    Waiting on you · Phase {due.phase} funding
+                    Waiting on you · funding
                   </p>
                   <p className="mt-2 text-sm font-semibold" style={{ color: INK }}>{due.reason}</p>
                   <p className="mt-1 text-xs text-neutral-500">
-                    You only fund the phase about to run.
+                    You fund one phase at a time, and only once it has unlocked.
                   </p>
                   <button
                     onClick={() => { setPayDue(due); setPayOpen(true); setPayState("idle"); }}
                     className="mt-4 flex w-full items-center justify-center rounded-xl bg-[#4D2FB0] px-4 py-3 text-[13px] font-semibold tabular-nums text-white hover:bg-[#3F2596] transition-colors">
-                    Fund Phase {due.phase} — {fmtUSD(due.amount)}
+                    {due.label} — {fmtUSD(due.amount)}
                   </button>
                   {/* The receipt bills amount + 5% VAT, so the button must not
                       be the only number the user sees before the modal. */}
@@ -424,19 +506,41 @@ export default function CampaignDetailPage() {
                 <section className={`${CARD} p-5`}>
                   <p className={`${EYEBROW} text-[#7C5CE0]`}>Live</p>
                   <p className="mt-2 text-sm font-semibold" style={{ color: INK }}>
-                    Phase {detail.phaseNo} · {detail.phaseName}
+                    {phaseTitle(detail.phaseNo)}
                   </p>
-                  {/* Peak is the last phase — there is no next one to promise. */}
+                  {/* This card used to open "Nothing is waiting on you" and
+                      then promise an unlock that had already happened. Both
+                      halves have to be asked, in order: drafts genuinely
+                      waiting outrank everything, and a successor that is
+                      already Ready is unlocked, not pending. */}
                   <p className="mt-1 text-xs text-neutral-500">
-                    {detail.phaseNo < 3
-                      ? "Nothing is waiting on you. The next phase unlocks at 80%."
-                      : "Nothing is waiting on you. This is the final phase."}
+                    {waiting.length > 0
+                      ? `${waiting.length} draft${waiting.length === 1 ? "" : "s"} waiting on you — nothing publishes until you decide.`
+                      : after && after.status === "Ready"
+                        ? `${phaseTitle(after.phaseNo)} is unlocked and waiting on funding.`
+                        : after
+                          ? `Nothing is waiting on you. ${phaseTitle(after.phaseNo)} unlocks when this phase crosses 80%.`
+                          : "Nothing is waiting on you. This is your last phase so far."}
                   </p>
-                  <button
-                    onClick={() => router.push("/creators")}
-                    className="mt-4 flex w-full items-center justify-center rounded-xl border border-[#4D2FB0]/25 bg-[#4D2FB0]/[0.06] px-4 py-3 text-[13px] font-semibold text-[#4D2FB0] hover:bg-[#4D2FB0]/[0.1] transition-colors">
-                    View creators
-                  </button>
+                  {waiting.length > 0 ? (
+                    <button
+                      onClick={() => router.push(`/campaigns/ads?c=${detail.id}`)}
+                      className="mt-4 flex w-full items-center justify-center rounded-xl bg-[#4D2FB0] px-4 py-3 text-[13px] font-semibold text-white hover:bg-[#3F2596] transition-colors">
+                      Review {waiting.length} waiting on you
+                    </button>
+                  ) : after && after.status === "Ready" ? (
+                    <button
+                      onClick={() => router.push(`/campaigns/${after.id}`)}
+                      className="mt-4 flex w-full items-center justify-center rounded-xl bg-[#4D2FB0] px-4 py-3 text-[13px] font-semibold tabular-nums text-white hover:bg-[#3F2596] transition-colors">
+                      {after.due ? `${after.due.label} — ${fmtUSD(after.due.amount)}` : `Open ${phaseTitle(after.phaseNo)}`}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => router.push("/creators")}
+                      className="mt-4 flex w-full items-center justify-center rounded-xl border border-[#4D2FB0]/25 bg-[#4D2FB0]/[0.06] px-4 py-3 text-[13px] font-semibold text-[#4D2FB0] hover:bg-[#4D2FB0]/[0.1] transition-colors">
+                      View creators
+                    </button>
+                  )}
                 </section>
               ) : null}
 
@@ -485,12 +589,12 @@ export default function CampaignDetailPage() {
             {payState !== "done" ? (
               <div className="p-5">
                 <h2 id="pay-dialog-title" className="text-[17px] font-bold" style={{ color: INK }}>
-                  Fund Phase {payDue.phase}
+                  {payDue.label}
                 </h2>
 
                 <div className="mt-4 overflow-hidden rounded-2xl border border-black/[0.06]">
                   <div className="flex items-center justify-between px-4 py-3">
-                    <span className="text-sm text-neutral-500">Phase {payDue.phase} budget</span>
+                    <span className="text-sm text-neutral-500">{phaseTitle(detail.phaseNo)} budget</span>
                     <span className="text-sm font-medium tabular-nums text-neutral-700">{fmtUSD(amount)}</span>
                   </div>
                   <div className="flex items-center justify-between border-t border-black/[0.06] px-4 py-3">
@@ -504,7 +608,8 @@ export default function CampaignDetailPage() {
                 </div>
 
                 <p className="mt-3 text-sm text-neutral-500">
-                  Phase {payDue.phase} · {detail.name} — {fmtUSD(amount)} deploys across your matched creators.
+                  {phaseTitle(detail.phaseNo)} — {fmtUSD(amount)} deploys across your matched creators,
+                  metered against {fmtUSD(amount * detail.guaranteedRoas)} at your guaranteed {detail.guaranteedRoas}×.
                 </p>
 
                 <div className="mt-4 rounded-2xl border border-black/[0.06] p-4">
@@ -554,7 +659,7 @@ export default function CampaignDetailPage() {
                   </svg>
                 </div>
                 <h2 id="pay-dialog-title" className="mt-6 text-[19px] font-bold" style={{ color: INK }}>
-                  Phase {payDue.phase} funded
+                  {phaseTitle(detail.phaseNo)} funded
                 </h2>
                 <p className="mt-1.5 text-xs text-neutral-500">
                   Deploying to matched creators. You&apos;ll get a notification as ads publish.

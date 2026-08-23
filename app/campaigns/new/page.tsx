@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { CaretRight } from "@phosphor-icons/react";
+import { phaseTitle } from "../../lib/campaigns";
 
 /* ------------------------------------------------------------------ */
 /* Design tokens                                                       */
@@ -18,7 +19,8 @@ const INK = "#191234";
 type Step = "type" | "basics" | "budget" | "building" | "review" | "pay" | "processing";
 
 interface CampaignData {
-  name: string;
+  /* No name: a campaign is a phase and its title is its number. This flow
+     only ever provisions Phase 1, so the title is phaseTitle(1). */
   type: "roas" | "awareness";
   startDate: string;
   endDate: string;
@@ -214,36 +216,45 @@ function getConfidence(budget: number, roas: number) {
 function StepType({ data, onChange }: { data: CampaignData; onChange: (d: Partial<CampaignData>) => void }) {
   return (
     <div className="space-y-5">
-      <StepIntro title="Create your campaign" sub="Give it a name and choose how it should run." />
-      <div>
-        <label className={labelCls}>Campaign name</label>
-        <input value={data.name} onChange={(e) => onChange({ name: e.target.value })}
-          placeholder="e.g. Spring 2026" className={fieldCls} />
-      </div>
+      <StepIntro title="Set up your campaign" sub="Choose how it should run." />
 
       <div>
         <label className={labelCls}>Campaign type</label>
         <div className="space-y-3">
           {[
-            { value: "roas" as const, title: "E-commerce — ROAS guaranteed", desc: "Guaranteed return on ad spend with phased delivery" },
-            { value: "awareness" as const, title: "Awareness campaign", desc: "Grow brand reach and visibility" },
+            { value: "roas" as const, title: "E-commerce — ROAS guaranteed", desc: "A guaranteed return on ad spend, one funded phase at a time", soon: false },
+            { value: "awareness" as const, title: "Awareness campaign", desc: "Grow brand reach and visibility", soon: true },
           ].map((opt) => {
             const selected = data.type === opt.value;
+            /* Awareness is on the roadmap, not buildable. The option stays —
+               it is the only place a brand sees where this is going — but it
+               cannot be picked, so `disabled` carries the whole story. */
             return (
-              <button key={opt.value} onClick={() => onChange({ type: opt.value })}
+              <button key={opt.value} disabled={opt.soon}
+                onClick={opt.soon ? undefined : () => onChange({ type: opt.value })}
                 className={`w-full flex items-start justify-between rounded-2xl border p-4 text-left transition ${
-                  selected ? "border-[#4D2FB0] bg-[#4D2FB0]/[0.05]" : "border-black/[0.09] bg-white hover:border-black/20"
+                  opt.soon
+                    ? "border-black/[0.06] bg-neutral-50 cursor-not-allowed"
+                    : selected
+                    ? "border-[#4D2FB0] bg-[#4D2FB0]/[0.05]"
+                    : "border-black/[0.09] bg-white hover:border-black/20"
                 }`}
               >
                 <div>
-                  <p className={`text-sm font-semibold ${selected ? "text-neutral-900" : "text-neutral-700"}`}>{opt.title}</p>
-                  <p className="mt-0.5 text-xs text-neutral-500">{opt.desc}</p>
+                  <p className={`text-sm font-semibold ${opt.soon ? "text-neutral-400" : selected ? "text-neutral-900" : "text-neutral-700"}`}>{opt.title}</p>
+                  <p className={`mt-0.5 text-xs ${opt.soon ? "text-neutral-400" : "text-neutral-500"}`}>{opt.desc}</p>
                 </div>
-                <div className={`mt-0.5 ml-3 h-5 w-5 shrink-0 rounded-full border-2 flex items-center justify-center transition ${
-                  selected ? "border-[#4D2FB0] bg-[#4D2FB0]" : "border-neutral-300 bg-white"
-                }`}>
-                  {selected && <div className="h-2 w-2 rounded-full bg-white" />}
-                </div>
+                {opt.soon ? (
+                  <span className="mt-0.5 ml-3 shrink-0 rounded-full border border-black/[0.06] bg-white px-2.5 py-0.5 text-[11px] font-medium text-neutral-400">
+                    Coming soon
+                  </span>
+                ) : (
+                  <div className={`mt-0.5 ml-3 h-5 w-5 shrink-0 rounded-full border-2 flex items-center justify-center transition ${
+                    selected ? "border-[#4D2FB0] bg-[#4D2FB0]" : "border-neutral-300 bg-white"
+                  }`}>
+                    {selected && <div className="h-2 w-2 rounded-full bg-white" />}
+                  </div>
+                )}
               </button>
             );
           })}
@@ -254,9 +265,10 @@ function StepType({ data, onChange }: { data: CampaignData; onChange: (d: Partia
         <div className="flex items-start gap-3 rounded-2xl border border-[#4D2FB0]/15 bg-[#4D2FB0]/[0.05] p-4">
           <span className="mt-0.5 shrink-0 text-[#4D2FB0] text-sm">✦</span>
           <p className="text-sm leading-relaxed text-neutral-700">
-            As a new brand, you&apos;ll start with our{" "}
-            <strong className="text-[#4D2FB0]">Warm-up program</strong> — three phased campaigns that
-            help the MoonTech assistant learn your audience before scaling.
+            As a new brand, you&apos;ll start at{" "}
+            <strong className="text-[#4D2FB0]">{phaseTitle(1)}</strong> — a small first phase that
+            lets the MoonTech assistant learn your audience. The next one unlocks only once this
+            one crosses 80% of its target.
           </p>
         </div>
         <div className="rounded-2xl bg-[#4D2FB0]/[0.06] p-4">
@@ -381,7 +393,9 @@ function PlanCalculator({
   compact?: boolean;
 }) {
   const confidence = getConfidence(budget, roas);
-  const projected = budget * roas;
+  /* Budget × the guaranteed multiple. This phase is metered against it and
+     nothing else — there is no pot behind it to slice. */
+  const revTarget = budget * roas;
   /* Track-fill stops for the compact sliders: brand up to the thumb, quiet after. */
   const budgetPct = ((budget - 1000) / (80000 - 1000)) * 100;
   const roasPct = ((roas - 1) / (12 - 1)) * 100;
@@ -398,7 +412,7 @@ function PlanCalculator({
             Fixed w-12 flanks keep both sliders' tracks vertically aligned. */}
         <div>
           <div className="flex items-baseline justify-between gap-3">
-            <p className="text-[13px] font-medium" style={{ color: INK }}>Total campaign budget</p>
+            <p className="text-[13px] font-medium" style={{ color: INK }}>Phase 1 budget</p>
             <p className="text-xl font-semibold leading-none tracking-tight tabular-nums text-[#4D2FB0]">
               ${budget.toLocaleString()}
             </p>
@@ -409,7 +423,7 @@ function PlanCalculator({
               type="range" min={1000} max={80000} step={1000}
               value={budget}
               onChange={(e) => onChange({ budget: Number(e.target.value) })}
-              aria-label="Total campaign budget in dollars"
+              aria-label="Phase 1 budget in dollars"
               className="range-fill h-2 min-w-0 flex-1 cursor-pointer appearance-none rounded-full outline-none focus-visible:ring-2 focus-visible:ring-[#4D2FB0]/40 focus-visible:ring-offset-2"
               style={{ ...fill(budgetPct) }}
             />
@@ -425,7 +439,7 @@ function PlanCalculator({
             <div className="text-right">
               <p className="text-xl font-semibold leading-none tracking-tight tabular-nums text-[#4D2FB0]">{roas}×</p>
               <p className="mt-1.5 text-xs text-neutral-400">
-                = <span className="font-medium tabular-nums" style={{ color: INK }}>${projected.toLocaleString()}</span> projected revenue
+                = <span className="font-medium tabular-nums" style={{ color: INK }}>${revTarget.toLocaleString()}</span> revenue target
               </p>
             </div>
           </div>
@@ -470,7 +484,7 @@ function PlanCalculator({
     <div className="space-y-6">
       <div>
         <div className="mb-4 flex items-baseline justify-between">
-          <p className="text-sm text-neutral-600">Total campaign budget</p>
+          <p className="text-sm text-neutral-600">Phase 1 budget</p>
           <p className="text-3xl font-semibold leading-none tracking-tight tabular-nums text-[#4D2FB0]">
             ${budget.toLocaleString()}
           </p>
@@ -479,7 +493,7 @@ function PlanCalculator({
           type="range" min={1000} max={80000} step={1000}
           value={budget}
           onChange={(e) => onChange({ budget: Number(e.target.value) })}
-          aria-label="Total campaign budget in dollars"
+          aria-label="Phase 1 budget in dollars"
           className="h-2 w-full cursor-pointer appearance-none rounded-full"
           style={{ accentColor: BRAND }}
         />
@@ -493,7 +507,7 @@ function PlanCalculator({
           <p className="mt-1 text-sm text-neutral-600">Target ROAS</p>
           <div className="text-right">
             <p className="text-3xl font-semibold leading-none tracking-tight tabular-nums text-[#4D2FB0]">{roas}×</p>
-            <p className="mt-1 text-xs text-neutral-400">= ${projected.toLocaleString()} in revenue</p>
+            <p className="mt-1 text-xs text-neutral-400">= ${revTarget.toLocaleString()} revenue target</p>
           </div>
         </div>
         <input
@@ -524,12 +538,13 @@ function PlanCalculator({
   );
 }
 function StepBudget({ data, onChange }: { data: CampaignData; onChange: (d: Partial<CampaignData>) => void }) {
-  const projectedSales = data.budget * data.roas;
-  const phase1 = Math.round(data.budget * 0.1);
+  /* One phase, one budget. Later phases are quoted and funded when they
+     unlock, so nothing here is a share of anything. */
+  const revTarget = data.budget * data.roas;
 
   return (
     <div className="space-y-8">
-      <StepIntro title="Budget & target ROAS" sub="Drag to shape your plan — your first three phases are guaranteed." />
+      <StepIntro title="Budget & target ROAS" sub="Drag to shape Phase 1 — the multiple you pick is the one we guarantee on it." />
 
       <PlanCalculator
         budget={data.budget}
@@ -542,9 +557,9 @@ function StepBudget({ data, onChange }: { data: CampaignData; onChange: (d: Part
         <p className="text-[13px] font-medium text-neutral-500 mb-3">What this builds</p>
         <div className="grid grid-cols-3 divide-x divide-black/[0.06]">
           {[
-            { label: "Projected revenue", value: `$${projectedSales.toLocaleString()}` },
-            { label: "Guaranteed phases", value: "3" },
-            { label: "Phase 1 to start",  value: `$${phase1.toLocaleString()}` },
+            { label: "Phase 1 revenue target", value: `$${revTarget.toLocaleString()}` },
+            { label: "Guaranteed multiple",    value: `${data.roas}×` },
+            { label: "Due today",              value: `$${data.budget.toLocaleString()}` },
           ].map((m, i) => (
             <div key={m.label} className={i === 0 ? "pr-4" : "px-4 last:pl-4 last:pr-0"}>
               <p className="text-[20px] font-semibold tracking-tight tabular-nums leading-none" style={{ color: INK }}>{m.value}</p>
@@ -563,23 +578,10 @@ function StepBudget({ data, onChange }: { data: CampaignData; onChange: (d: Part
 function StepReview({ data }: { data: CampaignData }) {
   const [knowOpen, setKnowOpen] = useState(false);
 
-  const p1b = Math.round(data.budget * 0.1);
-  const p2b = Math.round(data.budget * 0.2);
-  const p3b = Math.round(data.budget * 0.3);
-  const p4b = data.budget - p1b - p2b - p3b;
-
-  const p1r = p1b * 1;
-  const p2r = p2b * 2;
-  const p3r = p3b * 3;
-  const totalTarget = data.budget * data.roas;
-  const p4r = totalTarget - p1r - p2r - p3r;
-  const p4roas = Math.round(p4r / p4b);
-
-  const committed = [
-    { num: 1, label: "Phase 1 · Warm-up", budget: p1b, roas: 1, revenue: p1r },
-    { num: 2, label: "Phase 2",           budget: p2b, roas: 2, revenue: p2r },
-    { num: 3, label: "Phase 3",           budget: p3b, roas: 3, revenue: p3r },
-  ];
+  /* One phase, its own budget, its own guarantee. There are no shares to
+     work out: the ladder is unbounded, and every later phase arrives with
+     — and is funded on — a number of its own. */
+  const revTarget = data.budget * data.roas;
 
   const fmt = (n: number) => `$${n.toLocaleString()}`;
 
@@ -599,8 +601,8 @@ function StepReview({ data }: { data: CampaignData }) {
     {
       icon: "📊",
       bg: "bg-green-50",
-      title: "Guarantee applies to Warm-up phases only",
-      desc: "Phases 1–3 have locked, guaranteed ROAS targets. The estimated phase beyond that is a projection — it gets more accurate as live data comes in.",
+      title: "The guarantee is per phase",
+      desc: "Each phase carries its own budget and its own guaranteed multiple, and is metered against that alone. Today's number is Phase 1's — the next phase is quoted when it unlocks.",
     },
   ];
 
@@ -612,81 +614,60 @@ function StepReview({ data }: { data: CampaignData }) {
 
   return (
     <div className="space-y-5">
-      {/* Hero card */}
+      {/* Hero card — this phase and only this phase. It is the whole plan
+          on the table today; nothing after it has a budget yet. */}
       <div className="rounded-2xl bg-[#4D2FB0] p-5 text-white">
         <p className="mb-2 text-xs font-medium text-white/60">Your plan</p>
-        <h2 className="text-xl font-semibold leading-snug mb-3">Your 4-phase campaign plan</h2>
+        <h2 className="text-xl font-semibold leading-snug mb-3">{phaseTitle(1)}</h2>
         <p className="text-sm leading-relaxed text-white/80">
-          Targeting <strong className="text-white">{data.roas}× ROAS</strong> on a{" "}
-          <strong className="text-white">{fmt(data.budget)}</strong> budget. Your first three phases
-          are fully guaranteed — if a phase misses its target, we make it right. The estimated phase
-          beyond that is a data-driven projection that sharpens as your campaign runs.
+          A <strong className="text-white">{fmt(data.budget)}</strong> budget carrying a{" "}
+          <strong className="text-white">{data.roas}× guarantee</strong> — this phase is metered
+          against that multiple and nothing else. If it misses its target, we make it right.
         </p>
       </div>
 
-      {/* Committed phases */}
+      {/* Funding today */}
       <div className="flex items-center gap-3">
         <div className="flex-1 h-px bg-black/[0.07]" />
-        <span className="text-xs font-medium text-neutral-400">Committed</span>
-        <div className="flex-1 h-px bg-black/[0.07]" />
-      </div>
-
-      <div className="space-y-3">
-        {committed.map((p, i) => (
-          <div key={p.num} className="flex items-stretch gap-3">
-            {/* Number + connector */}
-            <div className="flex flex-col items-center">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#4D2FB0] text-sm font-semibold text-white">
-                {p.num}
-              </div>
-              {i < committed.length - 1 && <div className="flex-1 w-px bg-[#4D2FB0]/25 my-1" />}
-            </div>
-            {/* Card */}
-            <div className="flex-1 rounded-2xl border border-black/[0.06] bg-white p-4 shadow-[0_1px_2px_rgba(16,12,40,0.04)]" style={{ borderLeft: `3px solid ${BRAND}` }}>
-              <div className="flex items-start justify-between">
-                <p className="text-sm font-semibold text-neutral-700">{p.label}</p>
-                <span className="rounded-full bg-green-50 px-2.5 py-0.5 text-[11px] font-medium text-green-600">
-                  Committed
-                </span>
-              </div>
-              <div className="mt-1.5 flex items-center justify-between">
-                <p className="text-xs text-neutral-400">
-                  Budget: <strong className="text-neutral-600 tabular-nums">{fmt(p.budget)}</strong> · ROAS:{" "}
-                  <strong className="text-neutral-600 tabular-nums">{p.roas}×</strong>
-                </p>
-                <p className="text-xs text-neutral-400 tabular-nums">≈{fmt(p.revenue)}</p>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Estimated phases */}
-      <div className="flex items-center gap-3">
-        <div className="flex-1 h-px bg-black/[0.07]" />
-        <span className="text-xs font-medium text-neutral-400">Estimated phase</span>
+        <span className="text-xs font-medium text-neutral-400">Funding today</span>
         <div className="flex-1 h-px bg-black/[0.07]" />
       </div>
 
       <div className="flex items-stretch gap-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-dashed border-amber-400 text-amber-500 text-sm font-semibold">
-          ~
+        {/* No connector below the marker: there is no second rung drawn, and
+            a dangling line would promise one. */}
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#4D2FB0] text-sm font-semibold text-white">
+          1
         </div>
-        <div className="flex-1 rounded-2xl border border-black/[0.06] bg-white p-4 shadow-[0_1px_2px_rgba(16,12,40,0.04)]" style={{ borderLeft: "3px solid #f59e0b" }}>
+        <div className="flex-1 rounded-2xl border border-black/[0.06] bg-white p-4 shadow-[0_1px_2px_rgba(16,12,40,0.04)]" style={{ borderLeft: `3px solid ${BRAND}` }}>
           <div className="flex items-start justify-between">
-            <p className="text-sm font-semibold text-neutral-700">Phase 4 · Growth</p>
-            <span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-medium text-amber-500">
-              Estimated
+            <p className="text-sm font-semibold text-neutral-700">{phaseTitle(1)}</p>
+            <span className="rounded-full bg-green-50 px-2.5 py-0.5 text-[11px] font-medium text-green-600">
+              Committed
             </span>
           </div>
           <div className="mt-1.5 flex items-center justify-between">
             <p className="text-xs text-neutral-400">
-              Budget: <strong className="text-neutral-600 tabular-nums">{fmt(p4b)}</strong> · ROAS:{" "}
-              <strong className="text-neutral-600 tabular-nums">{p4roas}×</strong>
+              Budget: <strong className="text-neutral-600 tabular-nums">{fmt(data.budget)}</strong> · ROAS:{" "}
+              <strong className="text-neutral-600 tabular-nums">{data.roas}×</strong>
             </p>
-            <p className="text-xs text-neutral-400 tabular-nums">≈{fmt(p4r)}</p>
+            <p className="text-xs text-neutral-400 tabular-nums">≈{fmt(revTarget)}</p>
           </div>
         </div>
+      </div>
+
+      {/* What comes after — described, never drawn. The ladder is unbounded,
+          so there is no fixed-length stepper to paint, and no later phase
+          that could honestly be given a budget before it unlocks. */}
+      <div className="rounded-2xl border border-black/[0.06] bg-white p-4 shadow-[0_1px_2px_rgba(16,12,40,0.04)]">
+        <p className="text-sm font-semibold text-neutral-700">What happens after Phase 1</p>
+        <p className="mt-2 text-xs leading-relaxed text-neutral-500">
+          Phase 2 unlocks the moment Phase 1 crosses{" "}
+          <strong className="text-neutral-600">80% of its revenue target</strong> — and only then.
+          Phases run one at a time, never side by side, and each arrives with its own budget, window
+          and guaranteed multiple, funded on its own once it unlocks. There is no set number of
+          them: the ladder runs as far as your results do.
+        </p>
       </div>
 
       {/* Funding disclaimer — no phase runs until the user funds it */}
@@ -701,16 +682,17 @@ function StepReview({ data }: { data: CampaignData }) {
         </p>
       </div>
 
-      {/* Total projected revenue */}
+      {/* The one number the guarantee is measured against. Not a total:
+          phases after this one have no budget to add in. */}
       <div className="rounded-2xl border border-green-200 bg-green-50 p-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs font-medium text-green-700">Total projected revenue</p>
-            <p className="mt-0.5 text-xs text-green-600">Across all 4 phases · {fmt(data.budget)} spend</p>
+            <p className="text-xs font-medium text-green-700">Phase 1 revenue target</p>
+            <p className="mt-0.5 text-xs text-green-600">{fmt(data.budget)} spend · this phase only</p>
           </div>
           <div className="text-right">
-            <p className="text-2xl font-semibold tracking-tight tabular-nums text-green-600 leading-none">{fmt(totalTarget)}</p>
-            <p className="mt-1 text-xs font-medium text-green-500">✓ matches your {data.roas}× target</p>
+            <p className="text-2xl font-semibold tracking-tight tabular-nums text-green-600 leading-none">{fmt(revTarget)}</p>
+            <p className="mt-1 text-xs font-medium text-green-500">✓ your {data.roas}× guarantee</p>
           </div>
         </div>
       </div>
@@ -791,17 +773,18 @@ function StepPay({
   const [check1, setCheck1] = useState(false);
   const [check2, setCheck2] = useState(false);
 
-  const p1Budget = Math.round(data.budget * 0.1);
+  /* Phase 1 funds itself: the budget on the slider IS this phase's budget,
+     not a share of a larger pot, so there is no percentage to take off it. */
+  const p1Budget = data.budget;
   const vat = Math.round(p1Budget * 0.05);
   const total = p1Budget + vat;
   const fmt = (n: number) => `$${n.toLocaleString()}`;
   const canPay = check1 && check2 && profileComplete;
 
   const rows = [
-    { label: "Campaign",        value: data.name || "—" },
-    { label: "Phase 1 budget",  value: fmt(p1Budget) },
-    { label: "ROAS target",     value: "1× (Warm-up)" },
-    { label: "Expected revenue", value: fmt(p1Budget) },
+    { label: "Phase 1 budget",   value: fmt(p1Budget) },
+    { label: "Guaranteed ROAS",  value: `${data.roas}×` },
+    { label: "Revenue target",   value: fmt(p1Budget * data.roas) },
     { label: "VAT (5%)",         value: `$${vat.toFixed(2)}` },
   ];
 
@@ -813,7 +796,7 @@ function StepPay({
           Due today — Phase 1 only
         </p>
         <p className="text-4xl font-semibold tracking-tight tabular-nums text-[#4D2FB0] leading-none">{fmt(p1Budget)}</p>
-        <p className="mt-2 text-sm text-neutral-500">Phases 2 &amp; 3 funded separately as you progress.</p>
+        <p className="mt-2 text-sm text-neutral-500">Later phases are funded one at a time, each when it unlocks.</p>
       </div>
 
       {/* Phase unlock notice */}
@@ -962,7 +945,7 @@ function BuildingScreen({ onDone }: { onDone: () => void }) {
       <div className="text-6xl mb-6 animate-spin" style={{ animationDuration: "3s" }}>⚙️</div>
       <h2 className="text-2xl font-bold text-neutral-700 mb-3">Building your plan…</h2>
       <p className="text-[15px] text-neutral-400 leading-relaxed max-w-xs">
-        Analysing budget, ROAS target, and traffic data to design your phase structure.
+        Analysing budget, ROAS target and traffic data to size your first phase.
       </p>
 
       <div className="mt-10 w-full max-w-xs space-y-3">
@@ -995,7 +978,7 @@ function BuildingScreen({ onDone }: { onDone: () => void }) {
 const WCP_TASKS = [
   { label: "Analysing budget", chip: "Mapped", delay: 0.9 },
   { label: "Matching ROAS curve", chip: "Locked", delay: 1.8 },
-  { label: "Structuring phases", chip: "4 phases", delay: 2.7 },
+  { label: "Sizing Phase 1", chip: "Scoped", delay: 2.7 },
 ];
 
 /* deterministic sparkle constellation around the hero badge */
@@ -1052,7 +1035,7 @@ function BuildingWidget({ onDone, onOpenPlan, planOpen }: { onDone: () => void; 
                   <span className="wcp-grad-text">Plan ready</span>
                 </p>
                 <p className="wcp-rise truncate text-[11px] font-medium text-[#4D2FB0]/60" style={{ "--wcp-d": "0.26s" } as React.CSSProperties}>
-                  4 phases · matched to your budget &amp; ROAS target
+                  Phase 1 · matched to your budget &amp; ROAS target
                 </p>
               </div>
             </div>
@@ -1180,19 +1163,15 @@ type AiMsg = { role: "ai" | "user"; text?: string; widget?: "building" };
 
 const AI_FLOW: { key: string; ask: string; title: string; chips: string[]; skip?: boolean; multi?: boolean; calculator?: boolean }[] = [
   { key: "setup",  ask: "Hi! I'm the MoonTech assistant ✦\nHow would you like to set up your campaign?", title: "Setup method", chips: ["Continue with the MoonTech assistant", "Set it up manually"] },
-  { key: "name",   ask: "Great — let's build it together. First, what should we call the campaign?", title: "Campaign name", chips: ["Spring 2026", "Summer Sale", "Brand Launch", "Ramadan 2026"] },
-  { key: "type",   ask: "Got it! What's the goal for this campaign?", title: "Campaign goal", chips: ["Drive revenue (ROAS guaranteed)", "Grow brand awareness"] },
-  { key: "geo",    ask: "Which markets should it run in? Pick all that apply.", title: "Target markets", chips: ["UAE", "KSA", "Kuwait", "All GCC"], multi: true },
+  { key: "geo",    ask: "Great — let's build it together. First, which markets should it run in? Pick all that apply.", title: "Target markets", chips: ["UAE", "KSA", "Kuwait", "All GCC"], multi: true },
   { key: "gender", ask: "Who's your target audience?", title: "Target audience", chips: ["All genders", "Women only", "Men only"] },
   { key: "age",    ask: "And the age range you're after?", title: "Age range", chips: ["18–34", "25–44", "35–54", "All ages"] },
-  { key: "plan",   ask: "Now the numbers. Drag both — I'll tell you how confident I am in the target as you go.", title: "Budget & target ROAS", chips: [], calculator: true },
+  { key: "plan",   ask: "Now the numbers for Phase 1. Drag both — I'll tell you how confident I am in the target as you go.", title: "Phase 1 budget & ROAS", chips: [], calculator: true },
   { key: "brief",  ask: "Last one — anything creators should know? Any do's or don'ts?", title: "Creator brief", chips: ["Keep it casual & authentic", "No competitor mentions", "Focus on product quality"], skip: true },
 ];
 
 function mapAnswers(a: Record<string, string>): Partial<CampaignData> {
   const p: Partial<CampaignData> = {};
-  if (a.name) p.name = a.name;
-  if (a.type) p.type = /aware|brand/i.test(a.type) ? "awareness" : "roas";
   if (a.geo) {
     const g = a.geo.toLowerCase();
     const count = [/uae/, /ksa/, /kuwait/].filter((re) => re.test(g)).length;
@@ -1277,10 +1256,10 @@ function AgentChat({ onComplete, onSwitchManual, onOpenPlan, planOpen }: {
       setInputVal("");
       const lower = v.toLowerCase();
       const reply = /budget|roas|target|phase|change|edit|adjust/.test(lower)
-        ? "Happy to help adjust that! For now you can review every phase, budget and ROAS target in the plan panel — open it from the “Plan ready” card above. Fine-tuning via chat is coming soon."
+        ? "Happy to help adjust that! For now you can review Phase 1's budget and its guaranteed ROAS in the plan panel — open it from the “Plan ready” card above. Fine-tuning via chat is coming soon."
         : /pay|launch|start|go live/.test(lower)
-        ? "Once you're happy with the plan, hit “Fund Phase 1” in the plan panel — only Phase 1 is due today, the rest unlock as targets are hit."
-        : "Your 4-phase plan is ready — open it anytime from the “Plan ready” card above. Ask me about budgets, phases, or how the ROAS guarantee works.";
+        ? "Once you're happy with the plan, hit “Fund Phase 1” in the plan panel — Phase 1 is the only thing due today, and the next phase unlocks when it crosses 80% of its target."
+        : "Your Phase 1 plan is ready — open it anytime from the “Plan ready” card above. Ask me about the budget, how phases unlock, or how the ROAS guarantee works.";
       pushAi(reply);
       return;
     }
@@ -1322,8 +1301,7 @@ function AgentChat({ onComplete, onSwitchManual, onOpenPlan, planOpen }: {
     } else {
       setDone(true);
       finalPatch.current = mapAnswers(nextAnswers);
-      const goalTxt = /aware|brand/i.test(nextAnswers.type || "") ? "Brand awareness" : "ROAS guaranteed";
-      const summary = `Perfect — here's your campaign:\n\n• Name — ${nextAnswers.name || "Campaign"}\n• Goal — ${goalTxt}\n• Market — ${nextAnswers.geo || "UAE"}\n• Audience — ${nextAnswers.gender || "All"}, ${nextAnswers.age || "18–34"}\n• Budget — ${nextAnswers.budget || "$10,000"} · ${nextAnswers.roas || "5×"}\n\nBuilding your guaranteed plan now…`;
+      const summary = `Perfect — here's what Phase 1 is built on:\n\n• Market — ${nextAnswers.geo || "UAE"}\n• Audience — ${nextAnswers.gender || "All"}, ${nextAnswers.age || "18–34"}\n• Budget — ${nextAnswers.budget || "$10,000"} · ${nextAnswers.roas || "5×"} guaranteed\n\nBuilding your Phase 1 plan now…`;
       pushAi(summary);
       // Show the building step as an inline widget in the chat (not a full-page
       // takeover); when it finishes, hand off to the review phase.
@@ -1788,7 +1766,6 @@ export default function NewCampaign() {
   const [mode, setMode] = useState<"manual" | "agent">("agent");
   const [step, setStep] = useState<Step>("type");
   const [data, setData] = useState<CampaignData>({
-    name: "Spring 2026",
     type: "roas",
     startDate: "2026-04-01",
     endDate: "2026-05-30",
@@ -2023,13 +2000,12 @@ export default function NewCampaign() {
                   ← Back
                 </button>
                 <p className="hidden sm:block flex-1 text-xs leading-relaxed text-neutral-400">
-                  {step === "type"   ? "Choose a name and campaign type to get started." :
+                  {step === "type"   ? "Choose how your campaign should run to get started." :
                    step === "basics" ? "Fill in your target audience and creator brief." :
-                   step === "budget" ? "Set your budget and ROAS target to build your plan." : ""}
+                   step === "budget" ? "Set Phase 1's budget and ROAS target to build your plan." : ""}
                 </p>
                 <div className="flex-1 sm:flex-none" />
                 <button onClick={handleNext}
-                  disabled={step === "type" && !data.name.trim()}
                   className={`shrink-0 rounded-xl px-4 sm:px-5 py-2.5 text-sm font-semibold text-white transition active:scale-[0.98] ${
                     isLowConfidence
                       ? "bg-[#4D2FB0]/40 cursor-not-allowed"
