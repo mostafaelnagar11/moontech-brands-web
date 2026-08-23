@@ -9,7 +9,7 @@
 /*                                                                     */
 /* The ladder is UNBOUNDED — a brand can be on Phase 2 or Phase 20 —    */
 /* so nothing here may assume a length. Completed phases collapse into  */
-/* the Archive rather than growing the grid forever.                    */
+/* a Completed block rather than growing the grid forever.              */
 /*                                                                     */
 /* Everything derives from useRoster(), which is already scoped to the  */
 /* active brand and sorted by phase, so a phase funded on the detail    */
@@ -51,7 +51,7 @@ const FILTER_LABEL: Record<StatusFilter, string> = {
   Live: "Live",
   Ready: "Ready to fund",
   Locked: "Queued",
-  Ended: "Complete",
+  Ended: "Completed",
 };
 
 /* ------------------------------------------------------------------ */
@@ -214,13 +214,13 @@ function CampaignCard({ c, i, onOpen }: { c: Campaign; i: number; onOpen: (id: s
 }
 
 /* ------------------------------------------------------------------ */
-/* Archive — completed phases stop being cards.                        */
+/* Completed — finished phases stop being cards.                       */
 /*                                                                     */
 /* This is what makes an unbounded ladder survive: a brand twelve       */
 /* phases in has eleven finished, and eleven cards would bury the one   */
 /* thing that is actually running.                                      */
 /* ------------------------------------------------------------------ */
-function ArchiveBlock({
+function CompletedBlock({
   rows, delay, showEyebrow, onOpen,
 }: {
   rows: Campaign[]; delay: number; showEyebrow: boolean; onOpen: (id: string) => void;
@@ -229,7 +229,7 @@ function ArchiveBlock({
     <>
       {showEyebrow && (
         <p className="mb-2.5 mt-8 text-[11px] font-bold uppercase tracking-wide text-neutral-400">
-          Archive · {rows.length}
+          Completed · {rows.length}
         </p>
       )}
       <div
@@ -240,7 +240,7 @@ function ArchiveBlock({
           <button
             key={c.id}
             onClick={() => onOpen(c.id)}
-            aria-label={`${phaseTitle(c.phaseNo)}, complete, ${c.revLabel} earned, ${c.roas} ROAS. Open phase.`}
+            aria-label={`${phaseTitle(c.phaseNo)}, completed, ${c.revLabel} earned, ${c.roas} ROAS. Open phase.`}
             className={`flex w-full items-center gap-3.5 px-4 py-3.5 text-left transition-colors hover:bg-neutral-50 sm:px-5 ${
               i > 0 ? "border-t border-black/[0.06]" : ""
             }`}
@@ -316,7 +316,7 @@ export default function CampaignsPage() {
 
   const shown = filter === "All" ? roster : roster.filter((c) => c.status === filter);
   const cards = shown.filter((c) => c.status !== "Ended");
-  const archive = shown.filter((c) => c.status === "Ended");
+  const completed = shown.filter((c) => c.status === "Ended");
 
   /* Deep link (?c=id) forwards to the detail route so old notification
      links keep landing in the right place. */
@@ -342,7 +342,7 @@ export default function CampaignsPage() {
     },
     Ended: {
       title: "No completed phases yet",
-      body: "Phases you finish are archived here with the revenue and ROAS they earned.",
+      body: "Phases you finish are listed here with the revenue and ROAS they earned.",
     },
     All: {
       title: "Your ladder is being set up",
@@ -601,9 +601,9 @@ export default function CampaignsPage() {
               </div>
             )}
 
-            {archive.length > 0 && (
-              <ArchiveBlock
-                rows={archive}
+            {completed.length > 0 && (
+              <CompletedBlock
+                rows={completed}
                 delay={0.04 + cards.length * 0.06}
                 showEyebrow={filter === "All"}
                 onOpen={open}

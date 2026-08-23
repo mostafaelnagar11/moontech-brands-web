@@ -23,7 +23,7 @@ const STATE_WORD: Record<CampaignStatus, string> = {
   Live: "Live",
   Ready: "Ready to fund",
   Locked: "Queued",
-  Ended: "Complete",
+  Ended: "Completed",
 };
 
 /* The rows that do not depend on which brand you are in. The campaign

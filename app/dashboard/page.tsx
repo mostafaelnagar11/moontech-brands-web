@@ -592,7 +592,7 @@ export default function Dashboard() {
         : "Nothing running right now",
     },
     {
-      label: "Phases complete", value: String(ended),
+      label: "Phases completed", value: String(ended),
       sub: `${roster.length} on the ladder so far`,
     },
     {
@@ -684,12 +684,12 @@ export default function Dashboard() {
               {/* One phase runs at a time, so this names it instead of
                   counting campaigns that cannot exist side by side. */}
               {live ? (
-                <span className="flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1.5 text-[12px] font-medium text-green-700">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1.5 text-[12px] font-medium text-green-700">
                   <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
                   {phaseTitle(live.phaseNo)} is live
                 </span>
               ) : (
-                <span className="flex items-center gap-1.5 rounded-full bg-neutral-100 px-3 py-1.5 text-[12px] font-medium text-neutral-500">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 px-3 py-1.5 text-[12px] font-medium text-neutral-500">
                   <span className="h-1.5 w-1.5 rounded-full bg-neutral-300" />
                   Nothing live right now
                 </span>
