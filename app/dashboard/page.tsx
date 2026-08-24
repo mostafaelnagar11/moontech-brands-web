@@ -721,13 +721,17 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Stats — every figure here belongs to the active brand alone */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {/* Stats — every figure here belongs to the active brand alone.
+              Five tiles, one row from xl up. Below that the hero spans two
+              columns and the rest wrap under it; at xl the hero gives up its
+              span so all five sit on one line, and the solid purple fill
+              carries its emphasis instead of extra width. */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
             {stats.map((s) => (
               <div key={s.label}
                 className={`rounded-2xl p-4 sm:p-5 transition-colors ${
                   s.hero
-                    ? "col-span-2 bg-[#4D2FB0]"
+                    ? "col-span-2 xl:col-span-1 bg-[#4D2FB0]"
                     : "bg-white border border-black/[0.06] shadow-[0_1px_2px_rgba(16,12,40,0.04)] hover:border-black/[0.12]"
                 }`}>
                 <p className={`text-[13px] font-medium ${s.hero ? "text-white/60" : "text-neutral-500"}`}>{s.label}</p>
