@@ -41,7 +41,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft, CaretLeft, CaretRight, Check, Clock, Info,
+  ArrowLeft, CaretLeft, CaretRight, Check, Info,
   ThumbsDown, ThumbsUp, Warning, X,
   InstagramLogo, TiktokLogo, YoutubeLogo, type Icon,
 } from "@phosphor-icons/react";
@@ -60,9 +60,6 @@ const INK = "#191234";
 /* Long enough for a real reason, short enough to be read. The cap is the
    creator's attention, not a storage limit. */
 const NOTE_MAX = 280;
-/* Days left at or under which the review window is genuinely close, and the
-   countdown earns the one red. Above it the countdown is just a fact. */
-const CLOSE_DAYS = 2;
 
 const TABS: { key: AdSignal; label: string }[] = [
   { key: "none",     label: "Waiting" },
@@ -378,7 +375,9 @@ export default function CampaignAdsPage() {
       const cur = adsRef.current[sel];
       if (!cur) return;
       if (k === "l") { e.preventDefault(); rate(cur, sel, "liked"); }
-      else if (k === "d") { e.preventDefault(); askDecline(cur, sel); }
+      /* Not on a liked ad: the verb row no longer offers it, and a
+         shortcut that still did would be the one way to un-publish. */
+      else if (k === "d" && cur.signal !== "liked") { e.preventDefault(); askDecline(cur, sel); }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -740,44 +739,20 @@ export default function CampaignAdsPage() {
                   className="block max-h-[calc(100vh-212px)] max-w-full rounded-2xl bg-white/[0.04] object-contain shadow-[0_24px_60px_-20px_rgba(0,0,0,0.8)]"
                 />
 
-                {/* The window, on the draft it applies to. An undecided
-                    draft is not parked: it publishes on its own when the
-                    window closes, so the countdown belongs on the creative
-                    rather than in a policy line the reviewer scrolls past.
-                    Neutral while there is room, the one red at CLOSE_DAYS —
-                    and absent entirely when the age would not parse. */}
-                {ad.signal === "none" && daysLeft !== null && (
-                  <div className="absolute left-3 top-3">
-                    <span
-                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold text-white backdrop-blur-md ${
-                        daysLeft <= CLOSE_DAYS ? "bg-[#D70015]" : "bg-black/70"
-                      }`}
-                    >
-                      <Clock size={11} weight="fill" aria-hidden="true" />
-                      {daysLeft === 0
-                        ? "Publishes today unless you decide"
-                        : `Publishes on its own in ${daysLeft} ${daysLeft === 1 ? "day" : "days"}`}
-                    </span>
-                  </div>
-                )}
+                {/* NO PILLS ON THE CREATIVE.
 
-                {/* Only DECIDED ads wear a pill — it is the receipt for a
-                    click, and the only way to tell, coming back, what you
-                    already did. "Waiting on you" is the default state and the
-                    counter in the top bar already carries it. */}
-                {ad.signal !== "none" && (
-                  <div className="absolute left-3 top-3">
-                    {ad.signal === "liked" ? (
-                      <span className="flex items-center gap-1.5 rounded-full bg-[#059669] px-3 py-1.5 text-[11px] font-bold text-white">
-                        <ThumbsUp size={11} weight="fill" aria-hidden="true" /> Publishing
-                      </span>
-                    ) : (
-                      <span className="flex items-center gap-1.5 rounded-full bg-black/70 px-3 py-1.5 text-[11px] font-bold text-white backdrop-blur-md">
-                        <ThumbsDown size={11} weight="fill" aria-hidden="true" /> Not publishing
-                      </span>
-                    )}
-                  </div>
-                )}
+                    All three said something the screen already says: the
+                    shelf you are standing on names Waiting / Liked /
+                    Disliked, the top-bar tabs carry the counts, and the verb
+                    row says a liked ad has gone to publish. A green
+                    "Publishing" badge, a black "Not publishing" kill mark
+                    and a countdown stacked on top of that were three
+                    receipts for one fact, printed over the one thing the
+                    reviewer is here to look at.
+
+                    The review window is still stated — once, in the line
+                    under the verbs, and again on the phase detail. It is a
+                    policy about every draft, not a property of this image. */}
 
                 {/* The identity, the caption and the honest meta line — on the
                     media, over a scrim, every string carrying .ad-shadow. */}
@@ -846,22 +821,27 @@ export default function CampaignAdsPage() {
                     <ThumbsUp size={18} weight="fill" aria-hidden="true" /> Like
                   </button>
                 </>
+              ) : ad.signal === "liked" ? (
+                /* A liked ad has already gone to publish, so there is
+                   nothing to reverse and no button here. The asymmetry is
+                   the point: a DISLIKED ad never published, so it can still
+                   be liked, while "dislike instead" on a live ad would
+                   promise an un-publish the product cannot do. The row keeps
+                   its fixed height — the stage's image cap is written
+                   against it — and says why it is empty. */
+                <p className="flex flex-1 items-center justify-center text-center text-[13px] leading-snug text-white/45">
+                  Already sent to publish — a like can&apos;t be pulled back.
+                </p>
               ) : (
-                /* One button, no state pill: the shelf you are standing on
+                /* Disliked, and it never published, so it is still likeable.
+                   One button, no state pill: the shelf you are standing on
                    names the state, and the creative carries its own pill. */
                 <button
-                  onClick={() => {
-                    if (ad.signal === "liked") askDecline(ad, sel);
-                    else rate(ad, sel, "liked");
-                  }}
-                  aria-label={ad.signal === "liked"
-                    ? `Dislike ${creator.name}'s ad instead. Opens a dialog to confirm and leave a reason.`
-                    : `Like ${creator.name}'s ad instead. It publishes within the hour.`}
+                  onClick={() => rate(ad, sel, "liked")}
+                  aria-label={`Like ${creator.name}'s ad instead. It publishes within the hour.`}
                   className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-white/10 px-4 py-3.5 text-[14px] font-semibold text-white ring-1 ring-white/25 transition-colors hover:bg-white/[0.16] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
                 >
-                  {ad.signal === "liked"
-                    ? <><ThumbsDown size={18} weight="fill" aria-hidden="true" /> Dislike instead</>
-                    : <><ThumbsUp size={18} weight="fill" aria-hidden="true" /> Like instead</>}
+                  <ThumbsUp size={18} weight="fill" aria-hidden="true" /> Like instead
                 </button>
               )}
             </div>
