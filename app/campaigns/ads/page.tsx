@@ -41,16 +41,16 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft, CaretLeft, CaretRight, Check, Clock, Info, PaperPlaneTilt,
+  ArrowLeft, CaretLeft, CaretRight, Check, Clock, Info,
   ThumbsDown, ThumbsUp, Warning, X,
   InstagramLogo, TiktokLogo, YoutubeLogo, type Icon,
 } from "@phosphor-icons/react";
 import {
   CAMPAIGNS, HIGH_FIT, REVIEW_WINDOW_DAYS, adChecks, adCreator, adHero, adsFor,
-  draftDaysLeft, fmtUSD, livePhase, phaseTitle,
+  DECLINE_REASONS, declineReasonLabel, draftDaysLeft, fmtUSD, livePhase, phaseTitle,
   type Ad, type AdSignal, type Platform,
 } from "../../lib/campaigns";
-import { setAdSignal, useAdNote, useAdsFor } from "../../lib/adSignals";
+import { setAdSignal, useAdFeedback, useAdsFor, type AdFeedback } from "../../lib/adSignals";
 import { useActiveBrandId } from "../../lib/brand";
 import { useCampaign, useRoster } from "../../lib/funding";
 
@@ -76,6 +76,9 @@ const PLAT_ICON: Record<Platform, Icon> = {
   YouTube: YoutubeLogo,
 };
 
+/* `noted` means the decline carried something for the creator — reasons,
+   a note, or both. It is what decides whether the receipt promises them an
+   explanation or tells them none was given. */
 type Toast = { key: number; id: string; name: string; to: AdSignal; from: AdSignal; noted: boolean };
 
 export default function CampaignAdsPage() {
@@ -110,6 +113,12 @@ export default function CampaignAdsPage() {
      and `sel` may have moved by then — `rate` needs the index it acts on. */
   const [decline, setDecline] = useState<{ ad: Ad; i: number } | null>(null);
   const [note, setNote] = useState("");
+  /* Reason ids, not free text: the creator gets something to act on, and a
+     decline stays measured against the brief both sides agreed to. */
+  const [reasons, setReasons] = useState<readonly string[]>([]);
+  const toggleReason = useCallback((id: string) => {
+    setReasons((r) => (r.includes(id) ? r.filter((x) => x !== id) : [...r, id]));
+  }, []);
 
   const toastTimer = useRef<number | undefined>(undefined);
   const declineBox = useRef<HTMLDivElement | null>(null);
@@ -197,7 +206,7 @@ export default function CampaignAdsPage() {
   /* What the brand told this creator, if anything. Read for every ad — a
      hook cannot be called conditionally — and shown only on the decided
      shelves, where a brand comes back asking what it actually sent. */
-  const stageNote = useAdNote(ad?.id ?? "");
+  const stageFeedback = useAdFeedback(ad?.id ?? "");
 
   const go = useCallback((i: number) => {
     setSel((s) => (i < 0 || i >= adsRef.current.length ? s : i));
@@ -209,14 +218,14 @@ export default function CampaignAdsPage() {
 
   /* Takes the ad it acts on, because a queue row can rate an ad that is
      not the one on the stage — there is no single "current" to infer.
-     `reason` only ever arrives with a decline, and it is the one thing on
+     `feedback` only ever arrives with a decline, and it is the one thing on
      this screen a person outside the company reads. Every path still lands
      here, so the announcement and the undo receipt stay in one place. */
-  const rate = useCallback((a: Ad, i: number, to: "liked" | "disliked", reason?: string) => {
+  const rate = useCallback((a: Ad, i: number, to: "liked" | "disliked", feedback?: AdFeedback) => {
     const c = adCreator(a);
     const from = a.signal;
-    const noted = (reason ?? "").trim().length > 0;
-    setAdSignal(a.id, to, reason);
+    const noted = !!feedback && (feedback.reasons.length > 0 || feedback.note.trim().length > 0);
+    setAdSignal(a.id, to, feedback);
 
     /* Where to go next is computed from the list WITH this decision applied —
        reading the rows we rendered from would hand the reviewer back the ad
@@ -238,7 +247,7 @@ export default function CampaignAdsPage() {
       (to === "liked"
         ? `Liked. ${c.name}'s ad publishes within the hour and more of this phase's budget goes behind ads like it.`
         : `Disliked. This ad will not publish, and we stop matching ads like it.${
-            noted ? ` Your note goes to ${c.name}.` : ` ${c.name} is told it will not run, with no reason given.`
+            noted ? ` Your reasons go to ${c.name}.` : ` ${c.name} is told it will not run, with no reason given.`
           }`) +
       (remaining === 0
         ? " That is the last one on this shelf."
@@ -274,6 +283,7 @@ export default function CampaignAdsPage() {
      decision the queue exists to collect. */
   const askDecline = useCallback((a: Ad, i: number) => {
     setNote("");
+    setReasons([]);
     setDecline({ ad: a, i });
   }, []);
 
@@ -282,14 +292,21 @@ export default function CampaignAdsPage() {
   const closeDecline = useCallback(() => {
     setDecline(null);
     setNote("");
+    setReasons([]);
   }, []);
 
+  /* At least one reason is required. The note is not: reasons are the
+     mechanism — they tell the creator what to change — and free text on
+     top of them is the exception, not the ask. */
+  const canDecline = reasons.length > 0;
+
   const confirmDecline = useCallback(() => {
-    if (!decline) return;
-    rate(decline.ad, decline.i, "disliked", note);
+    if (!decline || reasons.length === 0) return;
+    rate(decline.ad, decline.i, "disliked", { reasons, note });
     setDecline(null);
     setNote("");
-  }, [decline, note, rate]);
+    setReasons([]);
+  }, [decline, note, reasons, rate]);
 
   /* Focus trap, autofocus and focus restore for the decline dialog.
      The trap is not decoration here: a Tab that escaped the card would land
@@ -528,24 +545,50 @@ export default function CampaignAdsPage() {
      the second copy the audit trail would vanish at 1023px. A like clears the
      note in the store, so in practice this is the Disliked shelf. */
   const NoteBack = ({ dark }: { dark: boolean }) => {
-    if (!ad || !creator || ad.signal === "none" || !stageNote) return null;
+    if (!ad || !creator || ad.signal === "none" || !stageFeedback) return null;
+    const { reasons: sent, note: extra } = stageFeedback;
     return (
       <div className={dark ? "shrink-0 border-t border-white/10 p-4" : "mt-3 rounded-2xl bg-white p-4"}>
         <h2
           className={`text-[13px] font-semibold ${dark ? "text-white" : ""}`}
           style={dark ? undefined : { color: INK }}
         >
-          Note sent to {creator.name}
+          Sent to {creator.name}
         </h2>
-        <p
-          className={
-            dark
-              ? "mt-2 rounded-xl bg-white/[0.04] p-3 text-[12px] leading-relaxed text-white/75 ring-1 ring-white/10"
-              : "mt-2 rounded-xl bg-[#fafafa] p-3 text-[12px] leading-relaxed text-neutral-600"
-          }
-        >
-          &ldquo;{stageNote}&rdquo;
-        </p>
+        {/* The reasons are the audit trail. A brand coming back to ask what
+            it actually told a creator needs the checkboxes, not just the
+            free text — the free text was the optional part. */}
+        {sent.length > 0 && (
+          <ul className="mt-2 flex flex-col gap-1.5">
+            {sent.map((id) => (
+              <li
+                key={id}
+                className={`flex items-start gap-2 text-[12px] leading-snug ${
+                  dark ? "text-white/75" : "text-neutral-600"
+                }`}
+              >
+                <Check
+                  size={12}
+                  weight="bold"
+                  aria-hidden="true"
+                  className={`mt-1 shrink-0 ${dark ? "text-white/40" : "text-neutral-400"}`}
+                />
+                {declineReasonLabel(id)}
+              </li>
+            ))}
+          </ul>
+        )}
+        {extra && (
+          <p
+            className={
+              dark
+                ? "mt-2.5 rounded-xl bg-white/[0.04] p-3 text-[12px] leading-relaxed text-white/75 ring-1 ring-white/10"
+                : "mt-2.5 rounded-xl bg-[#fafafa] p-3 text-[12px] leading-relaxed text-neutral-600"
+            }
+          >
+            &ldquo;{extra}&rdquo;
+          </p>
+        )}
         <p className={`mt-2 text-[11px] leading-snug ${dark ? "text-white/40" : "text-neutral-500"}`}>
           Sent word for word with the decision.
         </p>
@@ -854,7 +897,7 @@ export default function CampaignAdsPage() {
                 <p className="min-w-0 flex-1 text-[12.5px] font-medium">
                   {toast.to === "liked"
                     ? `${toast.name}'s ad publishes within the hour.`
-                    : `${toast.name}'s ad will not publish.${toast.noted ? " Your note goes with it." : ""}`}
+                    : `${toast.name}'s ad will not publish.${toast.noted ? " Your reasons go with it." : ""}`}
                 </p>
                 <button
                   onClick={undo}
@@ -937,8 +980,14 @@ export default function CampaignAdsPage() {
             className="animate-fade-in relative max-h-full w-full max-w-[500px] overflow-y-auto rounded-2xl border border-black/[0.06] bg-white p-5 shadow-[0_24px_60px_-20px_rgba(0,0,0,0.8)]"
           >
             <h2 id="decline-title" className="pr-9 text-[17px] font-bold" style={{ color: INK }}>
-              Dislike {dCreator.name}&apos;s ad?
+              Why is this not right?
             </h2>
+            {/* The disclosure lives in the subtitle, where it also earns its
+                place: the creator seeing the reason is the POINT of asking
+                for one, not a warning bolted on beside the field. */}
+            <p className="mt-1 pr-9 text-[12.5px] leading-snug text-neutral-500">
+              {dCreator.name} sees your reason, so they know what to change.
+            </p>
             <button
               onClick={closeDecline}
               aria-label="Cancel, keep this ad waiting on you"
@@ -972,13 +1021,39 @@ export default function CampaignAdsPage() {
               </p>
             )}
 
-            {/* Optional, and deliberately so: a required field on a queue of
-                drafts turns a one-click workstation into a form. It still
-                looks like the thing to fill in, because it is. */}
-            <div className="mt-4">
+            {/* Reasons, not a blank box. Every label is measured against the
+                BRIEF rather than taste, because "I don't like it" gives a
+                creator nothing to act on while "the caption doesn't carry
+                the brief's messaging" is a re-cut they can make. Two
+                columns so all six fit without a scroll. */}
+            <div className="mt-3.5 grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {DECLINE_REASONS.map((r) => {
+                const on = reasons.includes(r.id);
+                return (
+                  <label
+                    key={r.id}
+                    className={`flex cursor-pointer items-start gap-2.5 rounded-xl border p-3 text-[12.5px] leading-snug transition-colors ${
+                      on
+                        ? "border-[#4D2FB0] bg-[#4D2FB0]/[0.05]"
+                        : "border-black/[0.08] bg-white hover:border-black/20"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={on}
+                      onChange={() => toggleReason(r.id)}
+                      className="mt-px h-4 w-4 shrink-0 accent-[#4D2FB0]"
+                    />
+                    <span style={{ color: on ? BRAND : INK }}>{r.label}</span>
+                  </label>
+                );
+              })}
+            </div>
+
+            <div className="mt-3.5">
               <div className="flex items-baseline justify-between gap-2">
                 <label htmlFor="decline-note" className="text-[12.5px] font-semibold" style={{ color: INK }}>
-                  Why?{" "}
+                  Anything else?{" "}
                   <span className="font-medium text-neutral-400">Optional</span>
                 </label>
                 <span
@@ -994,23 +1069,12 @@ export default function CampaignAdsPage() {
                 ref={noteBox}
                 value={note}
                 maxLength={NOTE_MAX}
-                rows={3}
+                rows={2}
                 onChange={(e) => setNote(e.target.value)}
-                placeholder="The hook, the framing, the product on camera — whatever a re-cut would have to fix."
+                placeholder="Add a note for the creator…"
                 className="mt-1.5 w-full resize-none rounded-xl border border-black/[0.06] bg-[#fafafa] p-3 text-[13px] leading-relaxed outline-none placeholder:text-neutral-400 focus:border-[#4D2FB0] focus:ring-2 focus:ring-[#4D2FB0]/25"
                 style={{ color: INK }}
               />
-              {/* Said HERE, beside the field, before the click: the note is
-                  addressed to a person. An empty box is information too — it
-                  is a decision with no explanation attached — so both cases
-                  are spelled out rather than one being the silent default. */}
-              <p className="mt-2 flex items-center gap-2 text-[12px] leading-snug">
-                <PaperPlaneTilt size={14} weight="fill" aria-hidden="true" className="shrink-0 text-neutral-400" />
-                <span className="text-neutral-600">
-                  <span className="font-semibold" style={{ color: INK }}>{dCreator.name} sees this</span>
-                  {note.trim() ? ", word for word." : " — empty sends no reason."}
-                </span>
-              </p>
             </div>
 
             {/* The 10-day window is NOT restated here. It describes what
@@ -1030,11 +1094,20 @@ export default function CampaignAdsPage() {
               {/* Ink, not purple and not red: purple is the Like verb three
                   inches behind this card, and the red belongs to the closing
                   window. This is the serious button, not an alarm. */}
+              {/* Disabled until a reason is picked — a decline with nothing
+                  attached is the thing this dialog exists to prevent. */}
               <button
                 onClick={confirmDecline}
-                className="flex flex-[1.5] items-center justify-center gap-2 rounded-xl bg-[#191234] px-4 py-3 text-[13px] font-semibold text-white transition-colors hover:bg-[#191234]/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4D2FB0]"
+                disabled={!canDecline}
+                aria-disabled={!canDecline}
+                title={canDecline ? undefined : "Pick at least one reason"}
+                className={`flex flex-[1.5] items-center justify-center gap-2 rounded-xl px-4 py-3 text-[13px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4D2FB0] ${
+                  canDecline
+                    ? "bg-[#191234] text-white hover:bg-[#191234]/90"
+                    : "cursor-not-allowed bg-neutral-100 text-neutral-400"
+                }`}
               >
-                <ThumbsDown size={16} weight="fill" aria-hidden="true" /> Dislike
+                <ThumbsDown size={16} weight="fill" aria-hidden="true" /> Send
               </button>
             </div>
           </div>

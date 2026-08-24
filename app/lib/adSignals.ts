@@ -18,10 +18,17 @@ import { useSyncExternalStore } from "react";
 import { adsFor, type Ad, type AdSignal } from "./campaigns";
 
 type Overrides = Readonly<Record<string, AdSignal>>;
-/* A decline can carry the brand's reason. It is stored beside the signal
-   rather than inside it because the signal is a fact the whole app reads,
-   while the note has exactly one audience — the creator who made the ad. */
-type Notes = Readonly<Record<string, string>>;
+/* A decline carries its reasons. Stored beside the signal rather than
+   inside it because the signal is a fact the whole app reads, while this
+   has exactly one audience — the creator who made the ad.
+
+   `reasons` are DECLINE_REASONS ids and are the mechanism; `note` is the
+   optional extra. Both are sent to the creator verbatim. */
+export interface AdFeedback {
+  reasons: readonly string[];
+  note: string;
+}
+type Notes = Readonly<Record<string, AdFeedback>>;
 
 const EMPTY: Overrides = {};
 const NO_NOTES: Notes = {};
@@ -46,19 +53,21 @@ const getServerNotes = () => NO_NOTES;
     An optional note travels with a decline; undoing a decline clears it,
     because a reason for a decision that no longer exists must not be
     left addressed to a creator. */
-export function setAdSignal(id: string, signal: AdSignal, note?: string) {
-  const trimmed = note?.trim() ?? "";
-  const noteChanged = signal === "disliked"
-    ? (notes[id] ?? "") !== trimmed
+export function setAdSignal(id: string, signal: AdSignal, feedback?: AdFeedback) {
+  const next: AdFeedback | null = signal === "disliked" && feedback
+    ? { reasons: feedback.reasons, note: feedback.note.trim() }
+    : null;
+  const carries = !!next && (next.reasons.length > 0 || next.note.length > 0);
+  const prev = notes[id];
+  const changed = carries
+    ? prev?.note !== next!.note || prev?.reasons.join("|") !== next!.reasons.join("|")
     : id in notes;
-  if (overrides[id] === signal && !noteChanged) return;
+  if (overrides[id] === signal && !changed) return;
 
   overrides = { ...overrides, [id]: signal };
-  if (signal === "disliked") {
-    notes = trimmed ? { ...notes, [id]: trimmed } : omit(notes, id);
-  } else if (id in notes) {
-    notes = omit(notes, id);
-  }
+  /* A reason for a decision that no longer exists must not be left
+     addressed to a creator, so a like or an undo clears it. */
+  notes = carries ? { ...notes, [id]: next! } : omit(notes, id);
   emit();
 }
 
@@ -95,12 +104,12 @@ export function useWaitingFor(campaignId: string): Ad[] {
   return useAdsFor(campaignId).filter((a) => a.signal === "none");
 }
 
-/** Every note the brand has written, keyed by ad id. */
-export function useAdNotes(): Notes {
+/** Every decline the brand has explained, keyed by ad id. */
+export function useAdFeedbacks(): Notes {
   return useSyncExternalStore(subscribe, getNotes, getServerNotes);
 }
 
-/** The note on one ad, or "" — what the creator will be sent. */
-export function useAdNote(id: string): string {
-  return useAdNotes()[id] ?? "";
+/** What the creator will be sent for one ad, or null. */
+export function useAdFeedback(id: string): AdFeedback | null {
+  return useAdFeedbacks()[id] ?? null;
 }

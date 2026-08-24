@@ -62,6 +62,32 @@ export interface AdCreator {
    than the click saved. */
 export const HIGH_FIT = 90;
 
+/* ------------------------------------------------------------------ */
+/* Why a draft was declined                                            */
+/*                                                                     */
+/* Every reason is measured against THE BRIEF, not against taste. That */
+/* is deliberate: "I don't like it" gives a creator nothing to act on,  */
+/* while "the caption doesn't carry the brief's messaging" is a re-cut  */
+/* they can actually make. It also keeps the decline defensible — the   */
+/* brief is the thing both sides agreed to.                            */
+/*                                                                     */
+/* The brand picks at least one. Free text is the optional extra, not   */
+/* the mechanism.                                                       */
+/* ------------------------------------------------------------------ */
+export const DECLINE_REASONS = [
+  { id: "tone",      label: "Tone doesn't align with the brief" },
+  { id: "product",   label: "Product use doesn't follow the brief's instructions" },
+  { id: "specs",     label: "Doesn't meet the brief's technical specs (lighting, resolution, stability)" },
+  { id: "caption",   label: "Caption/text doesn't reflect the brief's required messaging" },
+  { id: "format",    label: "Doesn't meet the required format (aspect ratio, length)" },
+  { id: "competing", label: "Competing brand/product visible in the content" },
+] as const;
+
+export type DeclineReasonId = (typeof DECLINE_REASONS)[number]["id"];
+
+export const declineReasonLabel = (id: string) =>
+  DECLINE_REASONS.find((r) => r.id === id)?.label ?? id;
+
 /* A draft the brand never judges cannot sit in limbo forever — the phase is
    metered against a guarantee it cannot deliver if nothing publishes. After
    this many days an undecided draft goes live on its own. */
