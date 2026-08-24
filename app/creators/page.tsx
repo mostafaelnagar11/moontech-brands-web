@@ -112,6 +112,10 @@ function postViews(c: Creator): number[] | null {
    No industry or platform figure exists in the model, so none is shown:
    an invented benchmark was deleted from the dashboard for exactly that
    reason and is not coming back through this door. */
+/* Performance tiles are parked, not cut — the founder asked for them
+   hidden for now. Flip to true to bring the section back. */
+const SHOW_PERFORMANCE = false;
+
 const ROSTER_MEDIAN_VT = median(CREATORS_SEED.map((c) => viewThrough(c.avgViews, c.followers)));
 
 /** "25–34 (62%)" or "25–34" → [25, 34]. null when there is no range to read. */
@@ -430,55 +434,62 @@ function Detail({
           </div>
         </div>
 
-        {/* Performance — engagement and reach, no vanity figures */}
-        <div className="mb-5 px-7">
-          <div className="mb-3 text-[11px] font-bold uppercase tracking-wide text-neutral-400">Performance</div>
-          {/* Two up until the viewport is genuinely wide: the detail pane is
-              a column beside the rail, so four tiles here shred every label
-              into three lines. */}
-          <div className="grid grid-cols-2 gap-2 xl:grid-cols-4">
-            <div className="rounded-2xl border border-black/[0.06] bg-[#FAFAFA] p-3.5">
-              <div className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">View-through</div>
-              <div className="mt-1 text-[22px] font-bold tabular-nums leading-none" style={{ color: INK }}>{pct1(vt)}</div>
-              <div className="mt-1.5 text-[11px] leading-snug text-neutral-500">
-                of her audience actually watches
-              </div>
-              {/* The comparison is the roster, named as the roster. No
-                  industry or platform benchmark exists in this model, so
-                  none is claimed. */}
-              <div className={`mt-1.5 text-[11px] font-medium leading-snug ${
-                vt >= ROSTER_MEDIAN_VT ? "text-[#047857]" : "text-neutral-500"
-              }`}>
-                {vt >= ROSTER_MEDIAN_VT ? "Above" : "Below"} {pct1(ROSTER_MEDIAN_VT)} median across your matched creators
-              </div>
-            </div>
-            {/* Both derived tiles come from the SAME parsed post views, so
-                if one string is unreadable neither is shown. */}
-            {typical !== null && lo !== null && hi !== null && (
-              <>
-                <div className="rounded-2xl border border-black/[0.06] bg-[#FAFAFA] p-3.5">
-                  <div className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">Typical views per post</div>
-                  <div className="mt-1 text-[22px] font-bold tabular-nums leading-none" style={{ color: INK }}>{fmtViews(typical)}</div>
-                  <div className="mt-1.5 text-[11px] leading-snug text-neutral-500">median of her last 5 posts</div>
+        {/* Performance — engagement and reach, no vanity figures.
+            Hidden behind SHOW_PERFORMANCE for now. Gated rather than
+            deleted deliberately: the JSX stays in the tree so the
+            derived figures above it (postViews, median, view-through)
+            stay referenced and cannot rot, and turning it back on is
+            one word. */}
+        {SHOW_PERFORMANCE && (
+          <div className="mb-5 px-7">
+            <div className="mb-3 text-[11px] font-bold uppercase tracking-wide text-neutral-400">Performance</div>
+            {/* Two up until the viewport is genuinely wide: the detail pane is
+                a column beside the rail, so four tiles here shred every label
+                into three lines. */}
+            <div className="grid grid-cols-2 gap-2 xl:grid-cols-4">
+              <div className="rounded-2xl border border-black/[0.06] bg-[#FAFAFA] p-3.5">
+                <div className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">View-through</div>
+                <div className="mt-1 text-[22px] font-bold tabular-nums leading-none" style={{ color: INK }}>{pct1(vt)}</div>
+                <div className="mt-1.5 text-[11px] leading-snug text-neutral-500">
+                  of her audience actually watches
                 </div>
-                <div className="rounded-2xl border border-black/[0.06] bg-[#FAFAFA] p-3.5">
-                  <div className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">Consistency</div>
-                  <div className="mt-1 text-[18px] font-bold tabular-nums leading-none" style={{ color: INK }}>
-                    {fmtViews(lo)} – {fmtViews(hi)}
-                  </div>
-                  <div className="mt-1.5 text-[11px] leading-snug text-neutral-500">
-                    lowest to highest of those 5 — the spread, not a score
-                  </div>
+                {/* The comparison is the roster, named as the roster. No
+                    industry or platform benchmark exists in this model, so
+                    none is claimed. */}
+                <div className={`mt-1.5 text-[11px] font-medium leading-snug ${
+                  vt >= ROSTER_MEDIAN_VT ? "text-[#047857]" : "text-neutral-500"
+                }`}>
+                  {vt >= ROSTER_MEDIAN_VT ? "Above" : "Below"} {pct1(ROSTER_MEDIAN_VT)} median across your matched creators
                 </div>
-              </>
-            )}
-            <div className="rounded-2xl border border-black/[0.06] bg-[#FAFAFA] p-3.5">
-              <div className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">Gulf audience</div>
-              <div className="mt-1 text-[22px] font-bold tabular-nums leading-none" style={{ color: INK }}>{c.gcAudience}%</div>
-              <div className="mt-1.5 text-[11px] leading-snug text-neutral-500">of her audience is in the region</div>
+              </div>
+              {/* Both derived tiles come from the SAME parsed post views, so
+                  if one string is unreadable neither is shown. */}
+              {typical !== null && lo !== null && hi !== null && (
+                <>
+                  <div className="rounded-2xl border border-black/[0.06] bg-[#FAFAFA] p-3.5">
+                    <div className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">Typical views per post</div>
+                    <div className="mt-1 text-[22px] font-bold tabular-nums leading-none" style={{ color: INK }}>{fmtViews(typical)}</div>
+                    <div className="mt-1.5 text-[11px] leading-snug text-neutral-500">median of her last 5 posts</div>
+                  </div>
+                  <div className="rounded-2xl border border-black/[0.06] bg-[#FAFAFA] p-3.5">
+                    <div className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">Consistency</div>
+                    <div className="mt-1 text-[18px] font-bold tabular-nums leading-none" style={{ color: INK }}>
+                      {fmtViews(lo)} – {fmtViews(hi)}
+                    </div>
+                    <div className="mt-1.5 text-[11px] leading-snug text-neutral-500">
+                      lowest to highest of those 5 — the spread, not a score
+                    </div>
+                  </div>
+                </>
+              )}
+              <div className="rounded-2xl border border-black/[0.06] bg-[#FAFAFA] p-3.5">
+                <div className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">Gulf audience</div>
+                <div className="mt-1 text-[22px] font-bold tabular-nums leading-none" style={{ color: INK }}>{c.gcAudience}%</div>
+                <div className="mt-1.5 text-[11px] leading-snug text-neutral-500">of her audience is in the region</div>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Last 5 posts */}
         <div className={`px-7 ${isWaiting ? "mb-6" : "mb-8"}`}>
