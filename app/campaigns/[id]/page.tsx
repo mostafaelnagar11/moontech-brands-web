@@ -131,6 +131,10 @@ export default function CampaignDetailPage() {
      returned — plus headroom, so the guarantee tick and the fill both
      always sit inside the track. */
   const rulerMax = Math.max(detail.guaranteedRoas, roasNum) * 1.12;
+  /* What the guarantee is worth in money on this phase. Identical to
+     revTarget for a funded phase — which is exactly why the ruler must
+     not also print a percentage. */
+  const guaranteeTarget = detail.budget * detail.guaranteedRoas;
 
   const due = detail.due;
   const amount = payDue?.amount ?? 0;
@@ -451,12 +455,19 @@ export default function CampaignDetailPage() {
                       </span>
                     </div>
 
+                    {/* NOT a percentage. Because a phase's target IS its
+                        budget times its guaranteed multiple, "% of target"
+                        and "% of the guarantee" are the same ratio — so a
+                        percentage here just restates the figure on the card
+                        above and reads like a second, different 84%.
+                        The gap in money is the one fact not already on the
+                        page, and it is the one a brand can act on. */}
                     <p className={`mt-2.5 text-[11px] font-medium ${guaranteeMet ? "text-[#047857]" : "text-neutral-500"}`}>
-                      {guaranteeMet
-                        ? `Guarantee met — past the ${detail.guaranteedRoas}\u00d7 mark.`
-                        : roasNum === 0
-                          ? "Nothing earned yet. The guarantee is measured when the phase closes."
-                          : `${Math.round((roasNum / detail.guaranteedRoas) * 100)}% of the way to the ${detail.guaranteedRoas}\u00d7 promised on this phase.`}
+                      {roasNum === 0
+                        ? "Nothing earned yet — the guarantee is settled when the phase closes."
+                        : guaranteeMet
+                          ? `${fmtUSD(Math.round(detail.rev - guaranteeTarget))} past the ${detail.guaranteedRoas}\u00d7 guarantee.`
+                          : `${fmtUSD(Math.round(guaranteeTarget - detail.rev))} more earned reaches the ${detail.guaranteedRoas}\u00d7 guarantee.`}
                     </p>
                   </div>
 

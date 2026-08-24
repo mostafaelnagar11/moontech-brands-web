@@ -300,19 +300,13 @@ export default function CampaignsPage() {
     .filter((r) => r.waiting.length > 0);
   const adsWaiting = adQueue.reduce((s, r) => s + r.waiting.length, 0);
 
-  /* Phases run one after another, never side by side, so a brand has AT
-     MOST ONE live phase. There is nothing to combine and nothing to
-     average: the headline IS the running phase, and it always has a
-     target because funding sets one. */
-  const live = roster.find((c) => c.status === "Live");
   const count = (s: CampaignStatus) => roster.filter((c) => c.status === s).length;
 
-  /* The three headline panels sit in one row. Either of the two action panels
-     can be empty, so the grid follows how many actually render — a missing
-     panel must not leave a hole. */
-  const panels = 1 + (actions.length > 0 ? 1 : 0) + (adQueue.length > 0 ? 1 : 0);
-  const panelGrid =
-    panels === 3 ? "xl:grid-cols-3" : panels === 2 ? "lg:grid-cols-2" : "";
+  /* The headline row is now only what WAITS ON YOU, so it can be empty:
+     both panels are conditional, and the grid follows how many actually
+     render rather than reserving space for a panel that isn't there. */
+  const panels = (actions.length > 0 ? 1 : 0) + (adQueue.length > 0 ? 1 : 0);
+  const panelGrid = panels === 2 ? "lg:grid-cols-2" : "";
 
   const shown = filter === "All" ? roster : roster.filter((c) => c.status === filter);
   const cards = shown.filter((c) => c.status !== "Ended");
@@ -422,70 +416,8 @@ export default function CampaignsPage() {
 
           {/* § HEADLINES — what's running, what needs paying, what needs
               judging: three panels in one row on a wide screen. */}
+          {panels > 0 && (
           <div className={`grid gap-4 ${panelGrid}`}>
-
-            {/* Live — live-phase revenue only, never a lifetime total */}
-            <section
-              className="animate-fade-in flex h-full flex-col rounded-2xl border border-black/[0.06] bg-white px-5 py-5 shadow-sm"
-              style={{ animationDelay: "0s" }}
-            >
-              <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-green-600">
-                <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${live ? "animate-live bg-[#4D2FB0]" : "bg-neutral-300"}`} />
-                {live ? "Running now" : "Nothing running"}
-              </p>
-
-              {live ? (
-                <>
-                  <p className="mt-2 text-[32px] font-bold leading-none tabular-nums" style={{ color: INK }}>
-                    {fmtUSD(live.rev)}
-                  </p>
-                  <p className="mt-2 text-xs text-neutral-500">
-                    of <span className="font-semibold tabular-nums">{fmtUSD(live.revTarget!)}</span> on{" "}
-                    <span className="font-semibold text-neutral-600">{phaseTitle(live.phaseNo)}</span>
-                  </p>
-
-                  {/* mt-auto pins the meter to the bottom so all three panels
-                      in the row end on the same line. */}
-                  <div className="mt-auto pt-5">
-                    <div className="mb-2 flex items-baseline justify-between gap-2">
-                      <span className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400">
-                        Toward the 80% unlock line
-                      </span>
-                      <span className="text-sm font-semibold tabular-nums text-[#4D2FB0]">{live.revPct}%</span>
-                    </div>
-                    {/* The notch belongs here as much as on the card: this is
-                        the number that decides whether the next phase opens. */}
-                    <div
-                      role="img"
-                      aria-label={`${phaseTitle(live.phaseNo)} has earned ${fmtUSD(live.rev)} of its ${fmtUSD(live.revTarget!)} target, ${live.revPct} percent. ${
-                        (live.revPct ?? 0) >= 80
-                          ? "Past the 80% unlock line."
-                          : `${80 - (live.revPct ?? 0)} percentage points below the 80% unlock line.`
-                      }`}
-                      className="relative h-1.5 rounded-full bg-[#EFEBFA]"
-                    >
-                      <div className="bar-fill keyline-grad h-full rounded-full"
-                        style={{ width: `${Math.min(live.revPct ?? 0, 100)}%`, "--bd": ".2s" } as React.CSSProperties} />
-                      <span aria-hidden="true" className={`unlock-notch ${(live.revPct ?? 0) >= 80 ? "unlock-notch--crossed" : ""}`} />
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <p className="mt-2 text-[32px] font-bold leading-none text-neutral-300">—</p>
-                  <p className="mt-2 text-xs text-neutral-500">
-                    No phase is running. Phases run one at a time.
-                  </p>
-                  <div className="mt-auto pt-5">
-                    <p className="text-[11px] font-medium text-neutral-400">
-                      {count("Ready") > 0
-                        ? "Fund the unlocked phase below to start it."
-                        : "Your next phase unlocks when the one before it crosses 80%."}
-                    </p>
-                  </div>
-                </>
-              )}
-            </section>
 
             {/* Phases waiting on you */}
             {actions.length > 0 && (
@@ -568,6 +500,8 @@ export default function CampaignsPage() {
               </section>
             )}
           </div>
+
+          )}
 
           {/* § FILTER */}
           <div className="flex flex-wrap items-center gap-2 pb-5 pt-6"
