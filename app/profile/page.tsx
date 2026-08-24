@@ -72,9 +72,9 @@ export default function BusinessProfile() {
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               <span className="text-sm font-semibold text-[#1e1b4b]">1 · Tax registration</span>
-              <span className="text-red-500">*</span>
+              <span className="text-[#D70015]">*</span>
             </div>
-            <span className="rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-700">
+            <span className="rounded-full border border-[#D70015]/30 bg-[#D70015]/[0.07] px-2.5 py-1 text-[11px] font-semibold text-[#D70015]">
               Required before payment
             </span>
           </div>
@@ -169,9 +169,9 @@ export default function BusinessProfile() {
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               <span className="text-sm font-semibold text-[#1e1b4b]">3 · Office location</span>
-              <span className="text-red-500">*</span>
+              <span className="text-[#D70015]">*</span>
             </div>
-            <span className="rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-700">
+            <span className="rounded-full border border-[#D70015]/30 bg-[#D70015]/[0.07] px-2.5 py-1 text-[11px] font-semibold text-[#D70015]">
               Required before payment
             </span>
           </div>

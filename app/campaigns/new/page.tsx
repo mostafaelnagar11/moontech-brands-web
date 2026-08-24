@@ -196,15 +196,15 @@ function getConfidence(budget: number, roas: number) {
     level: "Medium confidence",
     color: "amber",
     bar: "bg-amber-400",
-    text: "text-amber-500",
+    text: "text-amber-700",
     pct: 50,
     desc: "Achievable — requires strong creator performance.",
   };
   return {
     level: "Low confidence",
     color: "red",
-    bar: "bg-red-500",
-    text: "text-red-500",
+    bar: "bg-[#D70015]",
+    text: "text-[#D70015]",
     pct: 20,
     desc: "Consider lowering ROAS or increasing your budget.",
   };
@@ -461,9 +461,13 @@ function PlanCalculator({
             carries the verdict's colour. min-h pins the row so tier changes
             mid-drag never shift the layout; the desc wraps within its column. */}
         <div className={`flex min-h-[44px] items-center gap-3.5 rounded-xl border px-4 py-3 transition-colors duration-300 ${
+          /* P4 — this is a good/medium/poor SCALE, not an alert, so the
+             middle tier keeps its own colour. Only the red tier moves to
+             the one red; the amber text is darkened for contrast while the
+             fills may stay lighter. */
           { green: "border-green-600/15 bg-green-500/[0.07]",
             amber: "border-amber-500/20 bg-amber-400/[0.09]",
-            red:   "border-red-600/15 bg-red-500/[0.06]" }[confidence.color as "green" | "amber" | "red"]
+            red:   "border-[#D70015]/15 bg-[#D70015]/[0.06]" }[confidence.color as "green" | "amber" | "red"]
         }`}>
           <div className="h-1.5 w-20 shrink-0 overflow-hidden rounded-full bg-black/[0.07]" aria-hidden="true">
             <div
@@ -588,13 +592,13 @@ function StepReview({ data }: { data: CampaignData }) {
   const KNOW_ITEMS = [
     {
       icon: "🎫",
-      bg: "bg-red-50",
+      bg: "bg-[#D70015]/[0.07]",
       title: "Every creator gets a unique tracker",
       desc: "Revenue is attributed via unique tracking links assigned to each creator — so you know exactly which creator drove which sale.",
     },
     {
       icon: "🔗",
-      bg: "bg-amber-50",
+      bg: "bg-[#D70015]/[0.07]",
       title: "E-commerce integration required before Phase 1 is live",
       desc: "Our technical team sets this up with you after payment. The campaign stays locked until the integration is confirmed.",
     },
@@ -800,9 +804,9 @@ function StepPay({
       </div>
 
       {/* Phase unlock notice */}
-      <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 flex items-start gap-3">
+      <div className="rounded-2xl border border-black/[0.06] bg-neutral-50 p-4 flex items-start gap-3">
         <span className="text-xl shrink-0">⚡</span>
-        <p className="text-sm leading-relaxed text-amber-800">
+        <p className="text-sm leading-relaxed text-[#191234]">
           You&apos;re starting with <strong>Phase 1</strong>. The next phase only unlocks once the
           live phase crosses <strong>the 80% unlock line</strong> — your campaign progresses
           one phase at a time.
@@ -841,16 +845,16 @@ function StepPay({
 
       {/* Billing required warning — only if profile incomplete */}
       {!profileComplete && (
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-4 flex items-start gap-3">
+        <div className="rounded-2xl border border-[#D70015]/25 bg-[#D70015]/[0.07] p-4 flex items-start gap-3">
           <span className="text-xl shrink-0">🧾</span>
-          <p className="flex-1 text-sm leading-relaxed text-red-700">
+          <p className="flex-1 text-sm leading-relaxed text-[#D70015]">
             <strong>Billing details required.</strong> We need at least your{" "}
             <strong>VAT number and office location</strong> to issue a tax-compliant invoice before
             payment.
           </p>
           <button
             onClick={onAddBilling}
-            className="shrink-0 rounded-xl bg-red-500 hover:bg-red-600 px-4 py-2 text-sm font-semibold text-white transition active:scale-[0.98]"
+            className="shrink-0 rounded-xl bg-[#D70015] hover:bg-[#B00011] px-4 py-2 text-sm font-semibold text-white transition active:scale-[0.98]"
           >
             Add now →
           </button>
@@ -1949,8 +1953,8 @@ export default function NewCampaign() {
           {/* sheet */}
           <div className="relative w-full max-w-sm rounded-t-3xl sm:rounded-3xl bg-white px-6 pt-6 pb-8 shadow-2xl animate-fade-in">
             <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-neutral-200 sm:hidden" />
-            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-red-50">
-              <svg className="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#D70015]/[0.07]">
+              <svg className="h-6 w-6 text-[#D70015]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
               </svg>
             </div>
@@ -1961,7 +1965,7 @@ export default function NewCampaign() {
             <div className="mt-6 flex flex-col gap-2.5">
               <button
                 onClick={() => router.back()}
-                className="w-full rounded-2xl bg-red-500 py-3.5 text-sm font-semibold text-white hover:bg-red-600 active:scale-[0.98] transition"
+                className="w-full rounded-2xl bg-[#D70015]/[0.07]0 py-3.5 text-sm font-semibold text-white hover:bg-[#B00011] active:scale-[0.98] transition"
               >
                 Discard &amp; close
               </button>

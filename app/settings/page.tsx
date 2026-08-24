@@ -94,7 +94,7 @@ export default function SettingsPage() {
                     <p className="text-[11px] text-neutral-400">Admin</p>
                   </div>
                   <button onClick={() => router.push("/")}
-                    className="flex w-full items-center gap-2 px-4 py-3 text-[12px] font-medium text-red-500 hover:bg-red-50 transition-colors">
+                    className="flex w-full items-center gap-2 px-4 py-3 text-[12px] font-medium text-[#D70015] hover:bg-[#D70015]/[0.07] transition-colors">
                     <SignOut size={13} weight="bold" />Sign out
                   </button>
                 </div>
@@ -132,7 +132,7 @@ export default function SettingsPage() {
                   </span>
                 </div>
                 {logo && (
-                  <button onClick={removeLogo} className="mt-3 text-[11px] font-medium text-neutral-400 transition-colors hover:text-red-500">Remove logo</button>
+                  <button onClick={removeLogo} className="mt-3 text-[11px] font-medium text-neutral-400 transition-colors hover:text-[#D70015]">Remove logo</button>
                 )}
               </div>
 
@@ -188,7 +188,7 @@ export default function SettingsPage() {
                 <div className="mb-4 flex items-center justify-between gap-2">
                   <h3 className="text-[15px] font-semibold" style={{ color: INK }}>Business &amp; billing details</h3>
                   <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${
-                    complete ? "border border-green-200 bg-green-50 text-green-700" : "border border-amber-200 bg-amber-50 text-amber-700"
+                    complete ? "border border-green-200 bg-green-50 text-green-700" : "border border-[#D70015]/25 bg-[#D70015]/[0.07] text-[#D70015]"
                   }`}>{complete ? "Complete" : "Incomplete"}</span>
                 </div>
                 <div className="space-y-2.5">
@@ -244,8 +244,8 @@ export default function SettingsPage() {
               </div>
 
               {/* Danger zone */}
-              <div className="rounded-2xl border border-red-200 bg-white p-6 shadow-[0_1px_2px_rgba(16,12,40,0.04)]">
-                <h3 className="mb-4 text-[15px] font-semibold text-red-500">Danger zone</h3>
+              <div className="rounded-2xl border border-[#D70015]/25 bg-white p-6 shadow-[0_1px_2px_rgba(16,12,40,0.04)]">
+                <h3 className="mb-4 text-[15px] font-semibold text-[#D70015]">Danger zone</h3>
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <p className="text-sm font-semibold text-neutral-700">Delete account</p>
@@ -253,7 +253,7 @@ export default function SettingsPage() {
                   </div>
                   <button
                     onClick={() => { if (confirm("Delete your MoonTech account permanently?\n\nAll campaign data will be lost. This cannot be undone.")) alert("Account deletion requested. Our team will email you to confirm."); }}
-                    className="shrink-0 whitespace-nowrap rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-[13px] font-semibold text-red-500 transition hover:bg-red-100/70 active:scale-[0.98]">
+                    className="shrink-0 whitespace-nowrap rounded-xl border border-[#D70015]/25 bg-[#D70015]/[0.07] px-4 py-2.5 text-[13px] font-semibold text-[#D70015] transition hover:bg-[#D70015]/[0.10] active:scale-[0.98]">
                     Delete account
                   </button>
                 </div>

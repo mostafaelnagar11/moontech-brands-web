@@ -281,12 +281,12 @@ function HowYouCompare({ funded }: { funded: Campaign[] }) {
             <div key={r.label} className="py-4 sm:py-1 sm:px-6 first:sm:pl-0 last:sm:pr-0">
               <p className="text-[13px] font-medium text-neutral-500">{r.label}</p>
               <div className="mt-1.5 flex items-baseline gap-2 flex-wrap">
-                <p className={`text-[26px] font-semibold tracking-tight tabular-nums ${up ? "text-[#4D2FB0]" : "text-amber-500"}`}>
+                <p className={`text-[26px] font-semibold tracking-tight tabular-nums ${up ? "text-[#4D2FB0]" : "text-[#D70015]"}`}>
                   {r.value}
                 </p>
                 <p className="text-xs text-neutral-400">{r.catLabel}</p>
               </div>
-              <p className={`mt-1 text-xs font-medium ${up ? "text-green-600" : "text-amber-600"}`}>
+              <p className={`mt-1 text-xs font-medium ${up ? "text-green-600" : "text-[#D70015]"}`}>
                 {up ? "↑" : "↓"} {up ? r.good : r.bad}
               </p>
             </div>
@@ -357,7 +357,7 @@ function CurrentPhaseCard({ c, onOpen }: { c: Campaign; onOpen: () => void }) {
 
         <div className="mt-2.5 flex items-baseline justify-between gap-2">
           {c.threshold && (
-            <p className={`flex items-start gap-1.5 text-xs font-medium ${c.thresholdGreen ? "text-green-600" : "text-amber-600"}`}>
+            <p className={`flex items-start gap-1.5 text-xs font-medium ${c.thresholdGreen ? "text-green-600" : "text-[#D70015]"}`}>
               {c.thresholdGreen
                 ? <CheckCircle size={13} weight="fill" aria-hidden="true" className="mt-px shrink-0" />
                 : <Clock size={13} weight="fill" aria-hidden="true" className="mt-px shrink-0" />}
@@ -659,7 +659,7 @@ export default function Dashboard() {
                     <p className="text-[11px] text-neutral-400">Admin</p>
                   </div>
                   <button onClick={() => router.push("/")}
-                    className="flex w-full items-center gap-2 px-4 py-3 text-[12px] font-medium text-red-500 hover:bg-red-50 transition-colors">
+                    className="flex w-full items-center gap-2 px-4 py-3 text-[12px] font-medium text-[#D70015] hover:bg-[#D70015]/[0.07] transition-colors">
                     <SignOut size={13} weight="bold" />Sign out
                   </button>
                 </div>
@@ -684,8 +684,8 @@ export default function Dashboard() {
               {/* One phase runs at a time, so this names it instead of
                   counting campaigns that cannot exist side by side. */}
               {live ? (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1.5 text-[12px] font-medium text-green-700">
-                  <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#4D2FB0]/[0.07] px-3 py-1.5 text-[12px] font-medium text-[#4D2FB0]">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#4D2FB0] animate-pulse" />
                   {phaseTitle(live.phaseNo)} is live
                 </span>
               ) : (

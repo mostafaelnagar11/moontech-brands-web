@@ -142,7 +142,7 @@ function CampaignCard({ c, i, onOpen }: { c: Campaign; i: number; onOpen: (id: s
           {/* Row 3 — threshold, verbatim from the shared data */}
           {c.threshold && (
             <p className={`mt-2.5 flex items-start gap-1.5 text-xs font-medium ${
-              c.thresholdGreen ? "text-[#047857]" : "text-amber-700"
+              c.thresholdGreen ? "text-[#047857]" : "text-[#D70015]"
             }`}>
               {c.thresholdGreen
                 ? <CheckCircle size={13} weight="fill" aria-hidden="true" className="mt-px shrink-0" />
@@ -407,7 +407,7 @@ export default function CampaignsPage() {
                     <p className="text-[11px] text-neutral-400">Admin</p>
                   </div>
                   <button onClick={() => router.push("/")}
-                    className="flex w-full items-center gap-2 px-4 py-3 text-[12px] font-medium text-red-500 transition-colors hover:bg-red-50">
+                    className="flex w-full items-center gap-2 px-4 py-3 text-[12px] font-medium text-[#D70015] transition-colors hover:bg-[#D70015]/[0.07]">
                     <SignOut size={13} weight="bold" />Sign out
                   </button>
                 </div>
@@ -430,7 +430,7 @@ export default function CampaignsPage() {
               style={{ animationDelay: "0s" }}
             >
               <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-green-600">
-                <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${live ? "animate-live bg-green-500" : "bg-neutral-300"}`} />
+                <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${live ? "animate-live bg-[#4D2FB0]" : "bg-neutral-300"}`} />
                 {live ? "Running now" : "Nothing running"}
               </p>
 
@@ -534,8 +534,8 @@ export default function CampaignsPage() {
                 className="animate-fade-in flex h-full flex-col overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-sm"
                 style={{ animationDelay: ".1s" }}
               >
-                <p className="flex items-center gap-1.5 px-5 pb-2 pt-5 text-[11px] font-bold uppercase tracking-wide text-amber-600">
-                  <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                <p className="flex items-center gap-1.5 px-5 pb-2 pt-5 text-[11px] font-bold uppercase tracking-wide text-[#D70015]">
+                  <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-[#D70015]/[0.07]0" />
                   Ads waiting on you · {adsWaiting}
                 </p>
                 {adQueue.map(({ c, waiting }, i) => (

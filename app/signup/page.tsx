@@ -146,7 +146,7 @@ function ShowcasePanel() {
         <div className="absolute left-[6%] top-[7%] animate-float-a">
           <div className="w-48 overflow-hidden rounded-2xl shadow-xl shadow-indigo-200/60">
             <div className="relative h-[274px] bg-cover bg-center" style={{ backgroundImage: "url('/image-1781751940205 1@3x.png')" }}>
-              <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-red-500 px-2.5 py-1 text-[10px] font-bold text-white">
+              <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-[#D70015]/[0.07]0 px-2.5 py-1 text-[10px] font-bold text-white">
                 <span className="animate-live h-1.5 w-1.5 rounded-full bg-white" />
                 Live
               </div>
@@ -225,7 +225,7 @@ function ShowcasePanel() {
                     <div className="ml-1 h-0 w-0 border-b-[8px] border-t-[8px] border-l-[14px] border-b-transparent border-t-transparent border-l-white" />
                   </div>
                 </div>
-                <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-red-500 px-2.5 py-1 text-[10px] font-bold text-white">
+                <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-[#D70015]/[0.07]0 px-2.5 py-1 text-[10px] font-bold text-white">
                   <span className="animate-live h-1.5 w-1.5 rounded-full bg-white" />
                   Live ad
                 </div>
@@ -312,7 +312,7 @@ function ShowcasePanel() {
                       ) : p.state === "Done" ? (
                         <Check size={12} weight="bold" className="text-[#4D2FB0]" />
                       ) : (
-                        <Lightning size={12} weight="fill" className="text-amber-500" />
+                        <Lightning size={12} weight="fill" className="text-[#C2418B]" />
                       )}
                     </span>
                     <span className={`w-[68px] shrink-0 whitespace-nowrap text-[10px] font-semibold ${
@@ -323,7 +323,7 @@ function ShowcasePanel() {
                     <span className="flex-1">
                       <span
                         className={`block h-1 min-w-2 rounded-full ${
-                          p.state === "Done" ? "keyline-grad" : p.state === "Active" ? "bg-amber-400" : "bg-[#E5E4EC]"
+                          p.state === "Done" ? "keyline-grad" : p.state === "Active" ? "bg-[#F4A8D8]" : "bg-[#E5E4EC]"
                         }`}
                         style={{ width: `${p.w}%` }}
                       />
@@ -347,9 +347,9 @@ function ShowcasePanel() {
         </div>
 
         {/* Floating pill badges */}
-        <div className="absolute left-[30%] top-[12%] animate-float-b rounded-full border border-green-200 bg-white/90 px-3 py-1.5 shadow-sm backdrop-blur-sm">
-          <span className="flex items-center gap-1.5 text-[10px] font-semibold text-green-600">
-            <span className="animate-live h-1.5 w-1.5 rounded-full bg-green-500" />
+        <div className="absolute left-[30%] top-[12%] animate-float-b rounded-full border border-[#4D2FB0]/20 bg-white/90 px-3 py-1.5 shadow-sm backdrop-blur-sm">
+          <span className="flex items-center gap-1.5 text-[10px] font-semibold text-[#4D2FB0]">
+            <span className="animate-live h-1.5 w-1.5 rounded-full bg-[#4D2FB0]" />
             Campaigns live · 23
           </span>
         </div>
@@ -726,7 +726,7 @@ function OtpStep({ email, onBack, onVerified }: { email: string; onBack: () => v
       <BackButton onClick={onBack} />
 
       {state === "error" && (
-        <div className="mt-4 flex items-center gap-2.5 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-600 animate-slide-down">
+        <div className="mt-4 flex items-center gap-2.5 rounded-xl border border-[#D70015]/15 bg-[#D70015]/[0.07] px-4 py-3 text-sm font-medium text-[#D70015] animate-slide-down">
           <WarningCircle size={17} weight="fill" className="shrink-0" />
           Incorrect code — please try again.
         </div>
@@ -907,8 +907,8 @@ function EligibilityStep({
                   <span className="text-[11px] font-black tracking-widest text-neutral-400">···</span>
                 </div>
               ) : (
-                <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors duration-500 ${checked ? (bad ? "bg-red-100" : "bg-green-100") : "bg-neutral-100"}`}>
-                  <svg className={`h-4 w-4 transition-colors duration-500 ${checked ? (bad ? "text-red-600" : "text-green-600") : "text-neutral-300"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors duration-500 ${checked ? (bad ? "bg-[#D70015]/[0.12]" : "bg-green-100") : "bg-neutral-100"}`}>
+                  <svg className={`h-4 w-4 transition-colors duration-500 ${checked ? (bad ? "text-[#D70015]" : "text-green-600") : "text-neutral-300"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     {bad ? (
                       <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                     ) : (
@@ -919,7 +919,7 @@ function EligibilityStep({
               )}
               <div className="flex-1">
                 <p className={`text-sm font-medium transition-colors duration-500 ${active ? "text-neutral-700" : "text-neutral-400"}`}>{item.label}</p>
-                <p className={`text-xs font-semibold transition-colors duration-500 ${checked ? (bad ? "text-red-600" : "text-green-600") : "text-neutral-400"}`}>
+                <p className={`text-xs font-semibold transition-colors duration-500 ${checked ? (bad ? "text-[#D70015]" : "text-green-600") : "text-neutral-400"}`}>
                   {itemValue(i)}
                 </p>
               </div>

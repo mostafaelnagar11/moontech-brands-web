@@ -104,7 +104,7 @@ const NOTIFS: Notif[] = [
 
 const TYPE_STYLE: Record<NotifType, { icon: React.ReactNode; tile: string }> = {
   ladder:  { icon: <Lightning size={15} weight="fill" />,  tile: "bg-[#4D2FB0]/[0.08] text-[#4D2FB0]" },
-  content: { icon: <Images size={15} weight="fill" />,     tile: "bg-amber-50 text-amber-600" },
+  content: { icon: <Images size={15} weight="fill" />,     tile: "bg-[#D70015]/[0.07] text-[#D70015]" },
   creator: { icon: <UsersThree size={15} weight="fill" />, tile: "bg-teal-50 text-teal-600" },
   payment: { icon: <CreditCard size={15} weight="fill" />, tile: "bg-green-50 text-green-600" },
   report:  { icon: <ChartLineUp size={15} weight="bold" />, tile: "bg-neutral-100 text-neutral-500" },
@@ -164,7 +164,7 @@ export default function NotificationCenter() {
       >
         <Bell size={16} />
         {unreadCount > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 flex h-3.5 min-w-[14px] items-center justify-center rounded-full bg-red-500 px-0.5 text-[9px] font-medium text-white ring-2 ring-white">
+          <span className="absolute -right-0.5 -top-0.5 flex h-3.5 min-w-[14px] items-center justify-center rounded-full bg-[#D70015]/[0.07]0 px-0.5 text-[9px] font-medium text-white ring-2 ring-white">
             {unreadCount}
           </span>
         )}

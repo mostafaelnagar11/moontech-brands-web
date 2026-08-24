@@ -205,7 +205,7 @@ export default function CampaignDetailPage() {
                     <p className="text-[11px] text-neutral-400">Admin</p>
                   </div>
                   <button onClick={() => router.push("/")}
-                    className="flex w-full items-center gap-2 px-4 py-3 text-[12px] font-medium text-red-500 hover:bg-red-50 transition-colors">
+                    className="flex w-full items-center gap-2 px-4 py-3 text-[12px] font-medium text-[#D70015] hover:bg-[#D70015]/[0.07] transition-colors">
                     <SignOut size={13} weight="bold" />Sign out
                   </button>
                 </div>
@@ -286,7 +286,7 @@ export default function CampaignDetailPage() {
               {/* ── Threshold, verbatim from the shared data ── */}
               {detail.threshold && (
                 <div className={`flex items-start gap-2 rounded-2xl px-4 py-3 text-sm font-medium ${
-                  detail.thresholdGreen ? "bg-[#059669]/[0.08] text-[#047857]" : "bg-amber-50 text-amber-800"
+                  detail.thresholdGreen ? "bg-[#059669]/[0.08] text-[#047857]" : "bg-[#D70015]/[0.07] text-[#D70015]"
                 }`}>
                   <Clock size={16} weight="fill" aria-hidden="true" className="mt-px shrink-0" />
                   {detail.threshold}

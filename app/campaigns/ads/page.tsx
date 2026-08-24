@@ -386,7 +386,7 @@ export default function CampaignAdsPage() {
           <span
             aria-hidden="true"
             className={`mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full text-white ${
-              c.clean ? "bg-[#059669]" : "bg-amber-500"
+              c.clean ? "bg-[#059669]" : "bg-[#D70015]/[0.07]0"
             }`}
           >
             {c.clean ? <Check size={12} weight="bold" /> : <Warning size={12} weight="fill" />}
@@ -472,7 +472,7 @@ export default function CampaignAdsPage() {
             <span
               aria-hidden="true"
               className={`absolute right-1.5 top-1.5 h-2 w-2 rounded-full ring-2 ring-neutral-950 ${
-                flagged ? "bg-amber-400" : "bg-[#34C759]"
+                flagged ? "bg-[#D70015]" : "bg-[#34C759]"
               }`}
             />
           </button>

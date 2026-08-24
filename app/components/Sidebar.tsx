@@ -172,7 +172,7 @@ function SidebarContent({
             </button>
           ))}
           <button onClick={() => router.push("/")} title={collapsed ? "Sign out" : undefined}
-            className={`flex items-center rounded-xl py-2.5 text-[13px] font-medium text-neutral-400 hover:bg-red-50 hover:text-red-500 transition-all text-left w-full ${collapsed ? "justify-center px-0" : "gap-3 px-3"}`}>
+            className={`flex items-center rounded-xl py-2.5 text-[13px] font-medium text-neutral-400 hover:bg-[#D70015]/[0.07] hover:text-[#D70015] transition-all text-left w-full ${collapsed ? "justify-center px-0" : "gap-3 px-3"}`}>
             <SignOut size={16} weight="bold" />
             {!collapsed && "Sign out"}
           </button>

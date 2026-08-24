@@ -72,7 +72,7 @@ export default function NewBrandDashboard() {
                   <div className="px-4 pt-3 pb-2 border-b border-neutral-50">
                     <p className="text-[12px] font-semibold text-neutral-800">Ounass</p>
                   </div>
-                  <button onClick={() => router.push("/")} className="flex w-full items-center gap-2 px-4 py-3 text-[12px] font-semibold text-red-500 hover:bg-red-50 transition-colors">
+                  <button onClick={() => router.push("/")} className="flex w-full items-center gap-2 px-4 py-3 text-[12px] font-semibold text-[#D70015] hover:bg-[#D70015]/[0.07] transition-colors">
                     <SignOut size={13} weight="bold" /> Sign out
                   </button>
                 </div>
@@ -111,7 +111,7 @@ export default function NewBrandDashboard() {
               <div className="flex flex-col gap-8 lg:flex-row lg:items-center">
                 {/* Left */}
                 <div className="flex-1">
-                  <span className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700">
+                  <span className="inline-flex items-center gap-2 rounded-full border border-[#D70015]/25 bg-[#D70015]/[0.07] px-3 py-1.5 text-xs font-semibold text-[#D70015]">
                     Welcome to MoonTech 👋
                   </span>
                   <h1 className="mt-4 text-[32px] font-bold leading-tight tracking-tight text-neutral-900">

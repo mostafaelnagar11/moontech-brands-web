@@ -22,13 +22,13 @@ import type { CampaignStatus } from "../lib/campaigns";
    the command palette and the Completed block on the campaigns list. */
 export default function StatusBadge({ status }: { status: CampaignStatus }) {
   if (status === "Live") return (
-    <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-green-200 bg-green-50 px-2.5 py-1 text-[11px] font-semibold text-green-600">
-      <span aria-hidden="true" className="animate-live h-1.5 w-1.5 rounded-full bg-green-500" />
+    <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#4D2FB0]/20 bg-[#4D2FB0]/[0.07] px-2.5 py-1 text-[11px] font-semibold text-[#4D2FB0]">
+      <span aria-hidden="true" className="animate-live h-1.5 w-1.5 rounded-full bg-[#4D2FB0]" />
       Live
     </span>
   );
   if (status === "Ready") return (
-    <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-600">
+    <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#D70015]/25 bg-[#D70015]/[0.07] px-2.5 py-1 text-[11px] font-semibold text-[#D70015]">
       <Clock size={11} weight="fill" aria-hidden="true" />
       Ready to fund
     </span>

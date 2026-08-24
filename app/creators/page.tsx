@@ -206,11 +206,11 @@ function Detail({
           </div>
         )}
         {c.status === "rejected" && (
-          <div className="mx-7 mb-6 flex items-center gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
-            <span className="text-red-600">✕</span>
-            <span className="flex-1 text-[13px] font-semibold text-red-800">Disliked — we&apos;ll stop matching creators like her</span>
+          <div className="mx-7 mb-6 flex items-center gap-2.5 rounded-xl border border-[#D70015]/25 bg-[#D70015]/[0.07] px-4 py-3">
+            <span className="text-[#D70015]">✕</span>
+            <span className="flex-1 text-[13px] font-semibold text-[#D70015]">Disliked — we&apos;ll stop matching creators like her</span>
             <button onClick={() => onDecide(c.id, "approved")}
-              className="rounded-lg border border-red-200 px-2.5 py-1 text-xs font-medium text-[#4D2FB0] transition hover:bg-white">Like</button>
+              className="rounded-lg border border-[#D70015]/25 px-2.5 py-1 text-xs font-medium text-[#4D2FB0] transition hover:bg-white">Like</button>
           </div>
         )}
 
@@ -224,7 +224,7 @@ function Detail({
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
               {insights.map((ins, i) => (
                 <div key={i} className="flex items-center gap-2">
-                  <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded ${ins.ok ? "bg-green-100 text-green-600" : "bg-red-50 text-red-600"}`}>
+                  <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded ${ins.ok ? "bg-green-100 text-green-600" : "bg-[#D70015]/[0.07] text-[#D70015]"}`}>
                     <span className="text-[9px] font-bold">{ins.ok ? "✓" : "✕"}</span>
                   </span>
                   <span className="text-xs text-neutral-600">{ins.node}</span>
@@ -389,7 +389,7 @@ export default function CreatorsPage() {
                     <p className="text-[11px] text-neutral-400">Admin</p>
                   </div>
                   <button onClick={() => router.push("/")}
-                    className="flex w-full items-center gap-2 px-4 py-3 text-[12px] font-medium text-red-500 hover:bg-red-50 transition-colors">
+                    className="flex w-full items-center gap-2 px-4 py-3 text-[12px] font-medium text-[#D70015] hover:bg-[#D70015]/[0.07] transition-colors">
                     <SignOut size={13} weight="bold" />Sign out
                   </button>
                 </div>
