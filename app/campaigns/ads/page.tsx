@@ -996,28 +996,18 @@ export default function CampaignAdsPage() {
               <X size={16} weight="bold" />
             </button>
 
-            {/* At or above HIGH_FIT the dialog leads with the match and what
-                declining costs. Below it, that framing on every decline would
-                be crying wolf, so the reason box is the first thing there. */}
-            {dStrong ? (
-              <div className="mt-3 flex items-start gap-3 rounded-2xl bg-[#4D2FB0]/[0.05] p-3.5 ring-1 ring-[#4D2FB0]/20">
-                <span
-                  aria-hidden="true"
-                  className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[12px] font-bold tabular-nums text-white"
-                  style={{ backgroundColor: BRAND }}
-                >
+            {/* The fit is CONTEXT, not the headline. It used to be a tinted
+                panel with a filled badge above the reasons, which gave a
+                second-look prompt more weight than the thing the dialog is
+                actually for. One quiet line, at the size of the subtitle it
+                sits under — the score is the only emphasis it needs. */}
+            {dStrong && (
+              <p className="mt-1.5 pr-9 text-[11.5px] leading-snug text-neutral-400">
+                One of your strongest matches ·{" "}
+                <span className="font-semibold tabular-nums" style={{ color: BRAND }}>
                   {dCreator.fit}
-                </span>
-                <p className="self-center text-[12.5px] leading-snug text-neutral-600">
-                  <span className="font-semibold" style={{ color: INK }}>
-                    One of your strongest matches
-                  </span>{" "}
-                  — {dCreator.fit} brand fit. It won&apos;t publish.
-                </p>
-              </div>
-            ) : (
-              <p className="mt-2 text-[12.5px] leading-snug text-neutral-500">
-                It won&apos;t publish, and we stop matching ads like it.
+                </span>{" "}
+                brand fit
               </p>
             )}
 
