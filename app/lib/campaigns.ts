@@ -88,6 +88,68 @@ export type DeclineReasonId = (typeof DECLINE_REASONS)[number]["id"];
 export const declineReasonLabel = (id: string) =>
   DECLINE_REASONS.find((r) => r.id === id)?.label ?? id;
 
+/* ------------------------------------------------------------------ */
+/* Why a creator isn't a match                                         */
+/*                                                                     */
+/* Siblings of DECLINE_REASONS, and anchored the same way: each one is  */
+/* measured against THE BRAND'S CRITERIA (app/data.ts BrandCriteria),   */
+/* not against taste. The difference from an ad is what the answer      */
+/* does — an ad decline stops it publishing, while this is a MATCHING   */
+/* SIGNAL. MoonTech picks the creators; this teaches it what to stop    */
+/* reaching for. Nothing here blocks a person from the platform.        */
+/* ------------------------------------------------------------------ */
+export const CREATOR_PASS_REASONS = [
+  { id: "markets",   label: "Audience isn't in our target markets" },
+  { id: "age",       label: "Audience age doesn't match our buyer" },
+  { id: "style",     label: "Content style doesn't fit our brand" },
+  { id: "competing", label: "Publishes for a competing brand" },
+  { id: "reach",     label: "Reach is low for the size of the following" },
+  { id: "cadence",   label: "Doesn't publish often enough for a phase" },
+] as const;
+
+export type CreatorPassReasonId = (typeof CREATOR_PASS_REASONS)[number]["id"];
+
+export const creatorPassReasonLabel = (id: string) =>
+  CREATOR_PASS_REASONS.find((r) => r.id === id)?.label ?? id;
+
+/* One character limit for anything the brand writes to a creator, so the
+   two screens cannot disagree about it and the counter is the same
+   promise in both places. */
+export const NOTE_MAX = 280;
+
+/* ------------------------------------------------------------------ */
+/* Creator performance — the anti-vanity figure                        */
+/*                                                                     */
+/* Followers are a vanity number: Lina Naser has 310K of them and 19%  */
+/* of that audience watches, while Dina Mostafa has 128K and 75%.      */
+/* Ranked by following, Lina is first and Dina second; ranked by        */
+/* whether anyone actually watches, Lina is eighth.                    */
+/*                                                                     */
+/* So followers appear here ONLY as a denominator. The figure shown to  */
+/* a brand is the share of an audience that turns up.                  */
+/* ------------------------------------------------------------------ */
+export const viewThrough = (avgViews: number, followers: number) =>
+  followers > 0 ? avgViews / followers : 0;
+
+export const pct1 = (n: number) => `${(n * 100).toFixed(n * 100 < 10 ? 1 : 0)}%`;
+
+/** Median of a list — used to compare a creator with the brand's own
+    matched roster rather than with an invented industry benchmark. */
+export function median(xs: readonly number[]): number {
+  if (!xs.length) return 0;
+  const a = [...xs].sort((x, y) => x - y);
+  const m = a.length >> 1;
+  return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2;
+}
+
+/** Posts per week parsed from cadence text ("4–5x/week", "3x/week").
+    Returns the LOW end of a range, so a check never passes on optimism.
+    null when the text is not a weekly cadence. */
+export function postsPerWeek(freq: string): number | null {
+  const m = freq.match(/(\d+)(?:\s*[–-]\s*(\d+))?\s*x\s*\/\s*week/i);
+  return m ? Number(m[1]) : null;
+}
+
 /* A draft the brand never judges cannot sit in limbo forever — the phase is
    metered against a guarantee it cannot deliver if nothing publishes. After
    this many days an undecided draft goes live on its own. */
