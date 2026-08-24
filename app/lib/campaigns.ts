@@ -50,28 +50,60 @@ export interface AdCreator {
   followers: number;
   platform: Platform;
   brandConflict: string;
+  /* Brand fit, 0-100 — the same figure the creators screen shows for the
+     same person, keyed on the same id. It is the one real per-ad score in
+     the app, and it is what makes declining a strong match worth a
+     second look. */
+  fit: number;
+}
+
+/* At or above this, a decline is worth confirming: the matcher rated this
+   creator a strong fit for the brand, so an accidental decline costs more
+   than the click saved. */
+export const HIGH_FIT = 90;
+
+/* A draft the brand never judges cannot sit in limbo forever — the phase is
+   metered against a guarantee it cannot deliver if nothing publishes. After
+   this many days an undecided draft goes live on its own. */
+export const REVIEW_WINDOW_DAYS = 10;
+
+/* `submitted` is display text ("3h ago", "Yesterday", "2d ago"), so the
+   window countdown is parsed from it rather than stored twice and allowed
+   to drift. Anything unparseable yields null and shows no countdown at all
+   rather than a guess. */
+export function draftAgeDays(submitted: string): number | null {
+  if (/^\s*\d+\s*h\b/i.test(submitted)) return 0;
+  if (/yesterday/i.test(submitted)) return 1;
+  const d = submitted.match(/^\s*(\d+)\s*d\b/i);
+  return d ? Number(d[1]) : null;
+}
+
+/** Days left in the review window, or null when the age is unknown. */
+export function draftDaysLeft(submitted: string): number | null {
+  const age = draftAgeDays(submitted);
+  return age === null ? null : Math.max(REVIEW_WINDOW_DAYS - age, 0);
 }
 
 export const AD_CREATORS: AdCreator[] = [
-  { id: 1, name: "Layla Al Rashid", handle: "@layla.style", followers: 84200, platform: "Instagram", brandConflict: "None",
+  { id: 1, name: "Layla Al Rashid", handle: "@layla.style", followers: 84200, platform: "Instagram", brandConflict: "None", fit: 92,
     avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=160&h=160&fit=crop&crop=faces" },
-  { id: 2, name: "Nour Abdulkarim", handle: "@nourbeauty", followers: 52300, platform: "Instagram", brandConflict: "None",
+  { id: 2, name: "Nour Abdulkarim", handle: "@nourbeauty", followers: 52300, platform: "Instagram", brandConflict: "None", fit: 87,
     avatar: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=160&h=160&fit=crop&crop=faces" },
-  { id: 3, name: "Sara Al Khalifa", handle: "@saraxstyle", followers: 214000, platform: "Instagram", brandConflict: "Minor (Farfetch)",
+  { id: 3, name: "Sara Al Khalifa", handle: "@saraxstyle", followers: 214000, platform: "Instagram", brandConflict: "Minor (Farfetch)", fit: 95,
     avatar: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=160&h=160&fit=crop&crop=faces" },
-  { id: 4, name: "Dina Mostafa", handle: "@dinamode", followers: 128000, platform: "TikTok", brandConflict: "None",
+  { id: 4, name: "Dina Mostafa", handle: "@dinamode", followers: 128000, platform: "TikTok", brandConflict: "None", fit: 89,
     avatar: "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=160&h=160&fit=crop&crop=faces" },
-  { id: 5, name: "Rania Mansour", handle: "@raniamansour", followers: 38700, platform: "Instagram", brandConflict: "None",
+  { id: 5, name: "Rania Mansour", handle: "@raniamansour", followers: 38700, platform: "Instagram", brandConflict: "None", fit: 81,
     avatar: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=160&h=160&fit=crop&crop=faces" },
-  { id: 6, name: "Hana Khalid", handle: "@hanakofficial", followers: 92000, platform: "YouTube", brandConflict: "None",
+  { id: 6, name: "Hana Khalid", handle: "@hanakofficial", followers: 92000, platform: "YouTube", brandConflict: "None", fit: 84,
     avatar: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=160&h=160&fit=crop&crop=faces" },
-  { id: 7, name: "Amira Jaber", handle: "@amira.j", followers: 47500, platform: "Instagram", brandConflict: "None",
+  { id: 7, name: "Amira Jaber", handle: "@amira.j", followers: 47500, platform: "Instagram", brandConflict: "None", fit: 78,
     avatar: "https://images.unsplash.com/photo-1563306406-e66174fa3787?w=160&h=160&fit=crop&crop=faces" },
-  { id: 8, name: "Lina Naser", handle: "@linastyle_ae", followers: 310000, platform: "Instagram", brandConflict: "Competing (Namshi)",
+  { id: 8, name: "Lina Naser", handle: "@linastyle_ae", followers: 310000, platform: "Instagram", brandConflict: "Competing (Namshi)", fit: 91,
     avatar: "https://images.unsplash.com/photo-1502823403499-6ccfcf4fb453?w=160&h=160&fit=crop&crop=faces" },
-  { id: 9, name: "Sana Abadi", handle: "@sana.ae", followers: 61200, platform: "Instagram", brandConflict: "None",
+  { id: 9, name: "Sana Abadi", handle: "@sana.ae", followers: 61200, platform: "Instagram", brandConflict: "None", fit: 88,
     avatar: "https://images.unsplash.com/photo-1506863530036-1efeddceb993?w=160&h=160&fit=crop&crop=faces" },
-  { id: 10, name: "Maya Ibrahim", handle: "@mayai_bh", followers: 29800, platform: "Instagram", brandConflict: "None",
+  { id: 10, name: "Maya Ibrahim", handle: "@mayai_bh", followers: 29800, platform: "Instagram", brandConflict: "None", fit: 73,
     avatar: "https://images.unsplash.com/photo-1521577352947-9bb58764b69a?w=160&h=160&fit=crop&crop=faces" },
 ];
 

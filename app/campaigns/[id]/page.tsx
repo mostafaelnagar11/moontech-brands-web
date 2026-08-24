@@ -3,12 +3,12 @@
 /* ------------------------------------------------------------------ */
 /* Campaign detail — the web port of the mobile detail route.          */
 /*                                                                     */
-/* Mobile stacks the money, the ad review, the ledger and the pay CTA  */
+/* Mobile stacks the money, the live ads, the ledger and the pay CTA   */
 /* in one narrow column. A desktop browser has room for two, so the    */
 /* left column carries the explanation (money → drafts → ledger) and   */
 /* the right rail carries the decision (fund the phase) plus delivery. */
 /*                                                                     */
-/* Order still matters inside the left column: ad review sits ABOVE    */
+/* Order still matters inside the left column: live ads sit ABOVE      */
 /* the phase ledger, because the drafts are the thing that needs you   */
 /* today and the ledger is the thing that explains the money.          */
 /*                                                                     */
@@ -25,7 +25,10 @@ import Sidebar from "../../components/Sidebar";
 import NotificationCenter from "../../components/NotificationCenter";
 import CommandPalette from "../../components/CommandPalette";
 import StatusBadge from "../../components/StatusBadge";
-import { adCreator, fmtUSD, nextPhase, phaseHasStarted, phaseTitle, type Campaign } from "../../lib/campaigns";
+import {
+  adCreator, fmtUSD, nextPhase, phaseHasStarted, phaseTitle, REVIEW_WINDOW_DAYS,
+  type Campaign,
+} from "../../lib/campaigns";
 import { useCampaign, useRoster, fundPhase } from "../../lib/funding";
 import { useAdsFor, useWaitingFor } from "../../lib/adSignals";
 
@@ -301,7 +304,7 @@ export default function CampaignDetailPage() {
                 </div>
               )}
 
-              {/* ── AD REVIEW — the entry point to the flow ──
+              {/* ── LIVE ADS — the queue, and what is happening to it ──
                    Built as a card strip, the same shape as a creator's "Last 5
                    posts", because the thing being reviewed is creative and a
                    row of overlapping 40px thumbnails did not let you see any of
@@ -318,14 +321,67 @@ export default function CampaignDetailPage() {
                   creator has been briefed to do. */}
               {phaseHasStarted(detail) && drafts.length > 0 && (
                 <section>
-                  {/* No count row. The button underneath already names the
-                      number that matters, and the ticks on the cards say which
-                      ones are settled — three more figures up here were just
-                      the same facts a second time. */}
-                  <p className={`${EYEBROW} mb-2 text-[#7C5CE0]`}>Ad review</p>
+                  <p className={`${EYEBROW} mb-2 text-[#7C5CE0]`}>Live ads</p>
 
                   <div className={`${CARD} p-4`}>
-                    <div className="flex gap-2 overflow-x-auto pb-1">
+                    {/* THE STATE LEDGER — a ledger, not a score. Every draft in
+                        this phase is in exactly one of these states, and they
+                        add up: publishing + waiting + not publishing IS the
+                        count in review. All four figures are the ones the cards
+                        below already render from, so the strip cannot drift
+                        from the thumbnails it sits on.
+
+                        No rate and no percentage. Two decisions on eight drafts
+                        would print a 50% "approval rate" that reads worse than
+                        the raw counts it was meant to soften — and a decline is
+                        a choice the brand made, not a test the work failed. */}
+                    <div className="border-b border-black/[0.06] pb-4">
+                      <div className="grid grid-cols-3 gap-x-3">
+                        {/* Publishing leads, because a like publishes the ad:
+                            this IS the live count for the phase. It is also why
+                            the stored adsLive figure is off this page — it read
+                            125 against a queue of eight. */}
+                        <div>
+                          <p className="text-[22px] font-bold leading-none tabular-nums" style={{ color: BRAND }}>
+                            {liked.length}
+                          </p>
+                          <p className="mt-1 text-[11px] font-semibold leading-tight" style={{ color: INK }}>Publishing</p>
+                        </div>
+                        <div>
+                          <p className="text-[22px] font-bold leading-none tabular-nums" style={{ color: INK }}>
+                            {waiting.length}
+                          </p>
+                          <p className="mt-1 text-[11px] font-semibold leading-tight" style={{ color: INK }}>Waiting on you</p>
+                        </div>
+                        {/* The whole, in grey — context for the two figures that
+                            can be acted on, not a third thing to do. */}
+                        <div>
+                          <p className="text-[22px] font-bold leading-none tabular-nums text-neutral-400">
+                            {drafts.length}
+                          </p>
+                          <p className="mt-1 text-[11px] font-medium leading-tight text-neutral-400">In review</p>
+                        </div>
+                      </div>
+
+                      {/* Coverage, counted — never a bare percentage. The
+                          declines sit down here, small and neutral. */}
+                      <p className="mt-3 text-[11px] text-neutral-500">
+                        <span className="font-semibold tabular-nums" style={{ color: INK }}>
+                          {liked.length + disliked.length} of {drafts.length}
+                        </span>{" "}
+                        decided
+                        {disliked.length > 0 && ` · ${disliked.length} not publishing`}
+                      </p>
+
+                      {/* The window belongs where the queue is. It is the
+                          brand's obligation, not a threat: the phase is metered
+                          against a guarantee it cannot deliver if nothing runs. */}
+                      <p className="mt-1 text-[11px] font-medium text-neutral-500">
+                        A draft left undecided publishes on its own after {REVIEW_WINDOW_DAYS} days.
+                      </p>
+                    </div>
+
+                    <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
                       {[...waiting, ...liked, ...disliked].slice(0, 8).map((a) => {
                         const c = adCreator(a);
                         return (
@@ -369,7 +425,9 @@ export default function CampaignDetailPage() {
                       onClick={() => router.push(`/campaigns/ads?c=${detail.id}`)}
                       className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl bg-neutral-100 px-4 py-2.5 text-[13px] font-semibold text-[#4D2FB0] transition-colors hover:bg-neutral-200/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4D2FB0]/40"
                     >
-                      {waiting.length > 0 ? `Review ${waiting.length} waiting on you` : "Open ad review"}
+                      {/* No count here. The strip above already carries it,
+                          and this number was on the screen four times. */}
+                      Open ad review
                       <CaretRight size={13} weight="bold" aria-hidden="true" />
                     </button>
                   </div>
@@ -471,16 +529,17 @@ export default function CampaignDetailPage() {
                     </p>
                   </div>
 
-                  {/* Per-unit efficiency. Each of these is a division of two
-                      figures on this phase, so they cannot drift from it. */}
-                  <div className="mt-5 grid grid-cols-2 gap-x-4 gap-y-4 border-t border-black/[0.06] pt-4 sm:grid-cols-3">
+                  {/* Per-CREATOR efficiency, and only that. Each figure divides
+                      two numbers this phase owns, so it cannot drift from it —
+                      which is exactly what "revenue per live ad" could not
+                      claim: it divided by the stored 125, a live count this
+                      page no longer believes. */}
+                  <div className="mt-5 grid grid-cols-2 gap-x-4 gap-y-4 border-t border-black/[0.06] pt-4">
                     {[
                       { k: "Revenue per creator",
                         v: detail.creators ? fmtUSD(Math.round(detail.rev / detail.creators)) : "—" },
                       { k: "Cost per creator",
                         v: detail.creators ? fmtUSD(Math.round(detail.budget / detail.creators)) : "—" },
-                      { k: "Revenue per live ad",
-                        v: detail.adsLive ? fmtUSD(Math.round(detail.rev / detail.adsLive)) : "—" },
                     ].map((m) => (
                       <div key={m.k}>
                         <p className="text-[17px] font-bold leading-none tabular-nums" style={{ color: INK }}>{m.v}</p>
@@ -551,10 +610,15 @@ export default function CampaignDetailPage() {
                       then promise an unlock that had already happened. Both
                       halves have to be asked, in order: drafts genuinely
                       waiting outrank everything, and a successor that is
-                      already Ready is unlocked, not pending. */}
+                      already Ready is unlocked, not pending.
+
+                      The waiting COUNT is not in this sentence any more — the
+                      ledger in Live ads carries it, and the button right below
+                      names it again. One number, twice on a screen, is the
+                      most it should ever appear. */}
                   <p className="mt-1 text-xs text-neutral-500">
                     {waiting.length > 0
-                      ? `${waiting.length} draft${waiting.length === 1 ? "" : "s"} waiting on you — nothing publishes until you decide.`
+                      ? "Nothing publishes until you decide."
                       : after && after.status === "Ready"
                         ? `${phaseTitle(after.phaseNo)} is unlocked and waiting on funding.`
                         : after
@@ -583,25 +647,22 @@ export default function CampaignDetailPage() {
                 </section>
               ) : null}
 
-              {/* ── Delivery rail — two stats, stacked so they can breathe.
-                     There used to be a third tile for `detail.content`, but that
-                     number is stored, not computed: one campaign holds 89 against
-                     125 ads live and another holds 142 against 96. Two different
-                     numbers both labelled "ads" is worse than one, so the tile is
-                     gone. The field stays in the data, unread here. ── */}
-              {detail.adsLive !== null && (
+              {/* ── Delivery rail — the crew, and nothing else.
+                     "Ads live 125/200" used to lead it. That pair is stored, not
+                     computed, and this phase's queue holds eight drafts of which
+                     one is liked, so the tile contradicted the section above it
+                     by two orders of magnitude. The live count now comes only
+                     from liked drafts, in one place. `detail.content` went the
+                     same way earlier — 89 against 125 on one campaign, 142
+                     against 96 on another. Both fields stay in the data, unread
+                     here. Creators is real: it is what the money bought. ── */}
+              {detail.creators !== null && (
                 <section className={`${CARD} overflow-hidden`}>
                   <p className={`${EYEBROW} px-5 pt-4 pb-1 text-neutral-400`}>Delivery</p>
-                  {[
-                    { k: "Ads live", v: `${detail.adsLive}/${detail.adsTotal}` },
-                    { k: "Creators", v: `${detail.creators}` },
-                  ].map((m, i) => (
-                    <div key={m.k}
-                      className={`flex items-center justify-between px-5 py-3.5 ${i > 0 ? "border-t border-black/[0.06]" : ""}`}>
-                      <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{m.k}</p>
-                      <p className="text-[17px] font-semibold tabular-nums" style={{ color: INK }}>{m.v}</p>
-                    </div>
-                  ))}
+                  <div className="flex items-center justify-between px-5 py-3.5">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">Creators</p>
+                    <p className="text-[17px] font-semibold tabular-nums" style={{ color: INK }}>{detail.creators}</p>
+                  </div>
                 </section>
               )}
             </div>

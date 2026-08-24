@@ -16,7 +16,16 @@
 /* Like    → it publishes, and more of the phase budget goes behind     */
 /*           creative like it.                                          */
 /* Dislike → it never posts, and the matcher stops reaching for that    */
-/*           pattern.                                                   */
+/*           pattern. It is the one decision with a second step —       */
+/*           a dialog, because a decline can carry a note the CREATOR   */
+/*           reads, and talking a brand out of declining its best       */
+/*           match is worth one extra click.                            */
+/*                                                                     */
+/* Doing nothing is not a third verb. A draft nobody judges publishes   */
+/* on its own after REVIEW_WINDOW_DAYS days: the phase is metered       */
+/* against a guarantee it cannot deliver with work parked in a queue.   */
+/* So the countdown sits on the creative it applies to, not in a        */
+/* footnote — neutral until it is nearly gone, then red.                */
 /*                                                                     */
 /* WHY THIS IS NOT THE MOBILE REEL. On a phone the three automatic      */
 /* checks hide behind an ⓘ, because a card on a full-bleed surface      */
@@ -32,21 +41,28 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft, CaretLeft, CaretRight, Check, Info,
+  ArrowLeft, CaretLeft, CaretRight, Check, Clock, Info, PaperPlaneTilt,
   ThumbsDown, ThumbsUp, Warning, X,
   InstagramLogo, TiktokLogo, YoutubeLogo, type Icon,
 } from "@phosphor-icons/react";
 import {
-  CAMPAIGNS, adChecks, adCreator, adHero, adsFor, fmtUSD, livePhase, phaseTitle,
+  CAMPAIGNS, HIGH_FIT, REVIEW_WINDOW_DAYS, adChecks, adCreator, adHero, adsFor,
+  draftDaysLeft, fmtUSD, livePhase, phaseTitle,
   type Ad, type AdSignal, type Platform,
 } from "../../lib/campaigns";
-import { setAdSignal, useAdsFor } from "../../lib/adSignals";
+import { setAdSignal, useAdNote, useAdsFor } from "../../lib/adSignals";
 import { useActiveBrandId } from "../../lib/brand";
 import { useCampaign, useRoster } from "../../lib/funding";
 
 const BRAND = "#4D2FB0";
 const BRAND_HOVER = "#3F2596";
 const INK = "#191234";
+/* Long enough for a real reason, short enough to be read. The cap is the
+   creator's attention, not a storage limit. */
+const NOTE_MAX = 280;
+/* Days left at or under which the review window is genuinely close, and the
+   countdown earns the one red. Above it the countdown is just a fact. */
+const CLOSE_DAYS = 2;
 
 const TABS: { key: AdSignal; label: string }[] = [
   { key: "none",     label: "Waiting" },
@@ -60,7 +76,7 @@ const PLAT_ICON: Record<Platform, Icon> = {
   YouTube: YoutubeLogo,
 };
 
-type Toast = { key: number; id: string; name: string; to: AdSignal; from: AdSignal };
+type Toast = { key: number; id: string; name: string; to: AdSignal; from: AdSignal; noted: boolean };
 
 export default function CampaignAdsPage() {
   const router = useRouter();
@@ -89,8 +105,15 @@ export default function CampaignAdsPage() {
   const [infoOpen, setInfoOpen] = useState(false);
   const [toast, setToast] = useState<Toast | null>(null);
   const [announce, setAnnounce] = useState("");
+  /* The decline being confirmed. It carries the ad AND the index it was
+     started from, because the click that confirms it happens a render later
+     and `sel` may have moved by then — `rate` needs the index it acts on. */
+  const [decline, setDecline] = useState<{ ad: Ad; i: number } | null>(null);
+  const [note, setNote] = useState("");
 
   const toastTimer = useRef<number | undefined>(undefined);
+  const declineBox = useRef<HTMLDivElement | null>(null);
+  const noteBox = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
     const q = new URLSearchParams(window.location.search).get("c");
@@ -171,6 +194,10 @@ export default function CampaignAdsPage() {
   /* Funding applied and looked up across brands, so a phase funded on the
      detail route reads back with the budget it is actually spending. */
   const campaign = useCampaign(cid ?? "") ?? null;
+  /* What the brand told this creator, if anything. Read for every ad — a
+     hook cannot be called conditionally — and shown only on the decided
+     shelves, where a brand comes back asking what it actually sent. */
+  const stageNote = useAdNote(ad?.id ?? "");
 
   const go = useCallback((i: number) => {
     setSel((s) => (i < 0 || i >= adsRef.current.length ? s : i));
@@ -181,11 +208,15 @@ export default function CampaignAdsPage() {
   }, [router, cid]);
 
   /* Takes the ad it acts on, because a queue row can rate an ad that is
-     not the one on the stage — there is no single "current" to infer. */
-  const rate = useCallback((a: Ad, i: number, to: "liked" | "disliked") => {
+     not the one on the stage — there is no single "current" to infer.
+     `reason` only ever arrives with a decline, and it is the one thing on
+     this screen a person outside the company reads. Every path still lands
+     here, so the announcement and the undo receipt stay in one place. */
+  const rate = useCallback((a: Ad, i: number, to: "liked" | "disliked", reason?: string) => {
     const c = adCreator(a);
     const from = a.signal;
-    setAdSignal(a.id, to);
+    const noted = (reason ?? "").trim().length > 0;
+    setAdSignal(a.id, to, reason);
 
     /* Where to go next is computed from the list WITH this decision applied —
        reading the rows we rendered from would hand the reviewer back the ad
@@ -193,7 +224,7 @@ export default function CampaignAdsPage() {
     const after = allRef.current.map((r) => (r.id === a.id ? { ...r, signal: to } : r));
 
     window.clearTimeout(toastTimer.current);
-    setToast({ key: Date.now(), id: a.id, name: c.name, to, from });
+    setToast({ key: Date.now(), id: a.id, name: c.name, to, from, noted });
     toastTimer.current = window.setTimeout(() => setToast(null), 4000);
 
     /* The rated ad leaves this shelf, so holding `sel` still lands on the ad
@@ -206,7 +237,9 @@ export default function CampaignAdsPage() {
     setAnnounce(
       (to === "liked"
         ? `Liked. ${c.name}'s ad publishes within the hour and more of this phase's budget goes behind ads like it.`
-        : "Disliked. This ad will not publish, and we stop matching ads like it.") +
+        : `Disliked. This ad will not publish, and we stop matching ads like it.${
+            noted ? ` Your note goes to ${c.name}.` : ` ${c.name} is told it will not run, with no reason given.`
+          }`) +
       (remaining === 0
         ? " That is the last one on this shelf."
         : ` ${remaining} left here.`)
@@ -233,9 +266,77 @@ export default function CampaignAdsPage() {
     setToast(null);
   }, [toast]);
 
+  /* ── The decline, in two steps ──
+     Every route to "disliked" comes through here — the verb row, the flip on
+     an already-liked ad, and the D shortcut — so neither the confirmation nor
+     the note can be skipped by reaching for the keyboard instead. A like is
+     still one click: it costs nothing to be wrong about, and it is the
+     decision the queue exists to collect. */
+  const askDecline = useCallback((a: Ad, i: number) => {
+    setNote("");
+    setDecline({ ad: a, i });
+  }, []);
+
+  /* Cancel. Escape and the scrim both land here, and neither may decline —
+     the whole point of the dialog is that this button is the easy one. */
+  const closeDecline = useCallback(() => {
+    setDecline(null);
+    setNote("");
+  }, []);
+
+  const confirmDecline = useCallback(() => {
+    if (!decline) return;
+    rate(decline.ad, decline.i, "disliked", note);
+    setDecline(null);
+    setNote("");
+  }, [decline, note, rate]);
+
+  /* Focus trap, autofocus and focus restore for the decline dialog.
+     The trap is not decoration here: a Tab that escaped the card would land
+     on the Like button sitting behind the scrim — the one click this dialog
+     exists to slow down. The element to restore to is read BEFORE focus
+     moves into the textarea, and only restored if it is still in the
+     document: the button that opened this often becomes a different button
+     once the decision lands. */
+  useEffect(() => {
+    const box = declineBox.current;
+    if (!decline || !box) return;
+    const restore = document.activeElement as HTMLElement | null;
+    noteBox.current?.focus();
+
+    function onTab(e: KeyboardEvent) {
+      if (e.key !== "Tab" || !box) return;
+      const stops = Array.from(
+        box.querySelectorAll<HTMLElement>("textarea, button:not([disabled])")
+      );
+      if (stops.length === 0) return;
+      const first = stops[0];
+      const last = stops[stops.length - 1];
+      const at = document.activeElement;
+      if (!box.contains(at)) { e.preventDefault(); first.focus(); return; }
+      if (e.shiftKey && at === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && at === last) { e.preventDefault(); first.focus(); }
+    }
+    window.addEventListener("keydown", onTab);
+    return () => {
+      window.removeEventListener("keydown", onTab);
+      if (restore && document.body.contains(restore)) restore.focus();
+    };
+  }, [decline]);
+
   /* ── Keyboard — the affordance a desktop reviewer expects ── */
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
+      /* The decline dialog owns the keyboard while it is up, and it has to
+         own it BEFORE the field guard below: Escape must cancel even from
+         inside the textarea, and nothing else may reach an ad the reviewer
+         is halfway through declining. Escape here CANCELS — it never
+         declines. */
+      if (decline) {
+        if (e.key === "Escape") { e.preventDefault(); closeDecline(); }
+        return;
+      }
+
       const t = e.target as HTMLElement | null;
       if (t) {
         const tag = t.tagName;
@@ -260,11 +361,11 @@ export default function CampaignAdsPage() {
       const cur = adsRef.current[sel];
       if (!cur) return;
       if (k === "l") { e.preventDefault(); rate(cur, sel, "liked"); }
-      else if (k === "d") { e.preventDefault(); rate(cur, sel, "disliked"); }
+      else if (k === "d") { e.preventDefault(); askDecline(cur, sel); }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [sel, infoOpen, go, rate, undo, back]);
+  }, [sel, infoOpen, decline, go, rate, undo, back, askDecline, closeDecline]);
 
   /* ------------------------------------------------------------------ */
   /* Chrome shared by every state                                        */
@@ -370,6 +471,18 @@ export default function CampaignAdsPage() {
   const atStart = sel === 0;
   const atEnd = sel === shown.length - 1;
 
+  /* The review window, for the draft on the stage and for the one being
+     declined. `null` means the submitted string did not parse, and then
+     NOTHING is rendered: a guessed deadline on a screen that publishes by
+     itself would be the single most expensive wrong number here. */
+  const daysLeft = ad && ad.signal === "none" ? draftDaysLeft(ad.submitted) : null;
+  const dAd = decline?.ad ?? null;
+  const dCreator = dAd ? adCreator(dAd) : null;
+  /* At or above HIGH_FIT the matcher rated this person a strong fit, so the
+     dialog leads with that instead of the reason box. Below it, the same
+     framing on every decline would be crying wolf. */
+  const dStrong = dCreator ? dCreator.fit >= HIGH_FIT : false;
+
   /* The three checks — same rows in the rail and in the small-viewport modal,
      so the two can never drift apart. */
   const CheckRows = ({ dark }: { dark: boolean }) => (
@@ -406,6 +519,39 @@ export default function CampaignAdsPage() {
       ))}
     </div>
   );
+
+  /* What the brand actually sent, echoed back on the decided shelves. A
+     decision has to be auditable after the fact — the Liked and Disliked
+     shelves are where a brand returns to ask what a creator was told, and the
+     note is the only part of that the creative does not carry. It renders in
+     the rail AND inside the ⓘ, because below lg the ⓘ *is* the rail: without
+     the second copy the audit trail would vanish at 1023px. A like clears the
+     note in the store, so in practice this is the Disliked shelf. */
+  const NoteBack = ({ dark }: { dark: boolean }) => {
+    if (!ad || !creator || ad.signal === "none" || !stageNote) return null;
+    return (
+      <div className={dark ? "shrink-0 border-t border-white/10 p-4" : "mt-3 rounded-2xl bg-white p-4"}>
+        <h2
+          className={`text-[13px] font-semibold ${dark ? "text-white" : ""}`}
+          style={dark ? undefined : { color: INK }}
+        >
+          Note sent to {creator.name}
+        </h2>
+        <p
+          className={
+            dark
+              ? "mt-2 rounded-xl bg-white/[0.04] p-3 text-[12px] leading-relaxed text-white/75 ring-1 ring-white/10"
+              : "mt-2 rounded-xl bg-[#fafafa] p-3 text-[12px] leading-relaxed text-neutral-600"
+          }
+        >
+          &ldquo;{stageNote}&rdquo;
+        </p>
+        <p className={`mt-2 text-[11px] leading-snug ${dark ? "text-white/40" : "text-neutral-500"}`}>
+          Sent word for word with the decision.
+        </p>
+      </div>
+    );
+  };
 
   const explainer = (
     <>
@@ -511,7 +657,9 @@ export default function CampaignAdsPage() {
                 ? "Liked — publishing."
                 : ad.signal === "disliked"
                   ? "Disliked — will not publish."
-                  : "Waiting on you."
+                  : daysLeft !== null
+                    ? `Waiting on you. Publishes on its own in ${daysLeft} ${daysLeft === 1 ? "day" : "days"} if you do not decide.`
+                    : "Waiting on you."
             }`}
             className="relative min-h-0 flex-1"
           >
@@ -548,6 +696,27 @@ export default function CampaignAdsPage() {
                   decoding="async"
                   className="block max-h-[calc(100vh-212px)] max-w-full rounded-2xl bg-white/[0.04] object-contain shadow-[0_24px_60px_-20px_rgba(0,0,0,0.8)]"
                 />
+
+                {/* The window, on the draft it applies to. An undecided
+                    draft is not parked: it publishes on its own when the
+                    window closes, so the countdown belongs on the creative
+                    rather than in a policy line the reviewer scrolls past.
+                    Neutral while there is room, the one red at CLOSE_DAYS —
+                    and absent entirely when the age would not parse. */}
+                {ad.signal === "none" && daysLeft !== null && (
+                  <div className="absolute left-3 top-3">
+                    <span
+                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold text-white backdrop-blur-md ${
+                        daysLeft <= CLOSE_DAYS ? "bg-[#D70015]" : "bg-black/70"
+                      }`}
+                    >
+                      <Clock size={11} weight="fill" aria-hidden="true" />
+                      {daysLeft === 0
+                        ? "Publishes today unless you decide"
+                        : `Publishes on its own in ${daysLeft} ${daysLeft === 1 ? "day" : "days"}`}
+                    </span>
+                  </div>
+                )}
 
                 {/* Only DECIDED ads wear a pill — it is the receipt for a
                     click, and the only way to tell, coming back, what you
@@ -617,8 +786,8 @@ export default function CampaignAdsPage() {
               {ad.signal === "none" ? (
                 <>
                   <button
-                    onClick={() => rate(ad, sel, "disliked")}
-                    aria-label={`Dislike ${creator.name}'s ad. It will not publish.`}
+                    onClick={() => askDecline(ad, sel)}
+                    aria-label={`Dislike ${creator.name}'s ad. Opens a dialog to confirm and leave a reason.`}
                     className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-white/10 px-4 py-3.5 text-[14px] font-semibold text-white ring-1 ring-white/25 transition-colors hover:bg-white/[0.16] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
                   >
                     <ThumbsDown size={18} weight="fill" aria-hidden="true" /> Dislike
@@ -638,9 +807,12 @@ export default function CampaignAdsPage() {
                 /* One button, no state pill: the shelf you are standing on
                    names the state, and the creative carries its own pill. */
                 <button
-                  onClick={() => rate(ad, sel, ad.signal === "liked" ? "disliked" : "liked")}
+                  onClick={() => {
+                    if (ad.signal === "liked") askDecline(ad, sel);
+                    else rate(ad, sel, "liked");
+                  }}
                   aria-label={ad.signal === "liked"
-                    ? `Dislike ${creator.name}'s ad instead. It will not publish.`
+                    ? `Dislike ${creator.name}'s ad instead. Opens a dialog to confirm and leave a reason.`
                     : `Like ${creator.name}'s ad instead. It publishes within the hour.`}
                   className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-white/10 px-4 py-3.5 text-[14px] font-semibold text-white ring-1 ring-white/25 transition-colors hover:bg-white/[0.16] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
                 >
@@ -650,9 +822,15 @@ export default function CampaignAdsPage() {
                 </button>
               )}
             </div>
+            {/* This used to read "nothing publishes until you like or
+                dislike it", which the review window makes untrue. Both facts
+                fit: nothing here has posted yet, and a draft left alone posts
+                anyway — the phase is sold on a guaranteed return it cannot
+                earn from a queue. */}
             {ad.signal === "none" && (
-              <p className="mt-2.5 text-center text-[11px] font-medium text-white/40">
-                Nothing publishes until you like or dislike it
+              <p className="mx-auto mt-2.5 max-w-[560px] text-center text-[11px] font-medium leading-snug text-white/40">
+                Nothing here has published. A draft nobody judges publishes on its own after{" "}
+                {REVIEW_WINDOW_DAYS} days — a phase can&apos;t hit its guarantee with work sitting in a queue.
               </p>
             )}
           </div>
@@ -676,7 +854,7 @@ export default function CampaignAdsPage() {
                 <p className="min-w-0 flex-1 text-[12.5px] font-medium">
                   {toast.to === "liked"
                     ? `${toast.name}'s ad publishes within the hour.`
-                    : `${toast.name}'s ad will not publish.`}
+                    : `${toast.name}'s ad will not publish.${toast.noted ? " Your note goes with it." : ""}`}
                 </p>
                 <button
                   onClick={undo}
@@ -705,6 +883,7 @@ export default function CampaignAdsPage() {
             <p className="mt-3 text-[11.5px] leading-relaxed text-white/45">{explainer}</p>
           </div>
 
+          <NoteBack dark />
         </aside>
       </div>
 
@@ -735,6 +914,129 @@ export default function CampaignAdsPage() {
             </div>
             <CheckRows dark={false} />
             <p className="mt-3 px-1 text-[12.5px] leading-relaxed text-neutral-500">{explainer}</p>
+            <NoteBack dark={false} />
+          </div>
+        </div>
+      )}
+
+      {/* ── THE DECLINE ──
+             The only two-step decision on the screen, and it earns the step
+             three times over: a strong match is worth a second look, the
+             reason is written to a person, and the reviewer has to know that
+             before typing rather than after sending. Confirm is one button,
+             Cancel is the other, and Escape is Cancel — the easy exit is the
+             one that does not decline. ── */}
+      {decline && dAd && dCreator && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div aria-hidden="true" onClick={closeDecline} className="absolute inset-0" />
+          <div
+            ref={declineBox}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="decline-title"
+            className="animate-fade-in relative max-h-full w-full max-w-[500px] overflow-y-auto rounded-2xl border border-black/[0.06] bg-white p-5 shadow-[0_24px_60px_-20px_rgba(0,0,0,0.8)]"
+          >
+            <h2 id="decline-title" className="pr-9 text-[17px] font-bold" style={{ color: INK }}>
+              Dislike {dCreator.name}&apos;s ad?
+            </h2>
+            <button
+              onClick={closeDecline}
+              aria-label="Cancel, keep this ad waiting on you"
+              className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-lg text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4D2FB0]"
+            >
+              <X size={16} weight="bold" />
+            </button>
+
+            {/* At or above HIGH_FIT the dialog leads with the match and what
+                declining costs. Below it, that framing on every decline would
+                be crying wolf, so the reason box is the first thing there. */}
+            {dStrong ? (
+              <div className="mt-3 flex items-start gap-3 rounded-2xl bg-[#4D2FB0]/[0.05] p-3.5 ring-1 ring-[#4D2FB0]/20">
+                <span
+                  aria-hidden="true"
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[12px] font-bold tabular-nums text-white"
+                  style={{ backgroundColor: BRAND }}
+                >
+                  {dCreator.fit}
+                </span>
+                <p className="self-center text-[12.5px] leading-snug text-neutral-600">
+                  <span className="font-semibold" style={{ color: INK }}>
+                    One of your strongest matches
+                  </span>{" "}
+                  — {dCreator.fit} brand fit. It won&apos;t publish.
+                </p>
+              </div>
+            ) : (
+              <p className="mt-2 text-[12.5px] leading-snug text-neutral-500">
+                It won&apos;t publish, and we stop matching ads like it.
+              </p>
+            )}
+
+            {/* Optional, and deliberately so: a required field on a queue of
+                drafts turns a one-click workstation into a form. It still
+                looks like the thing to fill in, because it is. */}
+            <div className="mt-4">
+              <div className="flex items-baseline justify-between gap-2">
+                <label htmlFor="decline-note" className="text-[12.5px] font-semibold" style={{ color: INK }}>
+                  Why?{" "}
+                  <span className="font-medium text-neutral-400">Optional</span>
+                </label>
+                <span
+                  className={`text-[11px] font-medium tabular-nums ${
+                    note.length >= NOTE_MAX ? "text-[#D70015]" : "text-neutral-400"
+                  }`}
+                >
+                  {note.length}/{NOTE_MAX}
+                </span>
+              </div>
+              <textarea
+                id="decline-note"
+                ref={noteBox}
+                value={note}
+                maxLength={NOTE_MAX}
+                rows={3}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="The hook, the framing, the product on camera — whatever a re-cut would have to fix."
+                className="mt-1.5 w-full resize-none rounded-xl border border-black/[0.06] bg-[#fafafa] p-3 text-[13px] leading-relaxed outline-none placeholder:text-neutral-400 focus:border-[#4D2FB0] focus:ring-2 focus:ring-[#4D2FB0]/25"
+                style={{ color: INK }}
+              />
+              {/* Said HERE, beside the field, before the click: the note is
+                  addressed to a person. An empty box is information too — it
+                  is a decision with no explanation attached — so both cases
+                  are spelled out rather than one being the silent default. */}
+              <p className="mt-2 flex items-center gap-2 text-[12px] leading-snug">
+                <PaperPlaneTilt size={14} weight="fill" aria-hidden="true" className="shrink-0 text-neutral-400" />
+                <span className="text-neutral-600">
+                  <span className="font-semibold" style={{ color: INK }}>{dCreator.name} sees this</span>
+                  {note.trim() ? ", word for word." : " — empty sends no reason."}
+                </span>
+              </p>
+            </div>
+
+            {/* The 10-day window is NOT restated here. It describes what
+                happens when the brand does NOT decide, and this dialog only
+                exists because they are deciding right now — so in here it is
+                a paragraph that cannot apply. It stays on the review screen,
+                on the drafts it actually governs. */}
+
+            <div className="mt-4 flex items-stretch gap-2.5">
+              <button
+                onClick={closeDecline}
+                className="flex flex-1 items-center justify-center rounded-xl bg-white px-4 py-3 text-[13px] font-semibold ring-1 ring-black/[0.08] transition-colors hover:bg-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4D2FB0]"
+                style={{ color: INK }}
+              >
+                Cancel
+              </button>
+              {/* Ink, not purple and not red: purple is the Like verb three
+                  inches behind this card, and the red belongs to the closing
+                  window. This is the serious button, not an alarm. */}
+              <button
+                onClick={confirmDecline}
+                className="flex flex-[1.5] items-center justify-center gap-2 rounded-xl bg-[#191234] px-4 py-3 text-[13px] font-semibold text-white transition-colors hover:bg-[#191234]/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4D2FB0]"
+              >
+                <ThumbsDown size={16} weight="fill" aria-hidden="true" /> Dislike
+              </button>
+            </div>
           </div>
         </div>
       )}
