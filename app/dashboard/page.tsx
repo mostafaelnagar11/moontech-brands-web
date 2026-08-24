@@ -104,7 +104,9 @@ function RevenueOverTimeChart() {
 
   return (
     <div>
-      <svg viewBox={`0 0 ${W} ${H + 28}`} className="w-full" style={{ height: 260 }}>
+      {/* No fixed height: the viewBox owns the aspect, so the chart fills
+          whatever column it lands in instead of letterboxing inside it. */}
+      <svg viewBox={`0 0 ${W} ${H + 28}`} className="h-auto w-full">
         {/* Grid + left labels */}
         {yLeft.map((l, i) => {
           const y = PT + (i / (yLeft.length - 1)) * cH;
@@ -264,7 +266,7 @@ function HowYouCompare({ funded }: { funded: Campaign[] }) {
   ];
 
   return (
-    <div className={`${card} p-6`}>
+    <div className={`${card} flex h-full flex-col p-6`}>
       <div className="flex flex-wrap items-center gap-2.5">
         <h3 className="text-[15px] font-semibold" style={{ color: INK }}>How you compare</h3>
         <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-[11px] font-medium text-neutral-500">
@@ -274,21 +276,26 @@ function HowYouCompare({ funded }: { funded: Campaign[] }) {
       <p className="text-xs text-neutral-400 mt-1">
         Benchmarked against anonymised MoonTech brands at a similar point on their own ladder
       </p>
-      <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-black/[0.05]">
+      {/* One per row. In half a row three columns squeezed a 26px figure
+          and its caption into ~200px; stacked, each comparison gets its
+          own line and the numbers stay scannable. */}
+      <div className="mt-4 flex flex-1 flex-col divide-y divide-black/[0.05]">
         {rows.map((r) => {
           const up = r.ours !== null && r.ours >= r.cat;
           return (
-            <div key={r.label} className="py-4 sm:py-1 sm:px-6 first:sm:pl-0 last:sm:pr-0">
-              <p className="text-[13px] font-medium text-neutral-500">{r.label}</p>
-              <div className="mt-1.5 flex items-baseline gap-2 flex-wrap">
-                <p className={`text-[26px] font-semibold tracking-tight tabular-nums ${up ? "text-[#4D2FB0]" : "text-[#D70015]"}`}>
+            <div key={r.label} className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-3.5 first:pt-0 last:pb-0">
+              <div className="min-w-0">
+                <p className="text-[13px] font-medium text-neutral-500">{r.label}</p>
+                <p className={`mt-0.5 text-xs font-medium ${up ? "text-green-600" : "text-[#D70015]"}`}>
+                  {up ? "↑" : "↓"} {up ? r.good : r.bad}
+                </p>
+              </div>
+              <div className="shrink-0 text-right">
+                <p className={`text-[24px] font-semibold tracking-tight tabular-nums ${up ? "text-[#4D2FB0]" : "text-[#D70015]"}`}>
                   {r.value}
                 </p>
                 <p className="text-xs text-neutral-400">{r.catLabel}</p>
               </div>
-              <p className={`mt-1 text-xs font-medium ${up ? "text-green-600" : "text-[#D70015]"}`}>
-                {up ? "↑" : "↓"} {up ? r.good : r.bad}
-              </p>
             </div>
           );
         })}
@@ -342,7 +349,7 @@ function CurrentPhaseCard({ c, onOpen }: { c: Campaign; onOpen: () => void }) {
         {pct !== null && (
           <>
             <div className="relative mt-3.5 h-2 w-full rounded-full bg-[#EFEBFA]">
-              <div className="h-full rounded-full bg-[#4D2FB0] transition-all" style={{ width: `${pct}%` }} />
+              <div className="h-full rounded-full bg-[#4D2FB0] transition-all" style={{ width: `${Math.min(pct, 100)}%` }} />
               {/* The 80% line is the whole mechanic: cross it and the next
                   rung becomes fundable. Mark it rather than imply it. */}
               <span aria-hidden="true" className="absolute -inset-y-1 left-[80%] w-px bg-[#4D2FB0]/40" />
@@ -550,10 +557,6 @@ export default function Dashboard() {
   const spend = sumBy(funded, (c) => c.budget);
   const revenue = sumBy(funded, (c) => c.rev);
   const ended = roster.filter((c) => c.status === "Ended").length;
-  /* The guarantee is per phase, so it is quoted off a specific rung —
-     the one running, or the one waiting to be bought. */
-  const quoted = live ?? due;
-
   /* Written out rather than pluralised inline: a brand on its first rung
      reads "the one phase", not "the 1 phases". */
   const fundedLabel =
@@ -576,13 +579,6 @@ export default function Dashboard() {
       sub: `Across ${funded.length} funded phase${funded.length === 1 ? "" : "s"}`,
     },
     {
-      label: "Guarantee on this phase",
-      value: quoted ? `${quoted.guaranteedRoas}×` : "—",
-      sub: quoted
-        ? `${fmtUSD(quoted.budget)} × ${quoted.guaranteedRoas} = ${fmtUSD(quoted.budget * quoted.guaranteedRoas)}`
-        : "No phase running or waiting",
-    },
-    {
       label: "Current phase",
       value: live ? (live.revPct !== null ? `${live.revPct}%` : "Live") : "—",
       sub: live
@@ -594,11 +590,6 @@ export default function Dashboard() {
     {
       label: "Phases completed", value: String(ended),
       sub: `${roster.length} on the ladder so far`,
-    },
-    {
-      label: "Creators on this phase",
-      value: live?.creators != null ? String(live.creators) : "—",
-      sub: live?.adsTotal ? `${live.adsLive} of ${live.adsTotal} ads live` : "Nothing running right now",
     },
   ];
 
@@ -774,17 +765,23 @@ export default function Dashboard() {
           {/* Performance Overview */}
           <div className="pt-2">
             <h2 className="text-[16px] font-semibold tracking-tight" style={{ color: INK }}>Performance overview</h2>
-            <p className="text-[13px] text-neutral-400 mt-0.5">Revenue booked month by month</p>
+            <p className="text-[13px] text-neutral-400 mt-0.5">Revenue over time, and how this ladder compares</p>
           </div>
 
-          <div className={`${card} p-5`}>
-            <h3 className="text-[15px] font-semibold" style={{ color: INK }}>Revenue over time</h3>
-            <p className="text-xs text-neutral-400 mt-1 mb-4">Monthly revenue and orders for {brand.name}</p>
-            <RevenueOverTimeChart />
+          {/* Two cards, one row. The chart is viewBox-scaled, so at full
+              width it letterboxed inside huge side gaps; half a row is
+              closer to its natural aspect and the comparison reads better
+              beside it than stacked under it. */}
+          <div className="grid gap-5 xl:grid-cols-2">
+            <div className={`${card} flex h-full flex-col p-5`}>
+              <h3 className="text-[15px] font-semibold" style={{ color: INK }}>Revenue over time</h3>
+              <p className="text-xs text-neutral-400 mt-1 mb-4">Monthly revenue and orders for {brand.name}</p>
+              <div className="flex-1">
+                <RevenueOverTimeChart />
+              </div>
+            </div>
+            <HowYouCompare funded={funded} />
           </div>
-
-          {/* How you compare — bottom */}
-          <HowYouCompare funded={funded} />
 
         </main>
       </div>

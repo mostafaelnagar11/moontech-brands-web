@@ -126,7 +126,11 @@ export default function CampaignDetailPage() {
      never disagree with each other. */
   const roasNum = detail.budget > 0 ? detail.rev / detail.budget : 0;
   const guaranteeMet = roasNum >= detail.guaranteedRoas;
-  const scaleMax = Math.max(detail.budget, detail.rev);
+  /* The ruler is measured in MULTIPLES of the phase's own budget. Its top
+     end is whichever is larger — what was promised or what was actually
+     returned — plus headroom, so the guarantee tick and the fill both
+     always sit inside the track. */
+  const rulerMax = Math.max(detail.guaranteedRoas, roasNum) * 1.12;
 
   const due = detail.due;
   const amount = payDue?.amount ?? 0;
@@ -254,7 +258,7 @@ export default function CampaignDetailPage() {
                       className="relative mt-3 h-2 rounded-full bg-[#EFEBFA]"
                     >
                       <div className="bar-fill keyline-grad h-full rounded-full"
-                        style={{ width: `${pct}%`, "--bd": "0.25s" } as React.CSSProperties} />
+                        style={{ width: `${Math.min(pct, 100)}%`, "--bd": "0.25s" } as React.CSSProperties} />
                       <span aria-hidden="true" className={`unlock-notch ${pct >= 80 ? "unlock-notch--crossed" : ""}`} />
                     </div>
                     <span className="sr-only">
@@ -381,55 +385,79 @@ export default function CampaignDetailPage() {
                 <section className={`${CARD} p-5`}>
                   <p className={`${EYEBROW} mb-4 text-[#7C5CE0]`}>Phase performance</p>
 
-                  {/* ROAS against the guarantee — the number the brand bought.
-                      The bar is scaled to the guarantee, so a full bar means
-                      the promise is met and overflow is capped visually while
-                      the label still tells the truth. */}
+                  {/* THE RETURN RULER.
+                      One visual, not two bars. The money this phase was GIVEN
+                      is the unit: every tick is one more multiple of it, so
+                      the distance the fill travels IS the return — no
+                      division for the reader to do. The guarantee is a marked
+                      tick on the same rule, which is why the separate
+                      guarantee bar is gone: it was the same fact drawn twice.
+
+                      The scale derives from whichever is larger, the actual or
+                      the promise, so a phase that BEATS its guarantee still
+                      fits (Phase 1 closed at 5.2x against 5x) and the fill can
+                      never leave the track. */}
                   <div>
                     <div className="flex items-baseline justify-between gap-2">
-                      <span className="text-xs font-medium text-neutral-500">Return against your guarantee</span>
-                      <span className="text-sm font-bold tabular-nums" style={{ color: INK }}>
-                        {roasNum.toFixed(1)}× <span className="font-medium text-neutral-400">of {detail.guaranteedRoas}×</span>
+                      <span className="text-xs font-medium text-neutral-500">
+                        Return on the money deployed
+                      </span>
+                      <span className="text-[15px] font-bold tabular-nums" style={{ color: guaranteeMet ? "#047857" : INK }}>
+                        {roasNum.toFixed(1)}&times;
                       </span>
                     </div>
+
                     <div
                       role="img"
-                      aria-label={`Returning ${roasNum.toFixed(1)} times the money deployed, against a guaranteed ${detail.guaranteedRoas} times.`}
-                      className="relative mt-2 h-2.5 rounded-full bg-[#EFEBFA]"
+                      aria-label={`${fmtUSD(detail.budget)} deployed returned ${fmtUSD(detail.rev)} — ${roasNum.toFixed(1)} times, against a guaranteed ${detail.guaranteedRoas} times.`}
+                      className="relative mt-2.5 h-2.5 rounded-full bg-[#F1EFF7]"
                     >
+                      {/* hairline tick per whole multiple — the scale itself */}
+                      {Array.from({ length: Math.max(Math.floor(rulerMax), 1) }, (_, i) => i + 1)
+                        .filter((m) => m / rulerMax < 0.99)
+                        .map((m) => (
+                          <span key={m} aria-hidden="true"
+                            className="absolute top-0 h-full w-px bg-white/70"
+                            style={{ left: `${(m / rulerMax) * 100}%` }} />
+                        ))}
+
                       <div className={`h-full rounded-full ${guaranteeMet ? "bg-[#059669]" : "keyline-grad"}`}
-                        style={{ width: `${Math.min((roasNum / detail.guaranteedRoas) * 100, 100)}%` }} />
+                        style={{ width: `${Math.min((roasNum / rulerMax) * 100, 100)}%` }} />
+
+                      {/* the promise, on the same rule as the result */}
+                      <span aria-hidden="true"
+                        className="absolute -top-1 h-[18px] w-[2px] rounded-full bg-[#191234]/45"
+                        style={{ left: `${(detail.guaranteedRoas / rulerMax) * 100}%` }} />
                     </div>
-                    <p className={`mt-1.5 text-[11px] font-medium ${guaranteeMet ? "text-[#047857]" : "text-neutral-500"}`}>
+
+                    {/* the guarantee label sits under its own tick */}
+                    <div className="relative mt-1.5 h-4">
+                      <span className="absolute whitespace-nowrap text-[10px] font-semibold text-neutral-500"
+                        style={{
+                          left: `${(detail.guaranteedRoas / rulerMax) * 100}%`,
+                          transform: "translateX(-50%)",
+                        }}>
+                        {detail.guaranteedRoas}&times; guaranteed
+                      </span>
+                    </div>
+
+                    <div className="mt-1 flex items-baseline justify-between gap-3 border-t border-black/[0.06] pt-2.5">
+                      <span className="text-[11px] text-neutral-500">
+                        <span className="font-semibold tabular-nums" style={{ color: INK }}>{fmtUSD(detail.budget)}</span> deployed
+                      </span>
+                      <span className="text-[11px] text-neutral-500">
+                        returned{" "}
+                        <span className="font-semibold tabular-nums" style={{ color: INK }}>{fmtUSD(detail.rev)}</span>
+                      </span>
+                    </div>
+
+                    <p className={`mt-2.5 text-[11px] font-medium ${guaranteeMet ? "text-[#047857]" : "text-neutral-500"}`}>
                       {guaranteeMet
-                        ? `Guarantee met — ${roasNum.toFixed(1)}× on the money deployed.`
+                        ? `Guarantee met — past the ${detail.guaranteedRoas}\u00d7 mark.`
                         : roasNum === 0
                           ? "Nothing earned yet. The guarantee is measured when the phase closes."
-                          : `${Math.round((roasNum / detail.guaranteedRoas) * 100)}% of the multiple promised on this phase.`}
+                          : `${Math.round((roasNum / detail.guaranteedRoas) * 100)}% of the way to the ${detail.guaranteedRoas}\u00d7 promised on this phase.`}
                     </p>
-                  </div>
-
-                  {/* Spend against return, drawn on ONE scale so the multiple
-                      is legible as length rather than as arithmetic. */}
-                  <div className="mt-5 border-t border-black/[0.06] pt-4">
-                    <p className="mb-3 text-xs font-medium text-neutral-500">Deployed against earned</p>
-                    <div className="space-y-2.5">
-                      {[
-                        { k: "Deployed", v: detail.budget, cls: "bg-[#CFC4F0]" },
-                        { k: "Earned",   v: detail.rev,    cls: "keyline-grad" },
-                      ].map((row) => (
-                        <div key={row.k} className="flex items-center gap-3">
-                          <span className="w-[62px] shrink-0 text-[11px] font-medium text-neutral-500">{row.k}</span>
-                          <span className="h-2.5 min-w-0 flex-1 rounded-full bg-[#F4F2F9]">
-                            <span className={`block h-full rounded-full ${row.cls}`}
-                              style={{ width: `${scaleMax ? Math.max((row.v / scaleMax) * 100, 1.5) : 0}%` }} />
-                          </span>
-                          <span className="w-[74px] shrink-0 text-right text-xs font-semibold tabular-nums" style={{ color: INK }}>
-                            {fmtUSD(row.v)}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
                   </div>
 
                   {/* Per-unit efficiency. Each of these is a division of two

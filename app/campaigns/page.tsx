@@ -129,7 +129,7 @@ function CampaignCard({ c, i, onOpen }: { c: Campaign; i: number; onOpen: (id: s
           <div className="relative mt-3 h-2 rounded-full bg-[#EFEBFA]">
             <div
               className="bar-fill keyline-grad h-full rounded-full"
-              style={{ width: `${c.revPct}%`, "--bd": `${(0.35 + i * 0.08).toFixed(2)}s` } as React.CSSProperties}
+              style={{ width: `${Math.min(c.revPct ?? 0, 100)}%`, "--bd": `${(0.35 + i * 0.08).toFixed(2)}s` } as React.CSSProperties}
             />
             <span aria-hidden="true" className={`unlock-notch ${c.revPct! >= 80 ? "unlock-notch--crossed" : ""}`} />
           </div>
