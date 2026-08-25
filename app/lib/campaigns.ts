@@ -347,6 +347,18 @@ export const livePhase = (brandId: string, roster: Campaign[] = CAMPAIGNS) =>
 export const duePhase = (brandId: string, roster: Campaign[] = CAMPAIGNS) =>
   ladderFor(brandId, roster).find((c) => c.status === "Ready" && c.due);
 
+/* ------------------------------------------------------------------ */
+/* VAT — one rate, one helper                                          */
+/*                                                                     */
+/* This used to be declared inside the phase detail route and inlined   */
+/* as 0.05 in the wizard, which is how the same payment came to be      */
+/* quoted four different ways across the app. Anything that shows a     */
+/* price the brand will actually be charged uses withVat.               */
+/* ------------------------------------------------------------------ */
+export const VAT_RATE = 0.05;
+export const vatOn = (n: number) => Math.round(n * VAT_RATE);
+export const withVat = (n: number) => n + vatOn(n);
+
 export const fmtUSD = (n: number) => `$${n.toLocaleString("en-US")}`;
 export function fmtCount(n: number) {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";

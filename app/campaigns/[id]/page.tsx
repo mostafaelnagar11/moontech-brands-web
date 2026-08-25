@@ -26,7 +26,8 @@ import NotificationCenter from "../../components/NotificationCenter";
 import CommandPalette from "../../components/CommandPalette";
 import StatusBadge from "../../components/StatusBadge";
 import {
-  adCreator, fmtUSD, nextPhase, phaseHasStarted, phaseTitle, REVIEW_WINDOW_DAYS,
+  adCreator, fmtUSD, nextPhase, phaseHasStarted, phaseTitle, vatOn, withVat,
+  REVIEW_WINDOW_DAYS,
   type Campaign,
 } from "../../lib/campaigns";
 import { useCampaign, useRoster, fundPhase } from "../../lib/funding";
@@ -41,8 +42,6 @@ const INK = "#191234";
 const CARD = "rounded-2xl bg-white border border-black/[0.06] shadow-[0_1px_2px_rgba(16,12,40,0.04)]";
 const EYEBROW = "text-[11px] font-semibold uppercase tracking-[0.14em]";
 
-const VAT_RATE = 0.05;
-const withVat = (n: number) => n + Math.round(n * VAT_RATE);
 
 /* ------------------------------------------------------------------ */
 /* Page                                                                */
@@ -141,7 +140,7 @@ export default function CampaignDetailPage() {
 
   const due = detail.due;
   const amount = payDue?.amount ?? 0;
-  const vat = Math.round(amount * VAT_RATE);
+  const vat = vatOn(amount);
   const total = amount + vat;
 
   /* Pure dismissal. The money already moved when the payment succeeded. */

@@ -29,7 +29,7 @@ import NotificationCenter from "../components/NotificationCenter";
 import CommandPalette from "../components/CommandPalette";
 import StatusBadge from "../components/StatusBadge";
 import {
-  CAMPAIGNS, adsFor, fmtUSD, phaseHasStarted, phaseTitle, prevPhase,
+  CAMPAIGNS, adsFor, fmtUSD, phaseHasStarted, phaseTitle, prevPhase, withVat,
   type Ad, type Campaign, type CampaignStatus,
 } from "../lib/campaigns";
 import { useRoster } from "../lib/funding";
@@ -434,7 +434,7 @@ export default function CampaignsPage() {
                   <button
                     key={c.id}
                     onClick={() => open(c.id)}
-                    aria-label={`${c.due!.label}, ${fmtUSD(c.due!.amount)} plus 5% VAT. ${c.due!.reason}. Open phase.`}
+                    aria-label={`${c.due!.label}, ${fmtUSD(c.due!.amount)} plus 5% VAT — ${fmtUSD(withVat(c.due!.amount))} due. ${c.due!.reason}. Open phase.`}
                     className={`flex w-full items-center gap-3 px-5 py-3.5 text-left transition-colors hover:bg-neutral-50 ${
                       i > 0 ? "border-t border-black/[0.06]" : "border-t border-black/[0.06]"
                     }`}
@@ -446,11 +446,19 @@ export default function CampaignsPage() {
                       <span className="block truncate text-sm font-semibold" style={{ color: INK }}>{phaseTitle(c.phaseNo)}</span>
                       <span className="mt-0.5 block truncate text-xs text-neutral-500">{c.due!.reason}</span>
                     </span>
-                    {/* The pay modal charges this amount plus 5% VAT, so the
-                        pill says so rather than promising the smaller price. */}
-                    <span className="flex shrink-0 items-baseline gap-1 rounded-full bg-[#4D2FB0] px-3 py-1.5 text-xs font-semibold tabular-nums text-white">
-                      {fmtUSD(c.due!.amount)}
-                      <span className="text-[10px] font-medium text-white/70">+ VAT</span>
+                    {/* The pill names the ACTION, not just a number — a bare
+                        "$6,000 + VAT" said neither what would happen nor what
+                        would be charged. The charge still has to be legible
+                        though: the modal bills amount + 5% VAT, so the exact
+                        figure sits under the pill rather than being a surprise
+                        two screens later. */}
+                    <span className="flex shrink-0 flex-col items-end gap-1">
+                      <span className="rounded-full bg-[#4D2FB0] px-3 py-1.5 text-xs font-semibold tabular-nums text-white">
+                        {c.due!.label} — {fmtUSD(c.due!.amount)}
+                      </span>
+                      <span className="text-[10px] font-medium tabular-nums text-neutral-400">
+                        + 5% VAT · {fmtUSD(withVat(c.due!.amount))} due
+                      </span>
                     </span>
                     <CaretRight size={14} weight="bold" aria-hidden="true" className="shrink-0 text-neutral-300" />
                   </button>
