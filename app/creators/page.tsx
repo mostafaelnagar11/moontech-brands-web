@@ -910,7 +910,7 @@ export default function CreatorsPage() {
                   canPass ? "bg-[#191234] text-white hover:bg-[#191234]/90" : "cursor-not-allowed bg-neutral-100 text-neutral-400"
                 }`}
               >
-                <ThumbsDown size={16} weight="fill" aria-hidden="true" /> Stop matching like this
+                <ThumbsDown size={16} weight="fill" aria-hidden="true" /> Send
               </button>
             </div>
           </div>

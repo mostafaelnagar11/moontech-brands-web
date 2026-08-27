@@ -122,6 +122,12 @@ function AdTile({ ad, onOpen }: { ad: Ad; onOpen: () => void }) {
 /* ------------------------------------------------------------------ */
 /* Page                                                                */
 /* ------------------------------------------------------------------ */
+/* Tailwind only sees literal class strings, so the column count is a
+   lookup rather than an interpolation. */
+const GLANCE_COLS: Record<number, string> = {
+  1: "sm:grid-cols-1", 2: "sm:grid-cols-2", 3: "sm:grid-cols-3", 4: "sm:grid-cols-4",
+};
+
 export default function CampaignDetailPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
@@ -209,6 +215,22 @@ export default function CampaignDetailPage() {
      returned — plus headroom, so the guarantee tick and the fill both
      always sit inside the track. */
   const rulerMax = Math.max(detail.guaranteedRoas, roasNum) * 1.12;
+
+  /* Built BEFORE the grid so the column count comes from the array rather
+     than being hardcoded. A fixed lg:grid-cols-4 outlived the tile it was
+     sized for and left a quarter of the row empty — the grid follows the
+     tiles, never the other way round. */
+  const tiles = [
+    { k: "Influencers live", v: String(detail.creators), sub: "matched to this phase" },
+    { k: "Budget deployed",  v: fmtUSD(detail.budget),   sub: "this phase's own money" },
+    /* Only when there is a queue to count. A phase with no drafts on file
+       would print "Live ads 0", which reads as "nothing ran" — and the
+       stored adsLive that could contradict it is exactly the figure this
+       page refuses to believe. No queue, no tile. */
+    ...(drafts.length > 0
+      ? [{ k: "Live ads", v: String(liked.length), sub: "liked drafts, publishing" }]
+      : []),
+  ];
   /* What the guarantee is worth in money on this phase. Identical to
      revTarget for a funded phase — which is exactly why the ruler must
      not also print a percentage. */
@@ -380,22 +402,8 @@ export default function CampaignDetailPage() {
                   both. The "What this phase commits to" card further down
                   already states an unfunded phase's budget and target. */}
               {phaseHasStarted(detail) && detail.creators !== null && (
-                <div className={`grid grid-cols-2 gap-3 ${drafts.length > 0 ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
-                  {[
-                    { k: "Influencers live", v: String(detail.creators), sub: "matched to this phase" },
-                    { k: "Budget deployed",  v: fmtUSD(detail.budget),   sub: "this phase's own money" },
-                    /* Only when there is a queue to count. A phase with no
-                       drafts on file would print "Live ads 0", which reads as
-                       "nothing ran" — and the stored adsLive that could
-                       contradict it is exactly the figure this page refuses to
-                       believe. No queue, no tile. */
-                    ...(drafts.length > 0
-                      ? [{ k: "Live ads", v: String(liked.length), sub: "liked drafts, publishing" }]
-                      : []),
-                    /* No "Target revenue" tile: the money card states it in
-                       words and the ring restates it under the arc. Three was
-                       one too many for a number that never moves. */
-                  ].map((m) => (
+                <div className={`grid grid-cols-1 gap-3 ${GLANCE_COLS[tiles.length]}`}>
+                  {tiles.map((m) => (
                     <div key={m.k} className={`${CARD} p-4`}>
                       <p className="text-[13px] font-medium text-neutral-500">{m.k}</p>
                       <p className="mt-2 text-[22px] sm:text-[24px] font-semibold leading-none tracking-tight tabular-nums"
@@ -425,112 +433,53 @@ export default function CampaignDetailPage() {
                    must not render an empty "Live ads" box. ── */}
               {phaseHasStarted(detail) && drafts.length > 0 && (
                 <>
-                  {/* ── AD REVIEW — the shelf with work on it ── */}
+                  {/* ── AD REVIEW — a ROW, not a panel ──
+                       The same compact shape the campaigns list uses for the
+                       identical job: a stack of thumbnails, what is waiting,
+                       and a chevron into the queue. A full panel here was a
+                       second workstation on a page that already links to the
+                       real one — the ledger it carried is condensed into the
+                       one line underneath, which is all of it a brand reads
+                       at a glance anyway. ── */}
                   {(waiting.length > 0 || disliked.length > 0) && (
                     <section>
                       <p className={`${EYEBROW} mb-2 text-[#7C5CE0]`}>Ad review</p>
-
-                      <div className={`${CARD} p-4`}>
-                        {/* THE REVIEW LEDGER — a ledger, not a score, and it
-                            belongs to the review rather than to the live
-                            record: every draft in this phase is in exactly one
-                            of these four states and they add up, waiting +
-                            publishing + not publishing IS submitted. All four
-                            figures come from the arrays the tiles below render
-                            from, so the strip cannot drift from the creative
-                            it sits on.
-
-                            No rate and no percentage. Two decisions on eight
-                            drafts would print a 50% "approval rate" that reads
-                            worse than the raw counts it was meant to soften —
-                            and a decline is a choice the brand made, not a
-                            test the work failed. */}
-                        <div className="border-b border-black/[0.06] pb-4">
-                          <div className="grid grid-cols-4 gap-x-3">
-                            {/* The whole, in grey — context for the figures
-                                beside it, not a fifth thing to do. */}
-                            <div>
-                              <p className="text-[22px] font-bold leading-none tabular-nums text-neutral-400">
-                                {drafts.length}
-                              </p>
-                              <p className="mt-1 text-[11px] font-medium leading-tight text-neutral-400">Submitted</p>
-                            </div>
-                            <div>
-                              <p className="text-[22px] font-bold leading-none tabular-nums" style={{ color: INK }}>
-                                {waiting.length}
-                              </p>
-                              <p className="mt-1 text-[11px] font-semibold leading-tight" style={{ color: INK }}>Waiting on you</p>
-                            </div>
-                            {/* A like publishes the ad, so this figure IS the
-                                live count for the phase — the same one the
-                                Live ads section and the glance tile show. It
-                                is also why the stored adsLive figure is off
-                                this page: it read 125 against a queue of 8. */}
-                            <div>
-                              <p className="text-[22px] font-bold leading-none tabular-nums" style={{ color: BRAND }}>
-                                {liked.length}
-                              </p>
-                              <p className="mt-1 text-[11px] font-semibold leading-tight" style={{ color: INK }}>Publishing</p>
-                            </div>
-                            <div>
-                              <p className="text-[22px] font-bold leading-none tabular-nums text-neutral-400">
-                                {disliked.length}
-                              </p>
-                              <p className="mt-1 text-[11px] font-medium leading-tight text-neutral-400">Not publishing</p>
-                            </div>
-                          </div>
-
-                          {/* Coverage, counted — never a bare percentage. */}
-                          <p className="mt-3 text-[11px] text-neutral-500">
-                            <span className="font-semibold tabular-nums" style={{ color: INK }}>
-                              {liked.length + disliked.length} of {drafts.length}
-                            </span>{" "}
-                            decided
-                          </p>
-
-                          {/* The window governs the UNDECIDED ones, so it is
-                              printed only while some are. It is the brand's
-                              obligation, not a threat: the phase is metered
-                              against a guarantee it cannot deliver if nothing
-                              runs. */}
-                          {waiting.length > 0 && (
-                            <p className="mt-1 text-[11px] font-medium text-neutral-500">
-                              A draft left undecided publishes on its own after {REVIEW_WINDOW_DAYS} days.
-                            </p>
-                          )}
-                        </div>
-
-                        {/* Waiting first, declines after — the order the work
-                            has to be done in. */}
-                        <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
-                          {[...waiting, ...disliked].slice(0, 8).map((a) => (
-                            <AdTile key={a.id} ad={a}
-                              onOpen={() => router.push(`/campaigns/ads?c=${detail.id}&ad=${a.id}`)} />
-                          ))}
-                        </div>
-
-                        {waiting.length > 0 ? (
-                          <button
-                            onClick={() => router.push(`/campaigns/ads?c=${detail.id}&shelf=waiting`)}
-                            className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#4D2FB0] px-4 py-3 text-[13px] font-semibold text-white transition-colors hover:bg-[#3F2596] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4D2FB0]/40"
-                          >
-                            Review {waiting.length} waiting on you
-                            <CaretRight size={13} weight="bold" aria-hidden="true" />
-                          </button>
-                        ) : (
-                          /* Nothing waiting, only declines. There is no work
-                              left to press for, but a decline is reversible —
-                              so this stays a quiet way back in rather than a
-                              primary call to action. */
-                          <button
-                            onClick={() => router.push(`/campaigns/ads?c=${detail.id}&shelf=disliked`)}
-                            className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl bg-neutral-100 px-4 py-2.5 text-[13px] font-semibold text-[#4D2FB0] transition-colors hover:bg-neutral-200/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4D2FB0]/40"
-                          >
-                            Every draft decided · reopen a decline
-                            <CaretRight size={13} weight="bold" aria-hidden="true" />
-                          </button>
+                      <button
+                        onClick={() => router.push(
+                          `/campaigns/ads?c=${detail.id}&shelf=${waiting.length > 0 ? "waiting" : "disliked"}`,
                         )}
-                      </div>
+                        aria-label={waiting.length > 0
+                          ? `${waiting.length} ads waiting on you. ${liked.length + disliked.length} of ${drafts.length} decided. A draft left undecided publishes on its own after ${REVIEW_WINDOW_DAYS} days. Open ad review.`
+                          : `Every draft decided. ${disliked.length} not publishing. Open ad review to reopen a decline.`}
+                        className={`${CARD} flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-neutral-50`}
+                      >
+                        <span className="flex shrink-0 -space-x-2" aria-hidden="true">
+                          {(waiting.length > 0 ? waiting : disliked).slice(0, 3).map((a) => (
+                            /* eslint-disable-next-line @next/next/no-img-element */
+                            <img key={a.id} src={a.img} alt="" loading="lazy"
+                              className="h-9 w-9 rounded-[10px] bg-neutral-200 object-cover object-top ring-2 ring-white" />
+                          ))}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-sm font-semibold" style={{ color: INK }}>
+                            {waiting.length > 0
+                              ? `${waiting.length} ads waiting on you`
+                              : "Every draft decided"}
+                          </span>
+                          {/* The ledger, condensed to the line it was always
+                              read as: how much is done, and the rule that
+                              governs what is not. */}
+                          <span className="mt-0.5 block truncate text-xs text-neutral-500">
+                            {liked.length + disliked.length} of {drafts.length} decided
+                            {waiting.length > 0
+                              ? ` · undecided drafts publish on their own after ${REVIEW_WINDOW_DAYS} days`
+                              : disliked.length > 0
+                                ? ` · ${disliked.length} not publishing — a decline can be reopened`
+                                : ""}
+                          </span>
+                        </span>
+                        <CaretRight size={14} weight="bold" aria-hidden="true" className="shrink-0 text-neutral-300" />
+                      </button>
                     </section>
                   )}
 

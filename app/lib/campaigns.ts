@@ -239,7 +239,7 @@ export const CAMPAIGNS: Campaign[] = [
     budget: 1000, guaranteedRoas: 5,
     rev: 5200, revLabel: "$5,200", revTarget: 5000, revPct: 104, roas: "5.2×",
     threshold: null, thresholdGreen: false, due: null,
-    creators: 12, adsLive: 41, adsTotal: 48, content: 41,
+    creators: 12, adsLive: 6,  adsTotal: 6,  content: 6,
     faces: [byId(1), byId(9), byId(5)],
   },
   {
@@ -280,7 +280,7 @@ export const CAMPAIGNS: Campaign[] = [
     budget: 500, guaranteedRoas: 5,
     rev: 2400, revLabel: "$2,400", revTarget: 2500, revPct: 96, roas: "4.8×",
     threshold: null, thresholdGreen: false, due: null,
-    creators: 9, adsLive: 28, adsTotal: 33, content: 28,
+    creators: 9,  adsLive: 4,  adsTotal: 4,  content: 4,
     faces: [byId(2), byId(6), byId(10)],
   },
   {
@@ -520,6 +520,65 @@ export const ADS: Ad[] = [
     caption: "Ordered at 9am, unpacking at 2pm. Timestamped, nothing edited out.",
     img: "https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=300&h=400&fit=crop",
     submitted: "2d ago", track: "MT-FG-P1-0125", signal: "none" },
+
+  /* ── Ounass · Phase 1 · Warm-up — the work that ran ──
+     A COMPLETED phase had no draft records at all, so its Live ads section
+     had nothing to render and its glance tile printed nothing. These are
+     seeded `liked`, which is what a finished phase's ads are: judged, and
+     published. The stored adsLive/adsTotal on the phase row are reconciled
+     to this count so no surface can disagree about how many ran. ── */
+  { id: "ad-ou1-1", campaignId: "ounass-phase-1", creatorId: 1,
+    product: "Cropped Tweed Jacket", format: "Reel", platform: "Instagram",
+    caption: "The tweed jacket that got me through six weeks of meetings — sizing notes at the end.",
+    img: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=300&h=400&fit=crop",
+    submitted: "Jan 12", track: "MT-OU-P1-0104", signal: "liked" },
+  { id: "ad-ou1-2", campaignId: "ounass-phase-1", creatorId: 9,
+    product: "Leather Ankle Boot", format: "Reel", platform: "Instagram",
+    caption: "Walked these in for a month. Here is where they creased and where they held.",
+    img: "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=300&h=400&fit=crop",
+    submitted: "Jan 16", track: "MT-OU-P1-0111", signal: "liked" },
+  { id: "ad-ou1-3", campaignId: "ounass-phase-1", creatorId: 5,
+    product: "Silk Scarf — Ivory", format: "Post", platform: "Instagram",
+    caption: "Five ways with one silk scarf, and the two that actually stay put.",
+    img: "https://images.unsplash.com/photo-1522338242992-e1a54906a8da?w=300&h=400&fit=crop",
+    submitted: "Jan 21", track: "MT-OU-P1-0119", signal: "liked" },
+  { id: "ad-ou1-4", campaignId: "ounass-phase-1", creatorId: 1,
+    product: "Wool Blend Coat — Camel", format: "Reel", platform: "Instagram",
+    caption: "Camel coat, real winter. Unedited, in the cold, with the lining shown.",
+    img: "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=300&h=400&fit=crop",
+    submitted: "Jan 27", track: "MT-OU-P1-0126", signal: "liked" },
+  { id: "ad-ou1-5", campaignId: "ounass-phase-1", creatorId: 9,
+    product: "Pearl Drop Earrings", format: "Story", platform: "Instagram",
+    caption: "The earrings I reach for when I have four minutes. Close-ups so you can judge them.",
+    img: "https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?w=300&h=400&fit=crop",
+    submitted: "Feb 1", track: "MT-OU-P1-0133", signal: "liked" },
+  { id: "ad-ou1-6", campaignId: "ounass-phase-1", creatorId: 5,
+    product: "Structured Midi Skirt", format: "Reel", platform: "Instagram",
+    caption: "Midi skirt on a 5ft2 frame — the hem I asked for and what it cost.",
+    img: "https://images.unsplash.com/photo-1534258936925-c58bed479fcb?w=300&h=400&fit=crop",
+    submitted: "Feb 4", track: "MT-OU-P1-0140", signal: "liked" },
+
+  /* ── Luna Beauty · Phase 1 · Warm-up — the work that ran ── */
+  { id: "ad-lu1-1", campaignId: "luna-phase-1", creatorId: 2,
+    product: "Hydrating Essence 120ml", format: "Reel", platform: "Instagram",
+    caption: "Three weeks on the essence, morning and night. My skin diary, unfiltered.",
+    img: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=300&h=400&fit=crop",
+    submitted: "Feb 6", track: "MT-LU-P1-0102", signal: "liked" },
+  { id: "ad-lu1-2", campaignId: "luna-phase-1", creatorId: 6,
+    product: "Tinted Lip Oil — Rosewood", format: "Video", platform: "YouTube",
+    caption: "Lip oil wear test: eight hours, two meals, one coffee. Here is what was left.",
+    img: "https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=300&h=400&fit=crop",
+    submitted: "Feb 11", track: "MT-LU-P1-0108", signal: "liked" },
+  { id: "ad-lu1-3", campaignId: "luna-phase-1", creatorId: 10,
+    product: "Gentle Exfoliating Toner", format: "Reel", platform: "Instagram",
+    caption: "The toner I use twice a week, and the week I overdid it. Both are in here.",
+    img: "https://images.unsplash.com/photo-1493770348161-369560ae357d?w=300&h=400&fit=crop",
+    submitted: "Feb 18", track: "MT-LU-P1-0115", signal: "liked" },
+  { id: "ad-lu1-4", campaignId: "luna-phase-1", creatorId: 2,
+    product: "Overnight Repair Mask", format: "Reel", platform: "Instagram",
+    caption: "Before and after on the overnight mask, same light, same time, no filter.",
+    img: "https://images.unsplash.com/photo-1475180098004-ca77a66827be?w=300&h=400&fit=crop",
+    submitted: "Feb 26", track: "MT-LU-P1-0122", signal: "liked" },
 ];
 
 /** Every draft waiting on the brand for one phase-campaign. */
