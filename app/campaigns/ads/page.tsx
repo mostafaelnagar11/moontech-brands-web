@@ -793,7 +793,7 @@ export default function CampaignAdsPage() {
                   src={adHero(ad.img)}
                   alt={`Still from ${creator.name}'s ${ad.format.toLowerCase()} reviewing the ${ad.product}`}
                   decoding="async"
-                  className="block max-h-[calc(100vh-212px)] max-w-full rounded-2xl bg-white/[0.04] object-contain shadow-[0_24px_60px_-20px_rgba(0,0,0,0.8)]"
+                  className="block max-h-[calc(100vh-264px)] max-w-full rounded-2xl bg-white/[0.04] object-contain shadow-[0_24px_60px_-20px_rgba(0,0,0,0.8)]"
                 />
 
                 {/* NO PILLS ON THE CREATIVE.
@@ -856,7 +856,13 @@ export default function CampaignAdsPage() {
           {/* ── The two verbs ── */}
           {/* A fixed 112px so the stage's own height is deterministic — the
               image cap above is written against it. */}
-          <div className="flex h-[112px] shrink-0 flex-col justify-center border-t border-white/10 px-6">
+          {/* HEIGHT IS COUPLED to the image cap below (max-h-[calc(100vh-264px)]).
+              264 = this row + the top bar and its padding. The window notice
+              was added inside this row without growing it, so it sat flush on
+              the viewport edge and read as cut off. Change one of these two
+              numbers and you must change the other. pb-5 keeps the notice off
+              the bottom edge. */}
+          <div className="flex h-[164px] shrink-0 flex-col justify-center border-t border-white/10 px-6 pb-5">
             <div className="mx-auto flex w-full max-w-[460px] items-stretch gap-3">
               {ad.signal === "none" ? (
                 <>
