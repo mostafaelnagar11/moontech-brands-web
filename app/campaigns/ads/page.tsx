@@ -41,6 +41,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  Clock,
   ArrowLeft, CaretLeft, CaretRight, Check, Info,
   ThumbsDown, ThumbsUp, Warning, X,
   InstagramLogo, TiktokLogo, YoutubeLogo, type Icon,
@@ -901,16 +902,38 @@ export default function CampaignAdsPage() {
                 </button>
               )}
             </div>
-            {/* This used to read "nothing publishes until you like or
-                dislike it", which the review window makes untrue. Both facts
-                fit: nothing here has posted yet, and a draft left alone posts
-                anyway — the phase is sold on a guaranteed return it cannot
-                earn from a queue. */}
+            {/* THE WINDOW, GIVEN WEIGHT.
+                This was 11px grey centred text and it is the one consequence
+                on the screen that lands whether the brand acts or not: ignore
+                the queue and the draft publishes anyway. It is also specific
+                to the draft on screen — daysLeft, not the policy — because
+                "10 days" as a house rule is background, while "this one goes
+                live in 10 days" is a decision.
+
+                Red only inside the last two days, per the one-red rule:
+                before that it is a standing term, not an alert. */}
             {ad.signal === "none" && (
-              <p className="mx-auto mt-2.5 max-w-[560px] text-center text-[11px] font-medium leading-snug text-white/40">
-                Nothing here has published. A draft nobody judges publishes on its own after{" "}
-                {REVIEW_WINDOW_DAYS} days — a phase can&apos;t hit its guarantee with work sitting in a queue.
-              </p>
+              <div className="mt-3 flex justify-center">
+                <span
+                  className={`inline-flex max-w-[560px] items-start gap-2 rounded-xl px-3.5 py-2.5 text-left ring-1 ${
+                    daysLeft !== null && daysLeft <= 2
+                      ? "bg-[#D70015]/[0.14] text-white ring-[#D70015]/50"
+                      : "bg-white/[0.07] text-white/80 ring-white/15"
+                  }`}
+                >
+                  <Clock size={15} weight="fill" aria-hidden="true" className="mt-px shrink-0" />
+                  <span className="text-[12.5px] font-semibold leading-snug">
+                    {daysLeft === null
+                      ? `Undecided drafts publish on their own after ${REVIEW_WINDOW_DAYS} days.`
+                      : daysLeft === 0
+                        ? "This draft publishes today unless you decide."
+                        : `This draft publishes on its own in ${daysLeft} ${daysLeft === 1 ? "day" : "days"} unless you decide.`}
+                    <span className="ml-1 font-medium text-white/50">
+                      A phase can&apos;t hit its guarantee with work sitting in a queue.
+                    </span>
+                  </span>
+                </span>
+              </div>
             )}
           </div>
 

@@ -481,7 +481,7 @@ export default function CampaignsPage() {
                 {adQueue.map(({ c, waiting }, i) => (
                   <button
                     key={c.id}
-                    onClick={() => router.push(`/campaigns/ads?c=${c.id}`)}
+                    onClick={() => router.push(`/campaigns/ads?c=${c.id}&shelf=waiting`)}
                     aria-label={`${waiting.length} ads waiting on you for ${phaseTitle(c.phaseNo)}. Nothing publishes until you like or dislike it. Open ad review.`}
                     className={`flex w-full items-center gap-3 px-5 py-3.5 text-left transition-colors hover:bg-neutral-50 ${
                       i > 0 ? "border-t border-black/[0.06]" : "border-t border-black/[0.06]"

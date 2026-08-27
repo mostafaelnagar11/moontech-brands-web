@@ -74,7 +74,7 @@ const NOTIFS: Notif[] = [
   { id: "n2", type: "content", group: "Today",   time: "1h ago",
     title: `${adsFor(OU_LIVE.id).filter((a) => a.signal === "none").length} ads waiting on you`,
     body: `Drafts from ${phaseTitle(OU_LIVE.phaseNo)} are ready to publish — nothing publishes until you like them.`,
-    href: `/campaigns/ads?c=${OU_LIVE.id}` },
+    href: `/campaigns/ads?c=${OU_LIVE.id}&shelf=waiting` },
   { id: "n3", type: "creator", group: "Today",   time: "3h ago",
     title: "8 creators waiting on you",
     body: `Fresh matches for ${phaseTitle(OU_LIVE.phaseNo)}.`,

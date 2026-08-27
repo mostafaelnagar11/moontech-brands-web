@@ -514,9 +514,17 @@ export default function CampaignDetailPage() {
                         </div>
 
                         <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
+                          {/* shelf=liked, not just ad=. Without it a liked ad
+                              opened in the REVIEW flow — right ad, wrong
+                              chrome: the "Ad review" title and the Waiting /
+                              Disliked tabs, on a screen reached from Live ads.
+                              Every link into that route has to name the flow
+                              it belongs to, not only the ad. */}
                           {liked.slice(0, 8).map((a) => (
                             <AdTile key={a.id} ad={a}
-                              onOpen={() => router.push(`/campaigns/ads?c=${detail.id}&ad=${a.id}`)} />
+                              onOpen={() => router.push(
+                                `/campaigns/ads?c=${detail.id}&shelf=liked&ad=${a.id}`,
+                              )} />
                           ))}
                         </div>
                       </div>
