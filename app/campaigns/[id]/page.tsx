@@ -8,9 +8,10 @@
 /* left column carries the explanation (money → drafts → ledger) and   */
 /* the right rail carries the decision (fund the phase) plus delivery. */
 /*                                                                     */
-/* Order still matters inside the left column: live ads sit ABOVE      */
-/* the phase ledger, because the drafts are the thing that needs you   */
-/* today and the ledger is the thing that explains the money.          */
+/* Order still matters inside the left column: money → the four-figure */
+/* glance → AD REVIEW → LIVE ADS → phase performance. Review outranks  */
+/* the live record because it is the thing that needs you today, and   */
+/* the record is the thing that explains itself.                       */
 /*                                                                     */
 /* The pay flow stays modal — that one IS a confirmation.              */
 /* ------------------------------------------------------------------ */
@@ -28,7 +29,7 @@ import StatusBadge from "../../components/StatusBadge";
 import {
   adCreator, fmtUSD, nextPhase, phaseHasStarted, phaseTitle, vatOn, withVat,
   REVIEW_WINDOW_DAYS,
-  type Campaign,
+  type Ad, type Campaign,
 } from "../../lib/campaigns";
 import { useCampaign, useRoster, fundPhase } from "../../lib/funding";
 import { useAdsFor, useWaitingFor } from "../../lib/adSignals";
@@ -41,6 +42,81 @@ const INK = "#191234";
 
 const CARD = "rounded-2xl bg-white border border-black/[0.06] shadow-[0_1px_2px_rgba(16,12,40,0.04)]";
 const EYEBROW = "text-[11px] font-semibold uppercase tracking-[0.14em]";
+
+/* Ring geometry. The radius is the only figure to set: the dash length the
+   arc is drawn against derives from it, so the arc can never be measured
+   with a stale circumference. */
+const RING_R = 52;
+const RING_C = 2 * Math.PI * RING_R;
+
+
+/* ------------------------------------------------------------------ */
+/* One draft, as a card.                                               */
+/*                                                                     */
+/* Shared by BOTH ad sections, so the tile a liked ad gets under "Live  */
+/* ads" and the tile a waiting one gets under "Ad review" cannot drift  */
+/* apart. Each card opens the review ON that ad.                        */
+/*                                                                     */
+/* What the cards do NOT carry is an engagement pair. A waiting ad has   */
+/* not published, so a like count would be invented — and per-creator    */
+/* counts are exactly what the design review took off the screen. The    */
+/* badge is the format, and the footer is who made it.                  */
+/*                                                                     */
+/* A DECLINE IS DIMMED, NOT KILLED. `muted` is the whole difference: the */
+/* photo drops back and the caption says so in words. No black cross, no */
+/* strikethrough — a dislike is reversible and the review screen still   */
+/* offers "Like instead", so the tile must not read as a closed door.    */
+/* ------------------------------------------------------------------ */
+function AdTile({ ad, onOpen }: { ad: Ad; onOpen: () => void }) {
+  const c = adCreator(ad);
+  const muted = ad.signal === "disliked";
+  return (
+    <button
+      onClick={onOpen}
+      aria-label={`${c.name}, ${ad.format} for ${ad.platform}. ${
+        ad.signal === "none"
+          ? "Waiting on you."
+          : ad.signal === "liked"
+            ? "Liked — publishing."
+            : "Not publishing. You can still like it instead."
+      } Open the review on this ad.`}
+      className="group relative block aspect-[9/14] w-[132px] shrink-0 overflow-hidden rounded-2xl bg-neutral-200 ring-1 ring-black/[0.06] transition hover:ring-2 hover:ring-[#4D2FB0]/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4D2FB0]"
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={ad.img} alt="" loading="lazy"
+        className={`h-full w-full object-cover object-top transition-opacity ${muted ? "opacity-[0.45] group-hover:opacity-80" : ""}`} />
+      <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
+      <span aria-hidden="true" className="absolute left-2 top-2 rounded-md bg-black/55 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm">
+        {ad.format}
+      </span>
+      {/* Liked gets the green tick of a decision that produced work.
+          Declined gets a pale, unfilled marker — visible enough to tell the
+          two apart on one shelf, quiet enough not to look final. */}
+      {ad.signal !== "none" && (
+        <span
+          aria-hidden="true"
+          className={`absolute right-2 top-2 grid h-5 w-5 place-items-center rounded-full ${
+            ad.signal === "liked" ? "bg-[#059669] text-white" : "bg-white/85 text-neutral-500"
+          }`}
+        >
+          {ad.signal === "liked"
+            ? <ThumbsUp size={11} weight="fill" />
+            : <ThumbsDown size={11} weight="fill" />}
+        </span>
+      )}
+      <span className="absolute inset-x-0 bottom-2 px-2.5 text-left">
+        <span className="block truncate text-[12px] font-bold text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.95)]">
+          {c.name.split(" ")[0]}
+        </span>
+        {muted && (
+          <span className="block truncate text-[10px] font-semibold text-white/75 [text-shadow:0_1px_3px_rgba(0,0,0,0.95)]">
+            Not publishing
+          </span>
+        )}
+      </span>
+    </button>
+  );
+}
 
 
 /* ------------------------------------------------------------------ */
@@ -252,26 +328,12 @@ export default function CampaignDetailPage() {
                       <p className="text-[34px] font-bold leading-none tabular-nums" style={{ color: INK }}>
                         {fmtUSD(detail.rev)}
                       </p>
-                      <p className="text-base font-semibold tabular-nums text-[#4D2FB0]">{pct}%</p>
                     </div>
+                    {/* ONE progress instrument on the page. The ring in the
+                        rail owns the percentage and the 80% mark, so this card
+                        keeps only the fact — a bar here made two things draw
+                        the same number two ways, three inches apart. */}
                     <p className="mt-2 text-xs text-neutral-500">of {fmtUSD(target)} phase target</p>
-                    <div
-                      role="progressbar"
-                      aria-valuenow={pct}
-                      aria-valuemin={0}
-                      aria-valuemax={100}
-                      aria-label="Revenue against phase target"
-                      className="relative mt-3 h-2 rounded-full bg-[#EFEBFA]"
-                    >
-                      <div className="bar-fill keyline-grad h-full rounded-full"
-                        style={{ width: `${Math.min(pct, 100)}%`, "--bd": "0.25s" } as React.CSSProperties} />
-                      <span aria-hidden="true" className={`unlock-notch ${pct >= 80 ? "unlock-notch--crossed" : ""}`} />
-                    </div>
-                    <span className="sr-only">
-                      {pct >= 80
-                        ? "Past the 80% unlock line."
-                        : `${80 - pct} percentage points below the 80% unlock line.`}
-                    </span>
                   </>
                 ) : (
                   /* Not started. Its revenue is $0 and its ROAS undefined,
@@ -303,134 +365,215 @@ export default function CampaignDetailPage() {
                 </div>
               )}
 
-              {/* ── LIVE ADS — the queue, and what is happening to it ──
-                   Built as a card strip, the same shape as a creator's "Last 5
-                   posts", because the thing being reviewed is creative and a
-                   row of overlapping 40px thumbnails did not let you see any of
-                   it. Each card opens the review ON that ad.
+              {/* ── PHASE AT A GLANCE ──
+                   Four figures, each one read or multiplied straight out of
+                   this phase's own record. The prototype this came from had
+                   six: "Total Orders" and "Ads Scheduled" are in no model
+                   anywhere in this app, so they are not here — a tile a brand
+                   cannot check is worse than a tile it does not get.
 
-                   What the cards do NOT carry is the engagement pair those post
-                   cards show. These ads have not published, so a like count
-                   would be invented — and per-creator counts are exactly what
-                   the design review took off the screen. The badge is the
-                   format, and the footer is who made it. */}
-              {/* Drafts are seeded against every phase that can run, so this
-                  has to ask whether the phase has actually STARTED. A Ready
-                  or Locked phase showing creative would be claiming work no
-                  creator has been briefed to do. */}
+                   Live ads reads the SAME liked count the Live ads section
+                   below renders, off the same array, so the tile and the
+                   section cannot disagree. ── */}
+              {/* `creators` is null until a phase is funded and a phase that
+                  has not started has no ads to count, so the grid is gated on
+                  both. The "What this phase commits to" card further down
+                  already states an unfunded phase's budget and target. */}
+              {phaseHasStarted(detail) && detail.creators !== null && (
+                <div className={`grid grid-cols-2 gap-3 ${drafts.length > 0 ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
+                  {[
+                    { k: "Influencers live", v: String(detail.creators), sub: "matched to this phase" },
+                    { k: "Budget deployed",  v: fmtUSD(detail.budget),   sub: "this phase's own money" },
+                    /* Only when there is a queue to count. A phase with no
+                       drafts on file would print "Live ads 0", which reads as
+                       "nothing ran" — and the stored adsLive that could
+                       contradict it is exactly the figure this page refuses to
+                       believe. No queue, no tile. */
+                    ...(drafts.length > 0
+                      ? [{ k: "Live ads", v: String(liked.length), sub: "liked drafts, publishing" }]
+                      : []),
+                    /* No "Target revenue" tile: the money card states it in
+                       words and the ring restates it under the arc. Three was
+                       one too many for a number that never moves. */
+                  ].map((m) => (
+                    <div key={m.k} className={`${CARD} p-4`}>
+                      <p className="text-[13px] font-medium text-neutral-500">{m.k}</p>
+                      <p className="mt-2 text-[22px] sm:text-[24px] font-semibold leading-none tracking-tight tabular-nums"
+                        style={{ color: INK }}>
+                        {m.v}
+                      </p>
+                      <p className="mt-2.5 text-xs text-neutral-400">{m.sub}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* ── THE ADS, IN TWO SECTIONS ──
+                   One "Live ads" section used to hold the entire queue —
+                   waiting, liked and declined in one strip — which is why the
+                   name never fit: most of what it listed was not live. A LIKE
+                   PUBLISHES AN AD, so the split is the model's own:
+
+                     Ad review — waiting + declined. The work.
+                     Live ads  — liked. The record of what is running.
+
+                   Drafts are seeded against every phase that CAN run, so this
+                   still has to ask whether the phase has actually STARTED: a
+                   Ready or Locked phase showing creative would be claiming
+                   work no creator has been briefed to do. Each section is then
+                   gated on having something IN it — a phase with no likes yet
+                   must not render an empty "Live ads" box. ── */}
               {phaseHasStarted(detail) && drafts.length > 0 && (
-                <section>
-                  <p className={`${EYEBROW} mb-2 text-[#7C5CE0]`}>Live ads</p>
+                <>
+                  {/* ── AD REVIEW — the shelf with work on it ── */}
+                  {(waiting.length > 0 || disliked.length > 0) && (
+                    <section>
+                      <p className={`${EYEBROW} mb-2 text-[#7C5CE0]`}>Ad review</p>
 
-                  <div className={`${CARD} p-4`}>
-                    {/* THE STATE LEDGER — a ledger, not a score. Every draft in
-                        this phase is in exactly one of these states, and they
-                        add up: publishing + waiting + not publishing IS the
-                        count in review. All four figures are the ones the cards
-                        below already render from, so the strip cannot drift
-                        from the thumbnails it sits on.
+                      <div className={`${CARD} p-4`}>
+                        {/* THE REVIEW LEDGER — a ledger, not a score, and it
+                            belongs to the review rather than to the live
+                            record: every draft in this phase is in exactly one
+                            of these four states and they add up, waiting +
+                            publishing + not publishing IS submitted. All four
+                            figures come from the arrays the tiles below render
+                            from, so the strip cannot drift from the creative
+                            it sits on.
 
-                        No rate and no percentage. Two decisions on eight drafts
-                        would print a 50% "approval rate" that reads worse than
-                        the raw counts it was meant to soften — and a decline is
-                        a choice the brand made, not a test the work failed. */}
-                    <div className="border-b border-black/[0.06] pb-4">
-                      <div className="grid grid-cols-3 gap-x-3">
-                        {/* Publishing leads, because a like publishes the ad:
-                            this IS the live count for the phase. It is also why
-                            the stored adsLive figure is off this page — it read
-                            125 against a queue of eight. */}
-                        <div>
-                          <p className="text-[22px] font-bold leading-none tabular-nums" style={{ color: BRAND }}>
-                            {liked.length}
+                            No rate and no percentage. Two decisions on eight
+                            drafts would print a 50% "approval rate" that reads
+                            worse than the raw counts it was meant to soften —
+                            and a decline is a choice the brand made, not a
+                            test the work failed. */}
+                        <div className="border-b border-black/[0.06] pb-4">
+                          <div className="grid grid-cols-4 gap-x-3">
+                            {/* The whole, in grey — context for the figures
+                                beside it, not a fifth thing to do. */}
+                            <div>
+                              <p className="text-[22px] font-bold leading-none tabular-nums text-neutral-400">
+                                {drafts.length}
+                              </p>
+                              <p className="mt-1 text-[11px] font-medium leading-tight text-neutral-400">Submitted</p>
+                            </div>
+                            <div>
+                              <p className="text-[22px] font-bold leading-none tabular-nums" style={{ color: INK }}>
+                                {waiting.length}
+                              </p>
+                              <p className="mt-1 text-[11px] font-semibold leading-tight" style={{ color: INK }}>Waiting on you</p>
+                            </div>
+                            {/* A like publishes the ad, so this figure IS the
+                                live count for the phase — the same one the
+                                Live ads section and the glance tile show. It
+                                is also why the stored adsLive figure is off
+                                this page: it read 125 against a queue of 8. */}
+                            <div>
+                              <p className="text-[22px] font-bold leading-none tabular-nums" style={{ color: BRAND }}>
+                                {liked.length}
+                              </p>
+                              <p className="mt-1 text-[11px] font-semibold leading-tight" style={{ color: INK }}>Publishing</p>
+                            </div>
+                            <div>
+                              <p className="text-[22px] font-bold leading-none tabular-nums text-neutral-400">
+                                {disliked.length}
+                              </p>
+                              <p className="mt-1 text-[11px] font-medium leading-tight text-neutral-400">Not publishing</p>
+                            </div>
+                          </div>
+
+                          {/* Coverage, counted — never a bare percentage. */}
+                          <p className="mt-3 text-[11px] text-neutral-500">
+                            <span className="font-semibold tabular-nums" style={{ color: INK }}>
+                              {liked.length + disliked.length} of {drafts.length}
+                            </span>{" "}
+                            decided
                           </p>
-                          <p className="mt-1 text-[11px] font-semibold leading-tight" style={{ color: INK }}>Publishing</p>
+
+                          {/* The window governs the UNDECIDED ones, so it is
+                              printed only while some are. It is the brand's
+                              obligation, not a threat: the phase is metered
+                              against a guarantee it cannot deliver if nothing
+                              runs. */}
+                          {waiting.length > 0 && (
+                            <p className="mt-1 text-[11px] font-medium text-neutral-500">
+                              A draft left undecided publishes on its own after {REVIEW_WINDOW_DAYS} days.
+                            </p>
+                          )}
                         </div>
-                        <div>
-                          <p className="text-[22px] font-bold leading-none tabular-nums" style={{ color: INK }}>
-                            {waiting.length}
-                          </p>
-                          <p className="mt-1 text-[11px] font-semibold leading-tight" style={{ color: INK }}>Waiting on you</p>
+
+                        {/* Waiting first, declines after — the order the work
+                            has to be done in. */}
+                        <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
+                          {[...waiting, ...disliked].slice(0, 8).map((a) => (
+                            <AdTile key={a.id} ad={a}
+                              onOpen={() => router.push(`/campaigns/ads?c=${detail.id}&ad=${a.id}`)} />
+                          ))}
                         </div>
-                        {/* The whole, in grey — context for the two figures that
-                            can be acted on, not a third thing to do. */}
-                        <div>
-                          <p className="text-[22px] font-bold leading-none tabular-nums text-neutral-400">
-                            {drafts.length}
-                          </p>
-                          <p className="mt-1 text-[11px] font-medium leading-tight text-neutral-400">In review</p>
+
+                        {waiting.length > 0 ? (
+                          <button
+                            onClick={() => router.push(`/campaigns/ads?c=${detail.id}&shelf=waiting`)}
+                            className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#4D2FB0] px-4 py-3 text-[13px] font-semibold text-white transition-colors hover:bg-[#3F2596] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4D2FB0]/40"
+                          >
+                            Review {waiting.length} waiting on you
+                            <CaretRight size={13} weight="bold" aria-hidden="true" />
+                          </button>
+                        ) : (
+                          /* Nothing waiting, only declines. There is no work
+                              left to press for, but a decline is reversible —
+                              so this stays a quiet way back in rather than a
+                              primary call to action. */
+                          <button
+                            onClick={() => router.push(`/campaigns/ads?c=${detail.id}&shelf=disliked`)}
+                            className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl bg-neutral-100 px-4 py-2.5 text-[13px] font-semibold text-[#4D2FB0] transition-colors hover:bg-neutral-200/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4D2FB0]/40"
+                          >
+                            Every draft decided · reopen a decline
+                            <CaretRight size={13} weight="bold" aria-hidden="true" />
+                          </button>
+                        )}
+                      </div>
+                    </section>
+                  )}
+
+                  {/* ── LIVE ADS — the liked ads, which is to say the running
+                       ones. A RECORD, NOT A TO-DO: no review CTA and no
+                       countdown, because everything on this card is already
+                       published and there is nothing here left to decide. ── */}
+                  {liked.length > 0 && (
+                    <section>
+                      <p className={`${EYEBROW} mb-2 text-[#7C5CE0]`}>Live ads</p>
+
+                      <div className={`${CARD} p-4`}>
+                        <div className="flex items-end justify-between gap-3 border-b border-black/[0.06] pb-4">
+                          <div>
+                            <p className="text-[22px] font-bold leading-none tabular-nums" style={{ color: BRAND }}>
+                              {liked.length}
+                            </p>
+                            <p className="mt-1 text-[11px] font-semibold leading-tight" style={{ color: INK }}>
+                              {liked.length === 1 ? "ad running from this phase" : "ads running from this phase"}
+                            </p>
+                          </div>
+                          {/* Straight to the liked shelf. Landing the reviewer
+                              on Waiting from here would answer a question
+                              nobody asked. */}
+                          <button
+                            onClick={() => router.push(`/campaigns/ads?c=${detail.id}&shelf=liked`)}
+                            className="inline-flex shrink-0 items-center gap-1 rounded-lg px-2 py-1 text-[12px] font-semibold text-[#4D2FB0] transition-colors hover:bg-[#4D2FB0]/[0.07] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4D2FB0]/40"
+                          >
+                            View all
+                            <CaretRight size={12} weight="bold" aria-hidden="true" />
+                          </button>
+                        </div>
+
+                        <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
+                          {liked.slice(0, 8).map((a) => (
+                            <AdTile key={a.id} ad={a}
+                              onOpen={() => router.push(`/campaigns/ads?c=${detail.id}&ad=${a.id}`)} />
+                          ))}
                         </div>
                       </div>
-
-                      {/* Coverage, counted — never a bare percentage. The
-                          declines sit down here, small and neutral. */}
-                      <p className="mt-3 text-[11px] text-neutral-500">
-                        <span className="font-semibold tabular-nums" style={{ color: INK }}>
-                          {liked.length + disliked.length} of {drafts.length}
-                        </span>{" "}
-                        decided
-                        {disliked.length > 0 && ` · ${disliked.length} not publishing`}
-                      </p>
-
-                      {/* The window belongs where the queue is. It is the
-                          brand's obligation, not a threat: the phase is metered
-                          against a guarantee it cannot deliver if nothing runs. */}
-                      <p className="mt-1 text-[11px] font-medium text-neutral-500">
-                        A draft left undecided publishes on its own after {REVIEW_WINDOW_DAYS} days.
-                      </p>
-                    </div>
-
-                    <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
-                      {[...waiting, ...liked, ...disliked].slice(0, 8).map((a) => {
-                        const c = adCreator(a);
-                        return (
-                          <button
-                            key={a.id}
-                            onClick={() => router.push(`/campaigns/ads?c=${detail.id}&ad=${a.id}`)}
-                            aria-label={`${c.name}, ${a.format} for ${a.platform}. ${
-                              a.signal === "none" ? "Waiting on you." : a.signal === "liked" ? "Liked — publishing." : "Disliked — will not publish."
-                            } Open the review on this ad.`}
-                            className="group relative block aspect-[9/14] w-[132px] shrink-0 overflow-hidden rounded-2xl bg-neutral-200 ring-1 ring-black/[0.06] transition hover:ring-2 hover:ring-[#4D2FB0]/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4D2FB0]"
-                          >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={a.img} alt="" loading="lazy" className="h-full w-full object-cover object-top" />
-                            <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
-                            <span aria-hidden="true" className="absolute left-2 top-2 rounded-md bg-black/55 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm">
-                              {a.format}
-                            </span>
-                            {a.signal !== "none" && (
-                              <span
-                                aria-hidden="true"
-                                className={`absolute right-2 top-2 grid h-5 w-5 place-items-center rounded-full text-white ${
-                                  a.signal === "liked" ? "bg-[#059669]" : "bg-black/60"
-                                }`}
-                              >
-                                {a.signal === "liked"
-                                  ? <ThumbsUp size={11} weight="fill" />
-                                  : <ThumbsDown size={11} weight="fill" />}
-                              </span>
-                            )}
-                            <span className="absolute inset-x-0 bottom-2 px-2.5 text-left">
-                              <span className="block truncate text-[12px] font-bold text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.95)]">
-                                {c.name.split(" ")[0]}
-                              </span>
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    <button
-                      onClick={() => router.push(`/campaigns/ads?c=${detail.id}`)}
-                      className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl bg-neutral-100 px-4 py-2.5 text-[13px] font-semibold text-[#4D2FB0] transition-colors hover:bg-neutral-200/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4D2FB0]/40"
-                    >
-                      {/* No count here. The strip above already carries it,
-                          and this number was on the screen four times. */}
-                      Open ad review
-                      <CaretRight size={13} weight="bold" aria-hidden="true" />
-                    </button>
-                  </div>
-                </section>
+                    </section>
+                  )}
+                </>
               )}
 
               {/* ── PHASE PERFORMANCE ──
@@ -624,13 +767,11 @@ export default function CampaignDetailPage() {
                           ? `Nothing is waiting on you. ${phaseTitle(after.phaseNo)} unlocks when this phase crosses 80%.`
                           : "Nothing is waiting on you. This is your last phase so far."}
                   </p>
-                  {waiting.length > 0 ? (
-                    <button
-                      onClick={() => router.push(`/campaigns/ads?c=${detail.id}`)}
-                      className="mt-4 flex w-full items-center justify-center rounded-xl bg-[#4D2FB0] px-4 py-3 text-[13px] font-semibold text-white hover:bg-[#3F2596] transition-colors">
-                      Review {waiting.length} waiting on you
-                    </button>
-                  ) : after && after.status === "Ready" ? (
+                  {/* No Review button here. The Ad review section carries the
+                      same CTA, word for word, sitting beside the creative it
+                      acts on — this rail copy was the weaker of the two. The
+                      sentence above still says drafts are waiting. */}
+                  {after && after.status === "Ready" ? (
                     <button
                       onClick={() => router.push(`/campaigns/${after.id}`)}
                       className="mt-4 flex w-full items-center justify-center rounded-xl bg-[#4D2FB0] px-4 py-3 text-[13px] font-semibold tabular-nums text-white hover:bg-[#3F2596] transition-colors">
@@ -645,6 +786,67 @@ export default function CampaignDetailPage() {
                   )}
                 </section>
               ) : null}
+
+              {/* ── REVENUE PROGRESS ──
+                   The same two numbers the money card carries, drawn as a
+                   ring: the rail is where a brand looks for "how far in", and
+                   a ring answers that at a glance where a 2px bar does not.
+
+                   Both are narrowed here rather than read off `metered`,
+                   because revTarget is null until a phase is funded — a Ready
+                   or Locked phase renders nothing at all instead of a 0% donut
+                   against a target it has not been given yet. ── */}
+              {pct !== null && target !== null && (
+                <section className={`${CARD} p-5`}>
+                  <p className={`${EYEBROW} text-[#7C5CE0]`}>Revenue progress</p>
+
+                  <div className="mt-4 flex flex-col items-center">
+                    <div className="relative h-[136px] w-[136px]">
+                      <svg viewBox="0 0 120 120" className="h-full w-full" role="img"
+                        aria-label={`${pct}% of this phase's ${fmtUSD(target)} revenue target — ${fmtUSD(detail.rev)} earned. The next phase unlocks at 80%.`}>
+                        <circle cx="60" cy="60" r={RING_R} fill="none" stroke="#EFEBFA" strokeWidth="10" />
+                        {/* The ARC IS CLAMPED at one full turn while the label
+                            below keeps the truth: Phase 1 closed at 104%, and
+                            a second lap would read as 4%. Green once the
+                            target is met, because that is what green means
+                            everywhere else on this page. */}
+                        <circle cx="60" cy="60" r={RING_R} fill="none" strokeWidth="10" strokeLinecap="round"
+                          stroke={pct >= 100 ? "#059669" : BRAND}
+                          strokeDasharray={RING_C}
+                          strokeDashoffset={RING_C * (1 - Math.min(pct, 100) / 100)}
+                          transform="rotate(-90 60 60)" />
+                        {/* THE 80% UNLOCK LINE — the number the phase turns
+                            on, marked on the rule it is measured against. The
+                            arc starts at twelve o'clock and runs clockwise, so
+                            0.8 of a turn is 288 degrees from there. */}
+                        <line x1="60" y1="2" x2="60" y2="16" strokeWidth="2.5" strokeLinecap="round"
+                          stroke={pct >= 80 ? "#047857" : "#191234"}
+                          strokeOpacity={pct >= 80 ? 1 : 0.35}
+                          transform="rotate(288 60 60)" />
+                      </svg>
+                      <div aria-hidden="true" className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                        <p className="text-[27px] font-bold leading-none tabular-nums"
+                          style={{ color: pct >= 100 ? "#047857" : INK }}>
+                          {pct}%
+                        </p>
+                        <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-neutral-400">
+                          achieved
+                        </p>
+                      </div>
+                    </div>
+
+                    <p className="mt-3 text-xs tabular-nums text-neutral-500">
+                      <span className="font-semibold" style={{ color: INK }}>{fmtUSD(detail.rev)}</span>{" "}
+                      of {fmtUSD(target)}
+                    </p>
+                    <p className={`mt-1 text-[11px] font-medium ${pct >= 80 ? "text-[#047857]" : "text-neutral-500"}`}>
+                      {pct >= 80
+                        ? "Past the 80% unlock line"
+                        : `${80 - pct} points to the 80% unlock line`}
+                    </p>
+                  </div>
+                </section>
+              )}
 
               {/* ── Delivery rail — the crew, and nothing else.
                      "Ads live 125/200" used to lead it. That pair is stored, not

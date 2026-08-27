@@ -122,7 +122,14 @@ export default function CampaignAdsPage() {
   const noteBox = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
-    const q = new URLSearchParams(window.location.search).get("c");
+    const params = new URLSearchParams(window.location.search);
+    /* ?shelf= opens the reviewer on a specific shelf, so the phase detail can
+       send "Live ads" to the liked work and "Ad review" to the queue. An
+       unknown or absent value keeps the default (Waiting), which is the only
+       shelf with work on it. */
+    const shelf = params.get("shelf");
+    if (shelf === "liked" || shelf === "disliked") setTab(shelf);
+    const q = params.get("c");
     /* An UNKNOWN ?c= resolves to nothing. It must never fall back to another
        phase: silently substituting one means a reviewer rates Phase 3's
        creative believing it belongs to the phase they asked for, and a like
