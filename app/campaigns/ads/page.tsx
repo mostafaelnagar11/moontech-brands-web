@@ -61,11 +61,33 @@ const INK = "#191234";
    creator's attention, not a storage limit. */
 const NOTE_MAX = 280;
 
-const TABS: { key: AdSignal; label: string }[] = [
-  { key: "none",     label: "Waiting" },
-  { key: "liked",    label: "Liked" },
-  { key: "disliked", label: "Disliked" },
-];
+/* ------------------------------------------------------------------ */
+/* TWO FLOWS, ONE ROUTE — and they do not cross.                       */
+/*                                                                     */
+/* AD REVIEW is the work: drafts still waiting, and the ones declined   */
+/* (a decline is reversible, so it stays reachable from here). It has   */
+/* NO access to the liked shelf.                                        */
+/*                                                                     */
+/* LIVE ADS is the record: liked drafts, which is to say the ones       */
+/* publishing. It has NO access to waiting or declined.                 */
+/*                                                                     */
+/* A like therefore MOVES an ad out of this flow and into the other —   */
+/* which is exactly what a like does in the product. The undo toast is  */
+/* how it comes back, not a tab.                                        */
+/* ------------------------------------------------------------------ */
+type Flow = "review" | "live";
+
+const FLOW_TABS: Record<Flow, { key: AdSignal; label: string }[]> = {
+  review: [
+    { key: "none",     label: "Waiting" },
+    { key: "disliked", label: "Disliked" },
+  ],
+  live: [
+    { key: "liked",    label: "Live" },
+  ],
+};
+
+const FLOW_TITLE: Record<Flow, string> = { review: "Ad review", live: "Live ads" };
 
 const PLAT_ICON: Record<Platform, Icon> = {
   Instagram: InstagramLogo,
@@ -102,6 +124,9 @@ export default function CampaignAdsPage() {
   /* Which shelf the reviewer is standing on. Keyed by the signal value itself
      so the filter is a comparison rather than a lookup table. */
   const [tab, setTab] = useState<AdSignal>("none");
+  /* Which flow this page was entered on. Set once from ?shelf= — the two
+     never mix, so nothing in the UI can switch it. */
+  const [flow, setFlow] = useState<Flow>("review");
   const [infoOpen, setInfoOpen] = useState(false);
   const [toast, setToast] = useState<Toast | null>(null);
   const [announce, setAnnounce] = useState("");
@@ -128,7 +153,8 @@ export default function CampaignAdsPage() {
        unknown or absent value keeps the default (Waiting), which is the only
        shelf with work on it. */
     const shelf = params.get("shelf");
-    if (shelf === "liked" || shelf === "disliked") setTab(shelf);
+    if (shelf === "liked") { setFlow("live"); setTab("liked"); }
+    else if (shelf === "disliked") setTab("disliked");
     const q = params.get("c");
     /* An UNKNOWN ?c= resolves to nothing. It must never fall back to another
        phase: silently substituting one means a reviewer rates Phase 3's
@@ -411,7 +437,7 @@ export default function CampaignAdsPage() {
       </button>
       <span aria-hidden="true" className="hidden h-6 w-px shrink-0 bg-white/10 sm:block" />
       <div className="hidden min-w-0 shrink-0 sm:block">
-        <p className="text-[15px] font-semibold leading-tight text-white">Ad review</p>
+        <p className="text-[15px] font-semibold leading-tight text-white">{FLOW_TITLE[flow]}</p>
         {/* The back link already names the phase, so repeating it here said
             nothing twice. This carries the fact a like actually spends
             against: THIS phase's budget, which is the only budget behind
@@ -602,7 +628,17 @@ export default function CampaignAdsPage() {
     );
   };
 
-  const explainer = (
+  /* Flow-aware: the review copy explains the two verbs, which is the whole
+     job there. Live ads has no verbs — the like already happened — so
+     explaining Dislike in that flow described a control that is not on the
+     screen. There it says what the checks meant for work that shipped. */
+  const explainer = flow === "live" ? (
+    <>
+      These three ran on every ad before it reached you, so publishing was one
+      click rather than a review meeting. Everything here is live and spending
+      this phase&apos;s budget — a like cannot be pulled back.
+    </>
+  ) : (
     <>
       These three run on every ad before it reaches you, so a like is one click
       rather than a review meeting. Nothing here has published yet: Like publishes it and
@@ -632,8 +668,12 @@ export default function CampaignAdsPage() {
                only. They sit where "All campaigns" and the keyboard legend
                used to: the top-left back link is already the way out, and the
                shortcuts still work without a chip announcing them. */}
-          <div role="tablist" aria-label="Ad review shelves" className="flex items-center gap-1 rounded-xl bg-white/[0.06] p-1 ring-1 ring-white/10">
-            {TABS.map((t) => {
+          {/* A single-shelf flow gets no tablist — one tab is a label, not a
+              choice. Live ads shows its count instead; the title already
+              names it. */}
+          {FLOW_TABS[flow].length > 1 ? (
+          <div role="tablist" aria-label={`${FLOW_TITLE[flow]} shelves`} className="flex items-center gap-1 rounded-xl bg-white/[0.06] p-1 ring-1 ring-white/10">
+            {FLOW_TABS[flow].map((t) => {
               const on = tab === t.key;
               return (
                 <button
@@ -653,6 +693,13 @@ export default function CampaignAdsPage() {
               );
             })}
           </div>
+          ) : (
+            /* One shelf: state the count plainly where the tabs would be. */
+            <span className="flex min-h-[36px] items-center gap-1.5 rounded-xl bg-white/[0.06] px-3 text-[12.5px] font-semibold text-white/70 ring-1 ring-white/10">
+              {FLOW_TABS[flow][0].label}
+              <span className="tabular-nums text-white/35">{counts[FLOW_TABS[flow][0].key]}</span>
+            </span>
+          )}
 
           {/* The rail carries the checks on wide viewports; below lg they
               come back behind the ⓘ, as on the phone. */}
@@ -685,11 +732,13 @@ export default function CampaignAdsPage() {
                   : "No dislikes yet"}
               </p>
               <p className="mt-2 max-w-[420px] text-sm leading-relaxed text-white/55">
-                {tab === "none" ? "Every ad here has been decided. New ones land the moment a creator finishes them."
-                  : tab === "liked" ? "Ads you like publish within the hour and collect here."
-                  : "Ads you dislike never publish. They collect here so you can change your mind."}
+                {tab === "none" ? "Every draft here has been decided. New ones land the moment a creator finishes them."
+                  : tab === "liked" ? "Nothing from this phase is live yet. Ads you like in Ad review publish within the hour and collect here."
+                  : "Drafts you decline never publish. They collect here so you can change your mind."}
               </p>
-              {counts.none > 0 && tab !== "none" && (
+              {/* Only inside the review flow. Live ads has no route to the
+                  waiting shelf, so offering one would be a dead end. */}
+              {flow === "review" && counts.none > 0 && tab !== "none" && (
                 <button
                   onClick={() => { setTab("none"); setSel(0); }}
                   className="mt-7 inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2.5 text-[13px] font-semibold text-white ring-1 ring-white/20 transition-colors hover:bg-white/[0.16] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
