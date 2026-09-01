@@ -249,7 +249,7 @@ export const CAMPAIGNS: Campaign[] = [
     rev: 12600, revLabel: "$12,600", revTarget: 15000, revPct: 84, roas: "4.2×",
     threshold: "80% unlock line crossed — Phase 3 is ready to fund", thresholdGreen: true,
     due: null,
-    creators: 24, adsLive: 125, adsTotal: 200, content: 89,
+    creators: 24, adsLive: 6,  adsTotal: 13, content: 6,
     faces: [byId(1), byId(3), byId(9)],
   },
   {
@@ -290,7 +290,7 @@ export const CAMPAIGNS: Campaign[] = [
     rev: 4100, revLabel: "$4,100", revTarget: 7500, revPct: 55, roas: "2.7×",
     threshold: "On pace — 80% unlock line about 9 days away", thresholdGreen: false,
     due: null,
-    creators: 18, adsLive: 96, adsTotal: 150, content: 96,
+    creators: 18, adsLive: 4,  adsTotal: 8,  content: 4,
     faces: [byId(2), byId(4), byId(6)],
   },
   {
@@ -520,6 +520,55 @@ export const ADS: Ad[] = [
     caption: "Ordered at 9am, unpacking at 2pm. Timestamped, nothing edited out.",
     img: "https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=300&h=400&fit=crop",
     submitted: "2d ago", track: "MT-FG-P1-0125", signal: "none" },
+
+
+  /* ── Ounass · Phase 2 · Scale — already published ──
+     ADDED as `liked` rather than by flipping waiting drafts: the review
+     queue has to keep its 6, or the Ad review flow has nothing to
+     demonstrate. Live ads and Ad review draw from the same phase but
+     never from the same records. ── */
+  { id: "ad-sp-9",  campaignId: "ounass-phase-2", creatorId: 1,
+    product: "Pleated Satin Midi", format: "Reel", platform: "Instagram",
+    caption: "Satin pleats on a real body, in real light — no press shots, no smoothing.",
+    img: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=300&h=400&fit=crop",
+    submitted: "5d ago", track: "MT-OU-P2-1104", signal: "liked" },
+  { id: "ad-sp-10", campaignId: "ounass-phase-2", creatorId: 3,
+    product: "Woven Raffia Tote", format: "Reel", platform: "Instagram",
+    caption: "Packed the raffia tote for a weekend. Everything that fit, and the one thing that didn’t.",
+    img: "https://images.unsplash.com/photo-1544022613-e87ca75a784a?w=300&h=400&fit=crop",
+    submitted: "6d ago", track: "MT-OU-P2-1112", signal: "liked" },
+  { id: "ad-sp-11", campaignId: "ounass-phase-2", creatorId: 9,
+    product: "Linen Blazer — Chalk", format: "Post", platform: "Instagram",
+    caption: "The linen blazer after a full day in 38 degrees. Creases and all.",
+    img: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=300&h=400&fit=crop",
+    submitted: "6d ago", track: "MT-OU-P2-1119", signal: "liked" },
+  { id: "ad-sp-12", campaignId: "ounass-phase-2", creatorId: 5,
+    product: "Suede Slingback Heel", format: "Reel", platform: "Instagram",
+    caption: "Suede slingbacks, three hours standing. Where they rubbed and where they didn’t.",
+    img: "https://images.unsplash.com/photo-1549062573-27a9b2b8a3b1?w=300&h=400&fit=crop",
+    submitted: "7d ago", track: "MT-OU-P2-1127", signal: "liked" },
+  { id: "ad-sp-13", campaignId: "ounass-phase-2", creatorId: 7,
+    product: "Gold Chain Necklace", format: "Story", platform: "Instagram",
+    caption: "Layered the chain with two others for a week. It never tangled — here is why.",
+    img: "https://images.unsplash.com/photo-1551232864-3f0890e580d9?w=300&h=400&fit=crop",
+    submitted: "8d ago", track: "MT-OU-P2-1134", signal: "liked" },
+
+  /* ── Luna Beauty · Phase 2 · Scale — already published ── */
+  { id: "ad-rf-6", campaignId: "luna-phase-2", creatorId: 2,
+    product: "Barrier Repair Cream", format: "Reel", platform: "Instagram",
+    caption: "Two weeks on the barrier cream through a heatwave. Honest texture check.",
+    img: "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=300&h=400&fit=crop",
+    submitted: "5d ago", track: "MT-LU-P2-0871", signal: "liked" },
+  { id: "ad-rf-7", campaignId: "luna-phase-2", creatorId: 6,
+    product: "Brightening Eye Serum", format: "Video", platform: "YouTube",
+    caption: "Eye serum, four weeks, same lighting every morning. The full diary.",
+    img: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=300&h=400&fit=crop",
+    submitted: "6d ago", track: "MT-LU-P2-0878", signal: "liked" },
+  { id: "ad-rf-8", campaignId: "luna-phase-2", creatorId: 10,
+    product: "Scalp Treatment Oil", format: "Reel", platform: "Instagram",
+    caption: "Scalp oil on fine hair — how long it took to wash out, measured.",
+    img: "https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=300&h=400&fit=crop",
+    submitted: "7d ago", track: "MT-LU-P2-0885", signal: "liked" },
 
   /* ── Ounass · Phase 1 · Warm-up — the work that ran ──
      A COMPLETED phase had no draft records at all, so its Live ads section
