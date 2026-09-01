@@ -1066,10 +1066,18 @@ export default function CampaignAdsPage() {
                 second-look prompt more weight than the thing the dialog is
                 actually for. One quiet line, at the size of the subtitle it
                 sits under — the score is the only emphasis it needs. */}
+            {/* Readable, but still a line rather than a panel. It was a
+                tinted box with a filled badge (too loud, it outranked the
+                reasons), then neutral-400 at 11.5px (too quiet to register).
+                This is the middle: the claim in ink, the score in brand
+                purple, no container. */}
             {dStrong && (
-              <p className="mt-1.5 pr-9 text-[11.5px] leading-snug text-neutral-400">
-                One of your strongest matches ·{" "}
-                <span className="font-semibold tabular-nums" style={{ color: BRAND }}>
+              <p className="mt-2 pr-9 text-[12.5px] leading-snug text-neutral-500">
+                <span className="font-semibold" style={{ color: INK }}>
+                  One of your strongest matches
+                </span>{" "}
+                ·{" "}
+                <span className="font-bold tabular-nums" style={{ color: BRAND }}>
                   {dCreator.fit}
                 </span>{" "}
                 brand fit

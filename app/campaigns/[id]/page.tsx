@@ -492,14 +492,40 @@ export default function CampaignDetailPage() {
                       <p className={`${EYEBROW} mb-2 text-[#7C5CE0]`}>Live ads</p>
 
                       <div className={`${CARD} p-4`}>
-                        <div className="flex items-end justify-between gap-3 border-b border-black/[0.06] pb-4">
-                          <div>
-                            <p className="text-[22px] font-bold leading-none tabular-nums" style={{ color: BRAND }}>
-                              {liked.length}
-                            </p>
-                            <p className="mt-1 text-[11px] font-semibold leading-tight" style={{ color: INK }}>
-                              {liked.length === 1 ? "ad running from this phase" : "ads running from this phase"}
-                            </p>
+                        <div className="flex items-end justify-between gap-4 border-b border-black/[0.06] pb-4">
+                          {/* The totals for this phase's creative. Live leads
+                              in brand purple because it is what this card is
+                              about; the other two are context in neutral.
+
+                              They are FIGURES, not routes — nothing here links
+                              into Ad review, so the two flows still do not
+                              cross. Every count reads the same arrays the
+                              review row reads, so they cannot disagree. */}
+                          <div className="flex flex-wrap items-end gap-x-8 gap-y-3">
+                            <div>
+                              <p className="text-[22px] font-bold leading-none tabular-nums" style={{ color: BRAND }}>
+                                {liked.length}
+                              </p>
+                              <p className="mt-1 text-[11px] font-semibold leading-tight" style={{ color: INK }}>
+                                {liked.length === 1 ? "ad running" : "ads running"}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-[22px] font-bold leading-none tabular-nums text-neutral-400">
+                                {drafts.length}
+                              </p>
+                              <p className="mt-1 text-[11px] font-medium leading-tight text-neutral-400">
+                                total ads
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-[22px] font-bold leading-none tabular-nums text-neutral-400">
+                                {disliked.length}
+                              </p>
+                              <p className="mt-1 text-[11px] font-medium leading-tight text-neutral-400">
+                                not publishing
+                              </p>
+                            </div>
                           </div>
                           {/* Straight to the liked shelf. Landing the reviewer
                               on Waiting from here would answer a question
