@@ -226,19 +226,32 @@ export default function CampaignDetailPage() {
      always sit inside the track. */
   const rulerMax = Math.max(detail.guaranteedRoas, roasNum) * 1.12;
 
+  /* THE 80% UNLOCK LINE, in the ruler's own units — and the tick the rule
+     carries, because it is the line a brand is actually watching for.
+
+     A phase unlocks its successor at 80% of its revenue TARGET, and that
+     target is budget times the guarantee. So on a rule measured in
+     multiples of the budget, the same line sits at exactly 0.8 x the
+     guarantee: 4x on a 5x phase. The guarantee is still what the phase is
+     paid on, and the money line underneath still states it — but marking
+     the promise rather than the gate put the tick on the wrong fact. */
+  const unlockRoas = detail.guaranteedRoas * 0.8;
+  /* 4, not "4.0" — and 2.4 rather than 2.4000000000000004 on a 3x phase. */
+  const fmtMult = (n: number) => Number(n.toFixed(1)).toString();
+
   /* Built BEFORE the grid so the column count comes from the array rather
      than being hardcoded. A fixed lg:grid-cols-4 outlived the tile it was
      sized for and left a quarter of the row empty — the grid follows the
      tiles, never the other way round. */
   const tiles = [
     { k: "Influencers live", v: String(detail.creators), sub: "matched to this phase" },
-    { k: "Budget deployed",  v: fmtUSD(detail.budget),   sub: "this phase's own money" },
+    { k: "Budget deployed",  v: fmtUSD(detail.budget),   sub: "allocated budget for phase" },
     /* Only when there is a queue to count. A phase with no drafts on file
        would print "Live ads 0", which reads as "nothing ran" — and the
        stored adsLive that could contradict it is exactly the figure this
        page refuses to believe. No queue, no tile. */
     ...(drafts.length > 0
-      ? [{ k: "Live ads", v: String(liked.length), sub: "liked drafts, publishing" }]
+      ? [{ k: "Live ads", v: String(liked.length), sub: "number of approved live ads" }]
       : []),
   ];
   /* What the guarantee is worth in money on this phase. Identical to
@@ -593,14 +606,16 @@ export default function CampaignDetailPage() {
                       One visual, not two bars. The money this phase was GIVEN
                       is the unit: every tick is one more multiple of it, so
                       the distance the fill travels IS the return — no
-                      division for the reader to do. The guarantee is a marked
-                      tick on the same rule, which is why the separate
+                      division for the reader to do. The 80% unlock line is a
+                      marked tick on the same rule, which is why the separate
                       guarantee bar is gone: it was the same fact drawn twice.
 
-                      The scale derives from whichever is larger, the actual or
-                      the promise, so a phase that BEATS its guarantee still
-                      fits (Phase 1 closed at 5.2x against 5x) and the fill can
-                      never leave the track. */}
+                      The scale still derives from whichever is larger, the
+                      actual or the GUARANTEE, so a phase that beats its
+                      promise fits (Phase 1 closed at 5.2x against 5x) and the
+                      fill can never leave the track. The marked tick and the
+                      top of the scale answer different questions: the gate to
+                      the next phase, and the promise this one is paid on. */}
                   <div>
                     <div className="flex items-baseline justify-between gap-2">
                       <span className="text-xs font-medium text-neutral-500">
@@ -613,7 +628,7 @@ export default function CampaignDetailPage() {
 
                     <div
                       role="img"
-                      aria-label={`${fmtUSD(detail.budget)} deployed returned ${fmtUSD(detail.rev)} — ${roasNum.toFixed(1)} times, against a guaranteed ${detail.guaranteedRoas} times.`}
+                      aria-label={`${fmtUSD(detail.budget)} deployed returned ${fmtUSD(detail.rev)} — ${roasNum.toFixed(1)} times, against a guaranteed ${detail.guaranteedRoas} times. The next phase unlocks at ${fmtMult(unlockRoas)} times.`}
                       className="relative mt-2.5 h-2.5 rounded-full bg-[#F1EFF7]"
                     >
                       {/* hairline tick per whole multiple — the scale itself */}
@@ -628,20 +643,20 @@ export default function CampaignDetailPage() {
                       <div className={`h-full rounded-full ${guaranteeMet ? "bg-[#059669]" : "keyline-grad"}`}
                         style={{ width: `${Math.min((roasNum / rulerMax) * 100, 100)}%` }} />
 
-                      {/* the promise, on the same rule as the result */}
+                      {/* the gate, on the same rule as the result */}
                       <span aria-hidden="true"
                         className="absolute -top-1 h-[18px] w-[2px] rounded-full bg-[#191234]/45"
-                        style={{ left: `${(detail.guaranteedRoas / rulerMax) * 100}%` }} />
+                        style={{ left: `${(unlockRoas / rulerMax) * 100}%` }} />
                     </div>
 
-                    {/* the guarantee label sits under its own tick */}
+                    {/* the unlock label sits under its own tick */}
                     <div className="relative mt-1.5 h-4">
                       <span className="absolute whitespace-nowrap text-[10px] font-semibold text-neutral-500"
                         style={{
-                          left: `${(detail.guaranteedRoas / rulerMax) * 100}%`,
+                          left: `${(unlockRoas / rulerMax) * 100}%`,
                           transform: "translateX(-50%)",
                         }}>
-                        {detail.guaranteedRoas}&times; guaranteed
+                        {fmtMult(unlockRoas)}&times; unlock line
                       </span>
                     </div>
 

@@ -923,14 +923,15 @@ export default function CampaignAdsPage() {
                   <Clock size={15} weight="fill" aria-hidden="true" className="mt-px shrink-0" />
                   <span className="text-[12.5px] font-semibold leading-snug">
                     {daysLeft === null
-                      ? `You have ${REVIEW_WINDOW_DAYS} days to like or dislike an ad.`
+                      ? `You have ${REVIEW_WINDOW_DAYS} days to review an ad and select \u201cLike\u201d or \u201cDislike.\u201d`
                       : daysLeft === 0
-                        ? "Today is your last day to like or dislike this ad."
-                        : `You have ${daysLeft} ${daysLeft === 1 ? "day" : "days"} to like or dislike this ad.`}{" "}
+                        ? "Today is your last day to review this ad and select \u201cLike\u201d or \u201cDislike.\u201d"
+                        : `You have ${daysLeft} ${daysLeft === 1 ? "day" : "days"} to review this ad and select \u201cLike\u201d or \u201cDislike.\u201d`}{" "}
                     {/* A real space, not just the margin: without it the two
-                        sentences copy and read aloud as "this ad.If". */}
+                        sentences copy and read aloud run together. */}
                     <span className="font-medium text-white/50">
-                      If you don&apos;t decide, it will be automatically liked.
+                      If no decision is submitted within this period, the ad will
+                      be automatically marked as {"\u201c"}Liked.{"\u201d"}
                     </span>
                   </span>
                 </span>
