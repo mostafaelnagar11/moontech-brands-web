@@ -629,22 +629,15 @@ export default function CampaignAdsPage() {
     );
   };
 
-  /* Flow-aware: the review copy explains the two verbs, which is the whole
-     job there. Live ads has no verbs — the like already happened — so
-     explaining Dislike in that flow described a control that is not on the
-     screen. There it says what the checks meant for work that shipped. */
-  const explainer = flow === "live" ? (
+  /* ONE sentence for both flows. It used to fork on `flow`, describing the
+     two verbs in review and what the checks meant for shipped work in Live
+     ads. The checks are the same three either way, and what a brand needs
+     from this paragraph is who ran them — so it says that once. */
+  const explainer = (
     <>
-      These three ran on every ad before it reached you, so publishing was one
-      click rather than a review meeting. Everything here is live and spending
-      this phase&apos;s budget — a like cannot be pulled back.
-    </>
-  ) : (
-    <>
-      These three run on every ad before it reaches you, so a like is one click
-      rather than a review meeting. Nothing here has published yet: Like publishes it and
-      puts more of this phase&apos;s budget behind ads like it, Dislike keeps it
-      from publishing and stops us matching its pattern.
+      <strong className="font-semibold">AI checks every ad before it reaches you.</strong>{" "}
+      Only ads that pass these checks are shown here, so you&apos;re reviewing
+      content that has already been pre-approved by our automated process.
     </>
   );
 
@@ -893,7 +886,7 @@ export default function CampaignAdsPage() {
                    its fixed height — the stage's image cap is written
                    against it — and says why it is empty. */
                 <p className="flex flex-1 items-center justify-center text-center text-[13px] leading-snug text-white/45">
-                  Already sent to publish — a like can&apos;t be pulled back.
+                  This is an ad you&apos;ve already liked.
                 </p>
               ) : (
                 /* Disliked, and it never published, so it is still likeable.
@@ -930,12 +923,14 @@ export default function CampaignAdsPage() {
                   <Clock size={15} weight="fill" aria-hidden="true" className="mt-px shrink-0" />
                   <span className="text-[12.5px] font-semibold leading-snug">
                     {daysLeft === null
-                      ? `Undecided drafts publish on their own after ${REVIEW_WINDOW_DAYS} days.`
+                      ? `You have ${REVIEW_WINDOW_DAYS} days to like or dislike an ad.`
                       : daysLeft === 0
-                        ? "This draft publishes today unless you decide."
-                        : `This draft publishes on its own in ${daysLeft} ${daysLeft === 1 ? "day" : "days"} unless you decide.`}
-                    <span className="ml-1 font-medium text-white/50">
-                      A phase can&apos;t hit its guarantee with work sitting in a queue.
+                        ? "Today is your last day to like or dislike this ad."
+                        : `You have ${daysLeft} ${daysLeft === 1 ? "day" : "days"} to like or dislike this ad.`}{" "}
+                    {/* A real space, not just the margin: without it the two
+                        sentences copy and read aloud as "this ad.If". */}
+                    <span className="font-medium text-white/50">
+                      If you don&apos;t decide, it will be automatically liked.
                     </span>
                   </span>
                 </span>
