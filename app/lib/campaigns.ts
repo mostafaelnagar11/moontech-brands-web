@@ -409,7 +409,13 @@ export interface Ad {
   caption: string;
   format: AdFormat;
   platform: Platform;
+  /* The still. For a video ad this is its POSTER — every grid and tile in
+     the app paints from `img`, so they keep working untouched and only the
+     review stage has to know the difference. */
   img: string;
+  /* Set only on the real ad recordings in /public/ads. Absent means the
+     creative IS the still, which is what every synthesised draft is. */
+  video?: string;
   submitted: string;
   track: string;
   signal: AdSignal;
@@ -422,6 +428,115 @@ export interface Ad {
 export const adHero = (img: string) => img;
 
 export const ADS: Ad[] = [
+  /* ── THE REAL ADS ──
+     Four recordings of live Ounass campaign posts, in /public/ads.
+     They lead every funded phase's Live ads shelf, which is why they
+     sit at the head of this array: adsFor() preserves order, so
+     whatever is first here is first on the shelf.
+
+     Two are matched to the creator who actually published them; the
+     other two came from accounts that are not on this roster, so they
+     are attributed to roster creators on the same platform. ── */
+  { id: "ad-v-ou-p1-1", campaignId: "ounass-phase-1", creatorId: 1,
+    product: "Pearl Mesh Clutch", format: "Reel", platform: "Instagram",
+    caption: "The pearl mesh clutch on camera rather than on a plinth — code and piece number on screen.",
+    img: "/ads/palm-ounass-clutch.jpg", video: "/ads/palm-ounass-clutch.mp4",
+    submitted: "6d ago", track: "MT-OU-P1-V01", signal: "liked" },
+  { id: "ad-v-ou-p1-2", campaignId: "ounass-phase-1", creatorId: 2,
+    product: "Ounass Beauty Edit", format: "Story", platform: "Instagram",
+    caption: "Full face using nothing outside the Ounass beauty edit. Shade names as she goes.",
+    img: "/ads/memz-ounass-story.jpg", video: "/ads/memz-ounass-story.mp4",
+    submitted: "5d ago", track: "MT-OU-P1-V02", signal: "liked" },
+  { id: "ad-v-ou-p1-3", campaignId: "ounass-phase-1", creatorId: 10,
+    product: "Ounass Luxury Haul", format: "Video", platform: "TikTok",
+    caption: "What actually arrived from the haul, unpacked in one take and rated out loud.",
+    img: "/ads/noon-ounass-tiktok.jpg", video: "/ads/noon-ounass-tiktok.mp4",
+    submitted: "4d ago", track: "MT-OU-P1-V03", signal: "liked" },
+  { id: "ad-v-ou-p1-4", campaignId: "ounass-phase-1", creatorId: 7,
+    product: "Ounass Exclusive — The Resort Ritual", format: "Story", platform: "Instagram",
+    caption: "Walking the Resort Ritual edit on site, gift sets first, with the code on screen.",
+    img: "/ads/cosmo-ounass-story.jpg", video: "/ads/cosmo-ounass-story.mp4",
+    submitted: "3d ago", track: "MT-OU-P1-V04", signal: "liked" },
+  { id: "ad-v-ou-p2-1", campaignId: "ounass-phase-2", creatorId: 1,
+    product: "Pearl Mesh Clutch", format: "Reel", platform: "Instagram",
+    caption: "The pearl mesh clutch on camera rather than on a plinth — code and piece number on screen.",
+    img: "/ads/palm-ounass-clutch.jpg", video: "/ads/palm-ounass-clutch.mp4",
+    submitted: "6d ago", track: "MT-OU-P2-V01", signal: "liked" },
+  { id: "ad-v-ou-p2-2", campaignId: "ounass-phase-2", creatorId: 2,
+    product: "Ounass Beauty Edit", format: "Story", platform: "Instagram",
+    caption: "Full face using nothing outside the Ounass beauty edit. Shade names as she goes.",
+    img: "/ads/memz-ounass-story.jpg", video: "/ads/memz-ounass-story.mp4",
+    submitted: "5d ago", track: "MT-OU-P2-V02", signal: "liked" },
+  { id: "ad-v-ou-p2-3", campaignId: "ounass-phase-2", creatorId: 10,
+    product: "Ounass Luxury Haul", format: "Video", platform: "TikTok",
+    caption: "What actually arrived from the haul, unpacked in one take and rated out loud.",
+    img: "/ads/noon-ounass-tiktok.jpg", video: "/ads/noon-ounass-tiktok.mp4",
+    submitted: "4d ago", track: "MT-OU-P2-V03", signal: "liked" },
+  { id: "ad-v-ou-p2-4", campaignId: "ounass-phase-2", creatorId: 7,
+    product: "Ounass Exclusive — The Resort Ritual", format: "Story", platform: "Instagram",
+    caption: "Walking the Resort Ritual edit on site, gift sets first, with the code on screen.",
+    img: "/ads/cosmo-ounass-story.jpg", video: "/ads/cosmo-ounass-story.mp4",
+    submitted: "3d ago", track: "MT-OU-P2-V04", signal: "liked" },
+  { id: "ad-v-lu-p1-1", campaignId: "luna-phase-1", creatorId: 1,
+    product: "Pearl Mesh Clutch", format: "Reel", platform: "Instagram",
+    caption: "The pearl mesh clutch on camera rather than on a plinth — code and piece number on screen.",
+    img: "/ads/palm-ounass-clutch.jpg", video: "/ads/palm-ounass-clutch.mp4",
+    submitted: "6d ago", track: "MT-LU-P1-V01", signal: "liked" },
+  { id: "ad-v-lu-p1-2", campaignId: "luna-phase-1", creatorId: 2,
+    product: "Ounass Beauty Edit", format: "Story", platform: "Instagram",
+    caption: "Full face using nothing outside the Ounass beauty edit. Shade names as she goes.",
+    img: "/ads/memz-ounass-story.jpg", video: "/ads/memz-ounass-story.mp4",
+    submitted: "5d ago", track: "MT-LU-P1-V02", signal: "liked" },
+  { id: "ad-v-lu-p1-3", campaignId: "luna-phase-1", creatorId: 10,
+    product: "Ounass Luxury Haul", format: "Video", platform: "TikTok",
+    caption: "What actually arrived from the haul, unpacked in one take and rated out loud.",
+    img: "/ads/noon-ounass-tiktok.jpg", video: "/ads/noon-ounass-tiktok.mp4",
+    submitted: "4d ago", track: "MT-LU-P1-V03", signal: "liked" },
+  { id: "ad-v-lu-p1-4", campaignId: "luna-phase-1", creatorId: 7,
+    product: "Ounass Exclusive — The Resort Ritual", format: "Story", platform: "Instagram",
+    caption: "Walking the Resort Ritual edit on site, gift sets first, with the code on screen.",
+    img: "/ads/cosmo-ounass-story.jpg", video: "/ads/cosmo-ounass-story.mp4",
+    submitted: "3d ago", track: "MT-LU-P1-V04", signal: "liked" },
+  { id: "ad-v-lu-p2-1", campaignId: "luna-phase-2", creatorId: 1,
+    product: "Pearl Mesh Clutch", format: "Reel", platform: "Instagram",
+    caption: "The pearl mesh clutch on camera rather than on a plinth — code and piece number on screen.",
+    img: "/ads/palm-ounass-clutch.jpg", video: "/ads/palm-ounass-clutch.mp4",
+    submitted: "6d ago", track: "MT-LU-P2-V01", signal: "liked" },
+  { id: "ad-v-lu-p2-2", campaignId: "luna-phase-2", creatorId: 2,
+    product: "Ounass Beauty Edit", format: "Story", platform: "Instagram",
+    caption: "Full face using nothing outside the Ounass beauty edit. Shade names as she goes.",
+    img: "/ads/memz-ounass-story.jpg", video: "/ads/memz-ounass-story.mp4",
+    submitted: "5d ago", track: "MT-LU-P2-V02", signal: "liked" },
+  { id: "ad-v-lu-p2-3", campaignId: "luna-phase-2", creatorId: 10,
+    product: "Ounass Luxury Haul", format: "Video", platform: "TikTok",
+    caption: "What actually arrived from the haul, unpacked in one take and rated out loud.",
+    img: "/ads/noon-ounass-tiktok.jpg", video: "/ads/noon-ounass-tiktok.mp4",
+    submitted: "4d ago", track: "MT-LU-P2-V03", signal: "liked" },
+  { id: "ad-v-lu-p2-4", campaignId: "luna-phase-2", creatorId: 7,
+    product: "Ounass Exclusive — The Resort Ritual", format: "Story", platform: "Instagram",
+    caption: "Walking the Resort Ritual edit on site, gift sets first, with the code on screen.",
+    img: "/ads/cosmo-ounass-story.jpg", video: "/ads/cosmo-ounass-story.mp4",
+    submitted: "3d ago", track: "MT-LU-P2-V04", signal: "liked" },
+  { id: "ad-v-fg-p1-1", campaignId: "fresh-phase-1", creatorId: 1,
+    product: "Pearl Mesh Clutch", format: "Reel", platform: "Instagram",
+    caption: "The pearl mesh clutch on camera rather than on a plinth — code and piece number on screen.",
+    img: "/ads/palm-ounass-clutch.jpg", video: "/ads/palm-ounass-clutch.mp4",
+    submitted: "6d ago", track: "MT-FG-P1-V01", signal: "liked" },
+  { id: "ad-v-fg-p1-2", campaignId: "fresh-phase-1", creatorId: 2,
+    product: "Ounass Beauty Edit", format: "Story", platform: "Instagram",
+    caption: "Full face using nothing outside the Ounass beauty edit. Shade names as she goes.",
+    img: "/ads/memz-ounass-story.jpg", video: "/ads/memz-ounass-story.mp4",
+    submitted: "5d ago", track: "MT-FG-P1-V02", signal: "liked" },
+  { id: "ad-v-fg-p1-3", campaignId: "fresh-phase-1", creatorId: 10,
+    product: "Ounass Luxury Haul", format: "Video", platform: "TikTok",
+    caption: "What actually arrived from the haul, unpacked in one take and rated out loud.",
+    img: "/ads/noon-ounass-tiktok.jpg", video: "/ads/noon-ounass-tiktok.mp4",
+    submitted: "4d ago", track: "MT-FG-P1-V03", signal: "liked" },
+  { id: "ad-v-fg-p1-4", campaignId: "fresh-phase-1", creatorId: 7,
+    product: "Ounass Exclusive — The Resort Ritual", format: "Story", platform: "Instagram",
+    caption: "Walking the Resort Ritual edit on site, gift sets first, with the code on screen.",
+    img: "/ads/cosmo-ounass-story.jpg", video: "/ads/cosmo-ounass-story.mp4",
+    submitted: "3d ago", track: "MT-FG-P1-V04", signal: "liked" },
   /* ── Ounass · Phase 2 · Scale — drafts waiting on the brand ── */
   { id: "ad-sp-1", campaignId: "ounass-phase-2", creatorId: 1,
     product: "Linen Wrap Dress — Sand", format: "Reel", platform: "Instagram",

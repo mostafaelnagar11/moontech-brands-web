@@ -6,12 +6,16 @@ export const DEMO_CODE = "911324";
    match against THESE rather than against a generic house threshold, so
    "why we recommend her" is answerable per brand instead of being the same
    sentence for everyone. */
+/* FOUR SIGNALS, because four are what the matcher actually extracts from a
+   profile. It used to carry six — markets, buyer age, view-through and
+   cadence among them — and the extra two were checked against numbers the
+   matcher never reads, so the checklist described a process that wasn't
+   running. These are the ones it does read. */
 export type BrandCriteria = {
-  markets: string[];        // the markets the brand sells into
-  ageBand: string;          // the buying age band
+  platforms: string[];      // the platforms this brand wants to run on
+  minFollowers: number;     // the floor a creator has to clear
+  niches: string[];         // the profile signals the brand is buying
   minGccAudience: number;   // % of audience that must be in the region
-  minViewThrough: number;   // avg views ÷ followers — does the audience watch
-  minPostsPerWeek: number;  // cadence a phase can be built on
 };
 
 export type Brand = {
@@ -25,12 +29,12 @@ export type Brand = {
 
 export const BRANDS: Brand[] = [
   { id: "ounass", name: "Ounass",      initials: "O", color: "#4D2FB0", logo: "/ounass-logo.jpeg",
-    criteria: { markets: ["UAE", "KSA", "Kuwait"], ageBand: "25–34",
-                minGccAudience: 60, minViewThrough: 0.15, minPostsPerWeek: 3 } },
+    criteria: { platforms: ["Instagram", "TikTok"], minFollowers: 50000,
+                niches: ["Luxury", "Fashion", "Beauty"], minGccAudience: 60 } },
   { id: "luna",   name: "Luna Beauty", initials: "L", color: "#0891b2", logo: "/luna-logo.png",
-    criteria: { markets: ["UAE", "KSA"], ageBand: "18–34",
-                minGccAudience: 55, minViewThrough: 0.15, minPostsPerWeek: 2 } },
+    criteria: { platforms: ["Instagram", "TikTok"], minFollowers: 25000,
+                niches: ["Beauty", "Lifestyle"], minGccAudience: 55 } },
   { id: "fresh",  name: "FreshGrocer", initials: "F", color: "#059669", logo: "/freshgrocer-logo.jpg",
-    criteria: { markets: ["UAE"], ageBand: "25–44",
-                minGccAudience: 70, minViewThrough: 0.12, minPostsPerWeek: 2 } },
+    criteria: { platforms: ["Instagram", "TikTok"], minFollowers: 15000,
+                niches: ["Lifestyle", "Beauty"], minGccAudience: 70 } },
 ];

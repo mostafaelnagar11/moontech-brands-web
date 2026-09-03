@@ -135,6 +135,13 @@ export default function CampaignAdsPage() {
      started from, because the click that confirms it happens a render later
      and `sel` may have moved by then — `rate` needs the index it acts on. */
   const [decline, setDecline] = useState<{ ad: Ad; i: number } | null>(null);
+  /* WHICH STEP OF THE DECLINE IS UP.
+     A strong match gets a screen of its own before the reasons, because the
+     warning and the form ask for two different things: one wants a decision
+     ("are you sure?"), the other wants work ("write what to change"). Sat
+     together, the warning was a line the reviewer read past on the way to
+     the checkboxes. Every other decline opens straight on "reasons". */
+  const [declineStep, setDeclineStep] = useState<"confirm" | "reasons">("reasons");
   const [note, setNote] = useState("");
   /* Reason ids, not free text: the creator gets something to act on, and a
      decline stays measured against the brief both sides agreed to. */
@@ -222,7 +229,7 @@ export default function CampaignAdsPage() {
 
   /* Warm the next hero so navigation never lands on a grey box. Keyed on the
      image URL, not the array, since the array is rebuilt each render. */
-  const nextImg = shown[sel + 1]?.img;
+  const nextImg = shown[sel + 1]?.video ? undefined : shown[sel + 1]?.img;
   useEffect(() => {
     if (!nextImg) return;
     const im = new window.Image();
@@ -315,6 +322,7 @@ export default function CampaignAdsPage() {
   const askDecline = useCallback((a: Ad, i: number) => {
     setNote("");
     setReasons([]);
+    setDeclineStep(adCreator(a).fit >= HIGH_FIT ? "confirm" : "reasons");
     setDecline({ ad: a, i });
   }, []);
 
@@ -322,6 +330,7 @@ export default function CampaignAdsPage() {
      the whole point of the dialog is that this button is the easy one. */
   const closeDecline = useCallback(() => {
     setDecline(null);
+    setDeclineStep("reasons");
     setNote("");
     setReasons([]);
   }, []);
@@ -335,6 +344,7 @@ export default function CampaignAdsPage() {
     if (!decline || reasons.length === 0) return;
     rate(decline.ad, decline.i, "disliked", { reasons, note });
     setDecline(null);
+    setDeclineStep("reasons");
     setNote("");
     setReasons([]);
   }, [decline, note, reasons, rate]);
@@ -528,10 +538,6 @@ export default function CampaignAdsPage() {
   const daysLeft = ad && ad.signal === "none" ? draftDaysLeft(ad.submitted) : null;
   const dAd = decline?.ad ?? null;
   const dCreator = dAd ? adCreator(dAd) : null;
-  /* At or above HIGH_FIT the matcher rated this person a strong fit, so the
-     dialog leads with that instead of the reason box. Below it, the same
-     framing on every decline would be crying wolf. */
-  const dStrong = dCreator ? dCreator.fit >= HIGH_FIT : false;
 
   /* The three checks — same rows in the rail and in the small-viewport modal,
      so the two can never drift apart. */
@@ -781,13 +787,37 @@ export default function CampaignAdsPage() {
                 the 112px verb row + this container's 40px of padding. */}
             <div className="flex h-full items-center justify-center px-16 py-5">
               <div key={ad.id} className="animate-fade-in relative inline-block">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={adHero(ad.img)}
-                  alt={`Still from ${creator.name}'s ${ad.format.toLowerCase()} reviewing the ${ad.product}`}
-                  decoding="async"
-                  className="block max-h-[calc(100vh-264px)] max-w-full rounded-2xl bg-white/[0.04] object-contain shadow-[0_24px_60px_-20px_rgba(0,0,0,0.8)]"
-                />
+                {/* A REAL RECORDING PLAYS; everything else is a still.
+
+                    Same cap, same rounding, same shadow, so the stage does
+                    not resize between an ad you can play and one you cannot.
+                    `controls` rather than autoplay: this is a review, and a
+                    reviewer decides when a 70-second ad starts. The poster
+                    is `img`, so the frame is painted before a byte of video
+                    is fetched and the shelf's tiles already match it. */}
+                {ad.video ? (
+                  <video
+                    src={ad.video}
+                    poster={ad.img}
+                    controls
+                    playsInline
+                    preload="metadata"
+                    aria-label={`${creator.name}'s ${ad.format.toLowerCase()} for the ${ad.product}`}
+                    /* HEIGHT drives the size, not the file. A <video> lays
+                       itself out at its intrinsic pixels, so a 296-wide
+                       recording sat half the size of a still on the same
+                       stage. Given the height, width follows the aspect. */
+                    className="block h-[calc(100vh-264px)] w-auto max-w-full rounded-2xl bg-black object-contain shadow-[0_24px_60px_-20px_rgba(0,0,0,0.8)]"
+                  />
+                ) : (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={adHero(ad.img)}
+                    alt={`Still from ${creator.name}'s ${ad.format.toLowerCase()} reviewing the ${ad.product}`}
+                    decoding="async"
+                    className="block max-h-[calc(100vh-264px)] max-w-full rounded-2xl bg-white/[0.04] object-contain shadow-[0_24px_60px_-20px_rgba(0,0,0,0.8)]"
+                  />
+                )}
 
                 {/* NO PILLS ON THE CREATIVE.
 
@@ -805,8 +835,16 @@ export default function CampaignAdsPage() {
                     policy about every draft, not a property of this image. */}
 
                 {/* The identity, the caption and the honest meta line — on the
-                    media, over a scrim, every string carrying .ad-shadow. */}
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 rounded-b-2xl bg-gradient-to-t from-black/90 via-black/60 to-transparent px-4 pb-4 pt-20">
+                    media, over a scrim, every string carrying .ad-shadow.
+
+                    A VIDEO KEEPS ITS CONTROL BAR CLEAR. The scrim is
+                    pointer-events-none, so a click still reaches the player
+                    underneath — but a play button you cannot SEE is a play
+                    button that isn't there, so on a real recording the whole
+                    block lifts above where the browser draws its controls. */}
+                <div className={`pointer-events-none absolute inset-x-0 rounded-b-2xl bg-gradient-to-t from-black/90 via-black/60 to-transparent px-4 pt-20 ${
+                  ad.video ? "bottom-11 pb-2" : "bottom-0 pb-4"
+                }`}>
                   <div className="flex items-center gap-2.5">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
@@ -1040,6 +1078,45 @@ export default function CampaignAdsPage() {
             aria-labelledby="decline-title"
             className="animate-fade-in relative max-h-full w-full max-w-[500px] overflow-y-auto rounded-2xl border border-black/[0.06] bg-white p-5 shadow-[0_24px_60px_-20px_rgba(0,0,0,0.8)]"
           >
+            {declineStep === "confirm" ? (
+              /* ── STEP ONE, and only for a strong match ──
+                 The matcher rated this person near the top of the roster,
+                 so the cost of an accidental decline is higher than the
+                 click it would save. One question, two buttons, and the
+                 gentle one is the default — Escape and the scrim both land
+                 on Cancel, same as the reasons step. ── */
+              <>
+                <span aria-hidden="true"
+                  className="grid h-11 w-11 place-items-center rounded-full bg-[#4D2FB0]/[0.09]">
+                  <ThumbsDown size={20} weight="regular" style={{ color: BRAND }} />
+                </span>
+                <h2 id="decline-title" className="mt-3.5 pr-9 text-[17px] font-bold" style={{ color: INK }}>
+                  One of your strongest matches
+                </h2>
+                <p className="mt-1.5 pr-9 text-[13px] leading-relaxed text-neutral-500">
+                  MoonTech rated {dCreator.name}{" "}
+                  <span className="font-bold tabular-nums" style={{ color: BRAND }}>{dCreator.fit}</span>{" "}
+                  brand fit for this phase. Disliking this ad keeps it from
+                  publishing and stops us matching its pattern.
+                </p>
+                <div className="mt-5 flex justify-end gap-2.5">
+                  <button
+                    onClick={closeDecline}
+                    className="rounded-xl border border-black/[0.1] px-4 py-2.5 text-[13px] font-semibold transition-colors hover:bg-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4D2FB0]"
+                    style={{ color: BRAND }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => setDeclineStep("reasons")}
+                    className="rounded-xl bg-[#D70015]/[0.08] px-4 py-2.5 text-[13px] font-semibold text-[#B3000F] transition-colors hover:bg-[#D70015]/[0.14] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D70015]/50"
+                  >
+                    Dislike anyway
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
             <h2 id="decline-title" className="pr-9 text-[17px] font-bold" style={{ color: INK }}>
               Why is this not right?
             </h2>
@@ -1057,28 +1134,11 @@ export default function CampaignAdsPage() {
               <X size={16} weight="bold" />
             </button>
 
-            {/* The fit is CONTEXT, not the headline. It used to be a tinted
-                panel with a filled badge above the reasons, which gave a
-                second-look prompt more weight than the thing the dialog is
-                actually for. One quiet line, at the size of the subtitle it
-                sits under — the score is the only emphasis it needs. */}
-            {/* Readable, but still a line rather than a panel. It was a
-                tinted box with a filled badge (too loud, it outranked the
-                reasons), then neutral-400 at 11.5px (too quiet to register).
-                This is the middle: the claim in ink, the score in brand
-                purple, no container. */}
-            {dStrong && (
-              <p className="mt-2 pr-9 text-[12.5px] leading-snug text-neutral-500">
-                <span className="font-semibold" style={{ color: INK }}>
-                  One of your strongest matches
-                </span>{" "}
-                ·{" "}
-                <span className="font-bold tabular-nums" style={{ color: BRAND }}>
-                  {dCreator.fit}
-                </span>{" "}
-                brand fit
-              </p>
-            )}
+            {/* The fit does NOT appear here any more. It was a line above the
+                reasons — tinted panel, then quiet grey, then this — and every
+                version had the same problem: a second-look prompt sharing a
+                card with the form is read on the way past. It is its own step
+                now, ahead of this one. */}
 
             {/* Reasons, not a blank box. Every label is measured against the
                 BRIEF rather than taste, because "I don't like it" gives a
@@ -1169,6 +1229,8 @@ export default function CampaignAdsPage() {
                 <ThumbsDown size={16} weight="fill" aria-hidden="true" /> Send
               </button>
             </div>
+              </>
+            )}
           </div>
         </div>
       )}

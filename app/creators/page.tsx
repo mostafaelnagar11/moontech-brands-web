@@ -12,19 +12,13 @@ import NotificationCenter from "../components/NotificationCenter";
 import { useActiveBrand } from "../lib/brand";
 import {
   CREATOR_PASS_REASONS, creatorPassReasonLabel, NOTE_MAX, viewThrough, pct1, median,
-  postsPerWeek,
+  fmtCount,
 } from "../lib/campaigns";
 
 /* ------------------------------------------------------------------ */
 /* Design tokens                                                       */
 /* ------------------------------------------------------------------ */
 const INK = "#191234";
-
-/* Flag emojis for the country codes used in `topCountries`. */
-const COUNTRY_FLAGS: Record<string, string> = {
-  UAE: "🇦🇪", KSA: "🇸🇦", Kuwait: "🇰🇼", Qatar: "🇶🇦", Bahrain: "🇧🇭",
-  Oman: "🇴🇲", Egypt: "🇪🇬", Jordan: "🇯🇴", Lebanon: "🇱🇧",
-};
 
 /* ------------------------------------------------------------------ */
 /* Data                                                                */
@@ -135,12 +129,6 @@ const SHOW_PERFORMANCE = false;
 
 const ROSTER_MEDIAN_VT = median(CREATORS_SEED.map((c) => viewThrough(c.avgViews, c.followers)));
 
-/** "25–34 (62%)" or "25–34" → [25, 34]. null when there is no range to read. */
-function ageRange(s: string): [number, number] | null {
-  const m = s.match(/(\d+)\s*[–-]\s*(\d+)/);
-  return m ? [Number(m[1]), Number(m[2])] : null;
-}
-
 const TABS: { key: Signal; label: string }[] = [
   { key: "waiting", label: "Waiting" },
   { key: "liked", label: "Liked" },
@@ -180,102 +168,50 @@ function Detail({
   const idx = waitingList.findIndex((x) => x.id === c.id);
   const hasPrev = idx > 0, hasNext = idx >= 0 && idx < waitingList.length - 1;
 
-  const topCountries = c.topCountries.split(",").map((seg) => {
-    const [code, ...rest] = seg.trim().split(" ");
-    return { code, pct: rest.join(" ") };
-  });
-
-  /* ── The confidence checklist ──
-     Every row is a criterion THIS brand set, the creator's own figure
-     against it, and whether it clears. A row that does not clear is still
-     shown, in neutral: the matcher already weighed it, so it is context,
-     not an alert. Red on this screen means "needs your action" and nothing
-     the matcher has already priced in qualifies. ── */
+  /* Still read by the parked performance section below. */
   const vt = viewThrough(c.avgViews, c.followers);
-  const ppw = postsPerWeek(c.postFreq);
-  const rival = c.brandConflict.match(/\(([^)]+)\)/)?.[1];
 
-  /* Markets are checked as coverage: the brand named the markets it sells
-     into, so a market missing from her top three is a real gap — but the
-     wording says "not in her top three" rather than "no audience there",
-     because the model only carries three countries per creator. */
-  const marketsHit = criteria.markets.filter((m) => topCountries.some((t) => t.code === m));
-  const marketsMissed = criteria.markets.filter((m) => !marketsHit.includes(m));
+  /* ── THE FOUR SIGNALS ──
+     One row per thing the matcher extracts from a profile, each against
+     what THIS brand asked for. The list used to run to six, and two of
+     those — buyer age and cadence — were measured against criteria the
+     matcher never reads, so the checklist was describing work that was
+     not happening.
 
-  /* Age is checked as how much of the BRAND'S buyer band she reaches, not
-     how wide her own band is — a creator whose audience is 18–28 overlaps
-     a 25–34 buyer by three years, and that is a third of the buyer, not a
-     match. Half the band is the bar; an unreadable band never passes on
-     optimism. */
-  const cAge = ageRange(c.audienceAge);
-  const bAge = ageRange(criteria.ageBand);
-  const ageOverlap = cAge && bAge
-    ? [Math.max(cAge[0], bAge[0]), Math.min(cAge[1], bAge[1])] as const
-    : null;
-  const ageCovered = ageOverlap ? Math.max(ageOverlap[1] - ageOverlap[0], 0) : 0;
-  const ageBandSpan = bAge ? bAge[1] - bAge[0] : 0;
-  const ageOk = ageBandSpan > 0 && ageCovered / ageBandSpan >= 0.5;
-
+     A row that does not clear is still shown, in neutral: the matcher
+     already weighed it, so it is context, not an alert. Red on this
+     screen means "needs your action", and nothing already priced into
+     the fit score qualifies. ── */
+  const nicheOk = criteria.niches.some(
+    (n) => n.toLowerCase() === c.niche.toLowerCase(),
+  );
   const checks: { label: string; ok: boolean; node: React.ReactNode }[] = [
+    {
+      label: "Platform",
+      ok: criteria.platforms.includes(c.platform),
+      node: criteria.platforms.includes(c.platform)
+        ? `${c.platform} · one of the platforms you asked for`
+        : `${c.platform} · you asked for ${criteria.platforms.join(" or ")}`,
+    },
+    {
+      label: "Followers",
+      ok: c.followers >= criteria.minFollowers,
+      node: `${fmtCount(c.followers)} followers · you asked for ${fmtCount(criteria.minFollowers)}+`,
+    },
+    {
+      label: "Profile",
+      /* The niche IS the profile signal the matcher reads. Phrased as what
+         her profile is either way, so the line reads the same cleared or
+         not — the tick is what says which. */
+      ok: nicheOk,
+      node: nicheOk
+        ? `${c.niche} · you are buying ${criteria.niches.join(", ")}`
+        : `${c.niche} · no strong ${criteria.niches.join("/").toLowerCase()} signal`,
+    },
     {
       label: "Region",
       ok: c.gcAudience >= criteria.minGccAudience,
       node: `${c.gcAudience}% of her audience is in the Gulf · you asked for ${criteria.minGccAudience}%+`,
-    },
-    {
-      label: "Markets",
-      ok: marketsMissed.length === 0,
-      /* The flag treatment is deliberate and stays: a country list reads
-         faster as flags than as three-letter codes. */
-      node: (
-        <span className="inline-flex flex-wrap items-center gap-x-2.5 gap-y-1">
-          <span>
-            {marketsHit.length} of your {criteria.markets.length}{" "}
-            {criteria.markets.length === 1 ? "market" : "markets"} — her top countries:
-          </span>
-          {topCountries.map((f, i) => (
-            <span key={i} className="inline-flex items-center gap-1">
-              <span className="text-[13px] leading-none">{COUNTRY_FLAGS[f.code] ?? f.code}</span>
-              <span>{f.pct}</span>
-            </span>
-          ))}
-          {marketsMissed.length > 0 && (
-            <span className="text-neutral-500">
-              · {marketsMissed.join(", ")} not in her top three
-            </span>
-          )}
-        </span>
-      ),
-    },
-    {
-      label: "Buyer age",
-      ok: ageOk,
-      /* "Overlaps", not "meets": this line has to read the same whether
-         the row cleared or not — the tick is what says which. */
-      node: ageOverlap && ageCovered > 0
-        ? ageCovered === ageBandSpan
-          ? `Her audience skews ${c.audienceAge} · covers your ${criteria.ageBand} buyer`
-          : `Her audience skews ${c.audienceAge} · overlaps your ${criteria.ageBand} buyer at ${ageOverlap[0]}–${ageOverlap[1]}`
-        : `Her audience skews ${c.audienceAge} · your buyer is ${criteria.ageBand}`,
-    },
-    {
-      label: "Reach",
-      ok: vt >= criteria.minViewThrough,
-      node: `${pct1(vt)} of her audience watches · you asked for ${pct1(criteria.minViewThrough)}+`,
-    },
-    {
-      label: "Cadence",
-      ok: ppw !== null && ppw >= criteria.minPostsPerWeek,
-      node: ppw === null
-        ? `She posts ${c.postFreq} — not a weekly figure we can check against ${criteria.minPostsPerWeek}+ a week`
-        : `${c.postFreq} · you asked for ${criteria.minPostsPerWeek}+ a week`,
-    },
-    {
-      label: "Exclusivity",
-      ok: !rival,
-      node: rival
-        ? `Also publishes for ${rival} · logged, not blocking`
-        : "No competing brand in her recent work",
     },
   ];
   const cleared = checks.filter((k) => k.ok).length;
