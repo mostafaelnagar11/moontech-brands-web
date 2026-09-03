@@ -91,7 +91,7 @@ const NOTIFS: Notif[] = [
     body: `${phaseTitle(OU_LIVE.phaseNo)} is up 18% week over week — ${OU_LIVE.roas} on the ${fmtUSD(OU_LIVE.budget)} it was given, against ${OU_LIVE.guaranteedRoas}× guaranteed.`,
     href: "/dashboard" },
   { id: "n6", type: "creator", group: "Earlier", time: "2d ago",
-    title: `Layla Al Rashid joined ${phaseTitle(OU_LIVE.phaseNo)}`,
+    title: `Jawaher Alsuwaidi joined ${phaseTitle(OU_LIVE.phaseNo)}`,
     body: "She'll start publishing within 48 hours.",
     href: "/creators" },
   /* Three days old, so it reports where Luna's Phase 2 stood THEN — below

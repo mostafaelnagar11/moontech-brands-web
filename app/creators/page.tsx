@@ -33,6 +33,11 @@ type Signal = "waiting" | "liked" | "passed";
 type Platform = "Instagram" | "TikTok" | "YouTube";
 
 interface Post { img: string; views: string; type: string }
+/* One account the creator actually holds. The handle travels WITH the
+   platform because the same person is @ghalya.mu2 on TikTok and @ghalya.mu
+   on Instagram — deriving the second from the first sends a brand to a
+   stranger's profile, or to nobody. */
+interface Account { platform: Platform; handle: string }
 interface Creator {
   id: number; initials: string; name: string; handle: string; niche: string;
   platform: Platform; followers: number; score: number; gcAudience: number;
@@ -40,39 +45,51 @@ interface Creator {
   brandConflict: string; location: string; topCountries: string; audienceAge: string;
   audienceGender: string; postFreq: string; activeSince: string; status: Signal;
   colors: [string, string]; bio: string; avatar: string; posts: Post[];
+  /* Primary first — `platform` and `handle` above are this list's head. */
+  accounts: Account[];
 }
 
 const CREATORS_SEED: Creator[] = [
-  { id: 1, initials: "LA", name: "Layla Al Rashid", handle: "@layla.style", niche: "Fashion", platform: "Instagram", followers: 84200, score: 92, gcAudience: 71, avgViews: 18400, totalPosts: 847, contentQuality: "High", brandConflict: "None", location: "UAE", topCountries: "UAE 42%, KSA 29%, Kuwait 12%", audienceAge: "25–34 (62%)", audienceGender: "Female 78%", postFreq: "4–5x/week", activeSince: "2019", status: "waiting", colors: ["#2D1B6B", "#4A2BA0"], bio: "Sharing everyday luxury & curated fashion from Dubai. Partner with brands that align with my aesthetic.",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=160&h=160&fit=crop&crop=faces",
-    posts: [{ img: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=300&h=400&fit=crop", views: "22K", type: "Reel" }, { img: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=300&h=400&fit=crop", views: "18K", type: "Post" }, { img: "https://images.unsplash.com/photo-1581044777550-4cfa60707c03?w=300&h=400&fit=crop", views: "24K", type: "Reel" }, { img: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=300&h=400&fit=crop", views: "16K", type: "Post" }, { img: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=300&h=400&fit=crop", views: "19K", type: "Story" }] },
-  { id: 2, initials: "NA", name: "Nour Abdulkarim", handle: "@nourbeauty", niche: "Beauty", platform: "Instagram", followers: 52300, score: 87, gcAudience: 68, avgViews: 11200, totalPosts: 612, contentQuality: "High", brandConflict: "None", location: "KSA", topCountries: "KSA 55%, UAE 25%, Kuwait 9%", audienceAge: "22–32 (71%)", audienceGender: "Female 91%", postFreq: "6x/week", activeSince: "2020", status: "waiting", colors: ["#831843", "#BE185D"], bio: "Beauty, skincare and honest reviews. Based in Riyadh. Only work with brands I actually use.",
-    avatar: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=160&h=160&fit=crop&crop=faces",
-    posts: [{ img: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=300&h=400&fit=crop", views: "14K", type: "Reel" }, { img: "https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=300&h=400&fit=crop", views: "11K", type: "Post" }, { img: "https://images.unsplash.com/photo-1576426863848-c21f53c60b19?w=300&h=400&fit=crop", views: "18K", type: "Reel" }, { img: "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=300&h=400&fit=crop", views: "9K", type: "Post" }, { img: "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=300&h=400&fit=crop", views: "13K", type: "Post" }] },
-  { id: 3, initials: "SK", name: "Sara Al Khalifa", handle: "@saraxstyle", niche: "Luxury", platform: "Instagram", followers: 214000, score: 95, gcAudience: 82, avgViews: 42100, totalPosts: 1204, contentQuality: "Premium", brandConflict: "Minor (Farfetch)", location: "UAE", topCountries: "UAE 48%, KSA 22%, Bahrain 10%", audienceAge: "28–38 (58%)", audienceGender: "Female 74%", postFreq: "3x/week", activeSince: "2017", status: "waiting", colors: ["#1A1A2E", "#3A3A5A"], bio: "Luxury fashion & travel. Building a community for women who appreciate the finer things. Dubai based.",
-    avatar: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=160&h=160&fit=crop&crop=faces",
-    posts: [{ img: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=300&h=400&fit=crop", views: "48K", type: "Reel" }, { img: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=300&h=400&fit=crop", views: "41K", type: "Post" }, { img: "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=300&h=400&fit=crop", views: "55K", type: "Reel" }, { img: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=300&h=400&fit=crop", views: "38K", type: "Post" }, { img: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=300&h=400&fit=crop", views: "44K", type: "Story" }] },
-  { id: 4, initials: "DM", name: "Dina Mostafa", handle: "@dinamode", niche: "Fashion", platform: "TikTok", followers: 128000, score: 89, gcAudience: 61, avgViews: 95400, totalPosts: 430, contentQuality: "High", brandConflict: "None", location: "Egypt", topCountries: "Egypt 38%, UAE 23%, KSA 18%", audienceAge: "18–28 (74%)", audienceGender: "Female 86%", postFreq: "Daily", activeSince: "2021", status: "waiting", colors: ["#0C4A6E", "#1D5F8A"], bio: "Fashion hauls, outfit ideas & styling tips. Creating content my audience actually watches till the end.",
-    avatar: "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=160&h=160&fit=crop&crop=faces",
-    posts: [{ img: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&h=400&fit=crop", views: "112K", type: "Video" }, { img: "https://images.unsplash.com/photo-1549062573-27a9b2b8a3b1?w=300&h=400&fit=crop", views: "89K", type: "Video" }, { img: "https://images.unsplash.com/photo-1542295669297-4d352b042bca?w=300&h=400&fit=crop", views: "124K", type: "Video" }, { img: "https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?w=300&h=400&fit=crop", views: "78K", type: "Video" }, { img: "https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=300&h=400&fit=crop", views: "96K", type: "Video" }] },
-  { id: 5, initials: "RM", name: "Rania Mansour", handle: "@raniamansour", niche: "Lifestyle", platform: "Instagram", followers: 38700, score: 81, gcAudience: 73, avgViews: 8200, totalPosts: 520, contentQuality: "Medium", brandConflict: "None", location: "KSA", topCountries: "KSA 60%, UAE 20%, Jordan 10%", audienceAge: "24–34 (65%)", audienceGender: "Female 82%", postFreq: "3–4x/week", activeSince: "2020", status: "waiting", colors: ["#14532D", "#1A7A3F"], bio: "Everyday moments, home & family life. Authentic content for the modern GCC woman.",
-    avatar: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=160&h=160&fit=crop&crop=faces",
-    posts: [{ img: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=300&h=400&fit=crop", views: "8K", type: "Post" }, { img: "https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=300&h=400&fit=crop", views: "11K", type: "Reel" }, { img: "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=300&h=400&fit=crop", views: "7K", type: "Post" }, { img: "https://images.unsplash.com/photo-1484327973588-c31f829103fe?w=300&h=400&fit=crop", views: "9K", type: "Post" }, { img: "https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?w=300&h=400&fit=crop", views: "6K", type: "Story" }] },
-  { id: 6, initials: "HK", name: "Hana Khalid", handle: "@hanakofficial", niche: "Beauty", platform: "YouTube", followers: 92000, score: 84, gcAudience: 65, avgViews: 24500, totalPosts: 218, contentQuality: "High", brandConflict: "None", location: "UAE", topCountries: "UAE 44%, KSA 28%, Kuwait 11%", audienceAge: "20–30 (68%)", audienceGender: "Female 88%", postFreq: "2x/week", activeSince: "2018", status: "waiting", colors: ["#7C1D1D", "#991B1B"], bio: "Deep-dive beauty reviews, tutorials & honest brand callouts. 5 years of content, millions of views.",
-    avatar: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=160&h=160&fit=crop&crop=faces",
-    posts: [{ img: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=300&h=400&fit=crop", views: "28K", type: "Video" }, { img: "https://images.unsplash.com/photo-1616683693504-3ea7e9ad6fec?w=300&h=400&fit=crop", views: "31K", type: "Video" }, { img: "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=300&h=400&fit=crop", views: "22K", type: "Video" }, { img: "https://images.unsplash.com/photo-1522338242992-e1a54906a8da?w=300&h=400&fit=crop", views: "19K", type: "Video" }, { img: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=300&h=400&fit=crop", views: "25K", type: "Video" }] },
-  { id: 7, initials: "AJ", name: "Amira Jaber", handle: "@amira.j", niche: "Fitness", platform: "Instagram", followers: 47500, score: 78, gcAudience: 69, avgViews: 9100, totalPosts: 388, contentQuality: "Medium", brandConflict: "None", location: "UAE", topCountries: "UAE 52%, KSA 24%, Bahrain 8%", audienceAge: "22–32 (70%)", audienceGender: "Female 79%", postFreq: "4x/week", activeSince: "2021", status: "waiting", colors: ["#1A3A5C", "#2563EB"], bio: "Personal trainer & wellness creator. Helping women build strength without the gym intimidation.",
-    avatar: "https://images.unsplash.com/photo-1563306406-e66174fa3787?w=160&h=160&fit=crop&crop=faces",
-    posts: [{ img: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=300&h=400&fit=crop", views: "11K", type: "Reel" }, { img: "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=300&h=400&fit=crop", views: "8K", type: "Post" }, { img: "https://images.unsplash.com/photo-1534258936925-c58bed479fcb?w=300&h=400&fit=crop", views: "14K", type: "Reel" }, { img: "https://images.unsplash.com/photo-1549060279-7e168fcee0c2?w=300&h=400&fit=crop", views: "9K", type: "Post" }, { img: "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=300&h=400&fit=crop", views: "7K", type: "Story" }] },
-  { id: 8, initials: "LN", name: "Lina Naser", handle: "@linastyle_ae", niche: "Luxury", platform: "Instagram", followers: 310000, score: 91, gcAudience: 77, avgViews: 58000, totalPosts: 1620, contentQuality: "Premium", brandConflict: "Competing (Namshi)", location: "UAE", topCountries: "UAE 51%, KSA 24%, Kuwait 9%", audienceAge: "27–40 (54%)", audienceGender: "Female 71%", postFreq: "3x/week", activeSince: "2016", status: "waiting", colors: ["#4C1D95", "#6D28D9"], bio: "Luxury fashion, interior design and travel. One of UAE's earliest luxury lifestyle creators.",
-    avatar: "https://images.unsplash.com/photo-1502823403499-6ccfcf4fb453?w=160&h=160&fit=crop&crop=faces",
-    posts: [{ img: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=300&h=400&fit=crop", views: "68K", type: "Reel" }, { img: "https://images.unsplash.com/photo-1551232864-3f0890e580d9?w=300&h=400&fit=crop", views: "54K", type: "Post" }, { img: "https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=300&h=400&fit=crop", views: "72K", type: "Reel" }, { img: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=300&h=400&fit=crop", views: "61K", type: "Post" }, { img: "https://images.unsplash.com/photo-1544022613-e87ca75a784a?w=300&h=400&fit=crop", views: "58K", type: "Story" }] },
-  { id: 9, initials: "SA", name: "Sana Abadi", handle: "@sana.ae", niche: "Fashion", platform: "Instagram", followers: 61200, score: 88, gcAudience: 74, avgViews: 13800, totalPosts: 705, contentQuality: "High", brandConflict: "None", location: "UAE", topCountries: "UAE 46%, KSA 30%, Kuwait 12%", audienceAge: "24–34 (67%)", audienceGender: "Female 83%", postFreq: "5x/week", activeSince: "2020", status: "liked", colors: ["#064E3B", "#059669"], bio: "Styling tips, wardrobe essentials and conscious fashion from Dubai.",
-    avatar: "https://images.unsplash.com/photo-1506863530036-1efeddceb993?w=160&h=160&fit=crop&crop=faces",
-    posts: [{ img: "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=300&h=400&fit=crop", views: "16K", type: "Reel" }, { img: "https://images.unsplash.com/photo-1475180098004-ca77a66827be?w=300&h=400&fit=crop", views: "13K", type: "Post" }, { img: "https://images.unsplash.com/photo-1445205170230-053b83016050?w=300&h=400&fit=crop", views: "18K", type: "Reel" }, { img: "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=300&h=400&fit=crop", views: "12K", type: "Post" }, { img: "https://images.unsplash.com/photo-1502716119720-b23a93e5fe1b?w=300&h=400&fit=crop", views: "14K", type: "Story" }] },
-  { id: 10, initials: "MI", name: "Maya Ibrahim", handle: "@mayai_bh", niche: "Lifestyle", platform: "Instagram", followers: 29800, score: 73, gcAudience: 45, avgViews: 5600, totalPosts: 298, contentQuality: "Medium", brandConflict: "None", location: "Bahrain", topCountries: "Bahrain 38%, KSA 22%, UAE 17%", audienceAge: "20–30 (72%)", audienceGender: "Female 87%", postFreq: "3x/week", activeSince: "2022", status: "passed", colors: ["#78350F", "#92400E"], bio: "Bahrain-based lifestyle creator covering food, culture and everyday moments.",
-    avatar: "https://images.unsplash.com/photo-1521577352947-9bb58764b69a?w=160&h=160&fit=crop&crop=faces",
-    posts: [{ img: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=300&h=400&fit=crop", views: "6K", type: "Post" }, { img: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=300&h=400&fit=crop", views: "5K", type: "Reel" }, { img: "https://images.unsplash.com/photo-1493770348161-369560ae357d?w=300&h=400&fit=crop", views: "7K", type: "Post" }, { img: "https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=300&h=400&fit=crop", views: "4K", type: "Post" }, { img: "https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=300&h=400&fit=crop", views: "5K", type: "Story" }] },
+  { id: 1, initials: "JA", name: "Jawaher Alsuwaidi", handle: "@jawahralsuwaidi", niche: "Fashion", platform: "Instagram", followers: 78400, score: 93, gcAudience: 76, avgViews: 21600, totalPosts: 612, contentQuality: "High", brandConflict: "None", location: "UAE", topCountries: "UAE 58%, KSA 19%, Kuwait 11%", audienceAge: "25–34 (64%)", audienceGender: "Female 81%", postFreq: "4–5x/week", activeSince: "2018", status: "waiting", colors: ["#2D1B6B", "#4A2BA0"], bio: "Emirati fashion and travel creator. Ounass finds, promo codes and the edit behind every trip.",
+    avatar: "/creators/jawahralsuwaidi/avatar.jpg",
+    accounts: [{ platform: "Instagram", handle: "@jawahralsuwaidi" }, { platform: "TikTok", handle: "@jawahralsuwaidi" }],
+    posts: [{ img: "/creators/jawahralsuwaidi/p1.jpg", views: "26K", type: "Reel" }, { img: "/creators/jawahralsuwaidi/p2.jpg", views: "19K", type: "Post" }, { img: "/creators/jawahralsuwaidi/p3.jpg", views: "31K", type: "Reel" }, { img: "/creators/jawahralsuwaidi/p4.jpg", views: "17K", type: "Post" }, { img: "/creators/jawahralsuwaidi/p5.jpg", views: "15K", type: "Story" }] },
+  { id: 2, initials: "MB", name: "MakeupbyMemz", handle: "@makeupbymemz", niche: "Beauty", platform: "Instagram", followers: 135000, score: 88, gcAudience: 72, avgViews: 29800, totalPosts: 1840, contentQuality: "High", brandConflict: "None", location: "UAE", topCountries: "UAE 47%, KSA 26%, Kuwait 10%", audienceAge: "22–32 (69%)", audienceGender: "Female 93%", postFreq: "6x/week", activeSince: "2017", status: "waiting", colors: ["#831843", "#BE185D"], bio: "Pro makeup artist and beauty creator. Owner of Anabella Al Sharq salon. 500K+ on TikTok.",
+    avatar: "/creators/makeupbymemz/avatar.jpg",
+    accounts: [{ platform: "Instagram", handle: "@makeupbymemz" }, { platform: "TikTok", handle: "@makeupbymemz8" }],
+    posts: [{ img: "/creators/makeupbymemz/p1.jpg", views: "34K", type: "Reel" }, { img: "/creators/makeupbymemz/p2.jpg", views: "27K", type: "Reel" }, { img: "/creators/makeupbymemz/p3.jpg", views: "41K", type: "Reel" }, { img: "/creators/makeupbymemz/p4.jpg", views: "22K", type: "Post" }, { img: "/creators/makeupbymemz/p5.jpg", views: "25K", type: "Reel" }] },
+  { id: 3, initials: "OF", name: "Ola Farahat", handle: "@olafarahat", niche: "Luxury", platform: "Instagram", followers: 1300000, score: 90, gcAudience: 68, avgViews: 186000, totalPosts: 3410, contentQuality: "Premium", brandConflict: "Minor (Farfetch)", location: "UAE", topCountries: "UAE 44%, KSA 21%, Egypt 12%", audienceAge: "28–38 (56%)", audienceGender: "Female 76%", postFreq: "Daily", activeSince: "2013", status: "waiting", colors: ["#1A1A2E", "#3A3A5A"], bio: "Dubai-based luxury, travel and lifestyle. One of the region's longest-running fashion accounts.",
+    avatar: "/creators/olafarahat/avatar.jpg",
+    accounts: [{ platform: "Instagram", handle: "@olafarahat" }],
+    posts: [{ img: "/creators/olafarahat/p1.jpg", views: "212K", type: "Reel" }, { img: "/creators/olafarahat/p2.jpg", views: "168K", type: "Post" }, { img: "/creators/olafarahat/p3.jpg", views: "245K", type: "Reel" }, { img: "/creators/olafarahat/p4.jpg", views: "151K", type: "Post" }, { img: "/creators/olafarahat/p5.jpg", views: "174K", type: "Reel" }] },
+  { id: 4, initials: "MM", name: "Mais Mustafa", handle: "@mais.mustafa", niche: "Lifestyle", platform: "TikTok", followers: 43600, score: 84, gcAudience: 63, avgViews: 18900, totalPosts: 286, contentQuality: "High", brandConflict: "None", location: "UAE", topCountries: "UAE 39%, KSA 22%, Jordan 14%", audienceAge: "25–34 (61%)", audienceGender: "Female 88%", postFreq: "4x/week", activeSince: "2021", status: "waiting", colors: ["#0C4A6E", "#1D5F8A"], bio: "Fashion, lifestyle and motherhood. Short-form that people actually finish.",
+    avatar: "/creators/mais.mustafa/avatar.jpg",
+    accounts: [{ platform: "TikTok", handle: "@mais.mustafa" }],
+    posts: [{ img: "/creators/mais.mustafa/p1.jpg", views: "24K", type: "Video" }, { img: "/creators/mais.mustafa/p2.jpg", views: "17K", type: "Video" }, { img: "/creators/mais.mustafa/p3.jpg", views: "29K", type: "Video" }, { img: "/creators/mais.mustafa/p4.jpg", views: "13K", type: "Video" }, { img: "/creators/mais.mustafa/p5.jpg", views: "11K", type: "Video" }] },
+  { id: 5, initials: "AA", name: "Asma Al Azmi", handle: "@asmaalazmii_", niche: "Lifestyle", platform: "Instagram", followers: 18200, score: 79, gcAudience: 81, avgViews: 5400, totalPosts: 1120, contentQuality: "Medium", brandConflict: "None", location: "Kuwait", topCountries: "Kuwait 54%, KSA 21%, UAE 14%", audienceAge: "24–34 (66%)", audienceGender: "Female 90%", postFreq: "Daily", activeSince: "2019", status: "waiting", colors: ["#14532D", "#1A7A3F"], bio: "Kuwait-based creator. Perfume, restaurants and honest takes on everything she's sent.",
+    avatar: "/creators/asmaalazmii_/avatar.jpg",
+    accounts: [{ platform: "Instagram", handle: "@asmaalazmii_" }],
+    posts: [{ img: "/creators/asmaalazmii_/p1.jpg", views: "7K", type: "Reel" }, { img: "/creators/asmaalazmii_/p2.jpg", views: "5K", type: "Post" }, { img: "/creators/asmaalazmii_/p3.jpg", views: "8K", type: "Reel" }, { img: "/creators/asmaalazmii_/p4.jpg", views: "4K", type: "Post" }, { img: "/creators/asmaalazmii_/p5.jpg", views: "3K", type: "Story" }] },
+  { id: 6, initials: "GA", name: "Ghaliah Alsharif", handle: "@ghalya.mu2", niche: "Beauty", platform: "TikTok", followers: 1100000, score: 95, gcAudience: 74, avgViews: 214000, totalPosts: 940, contentQuality: "Premium", brandConflict: "Minor (Sephora ambassador)", location: "KSA", topCountries: "KSA 61%, UAE 18%, Kuwait 8%", audienceAge: "20–30 (65%)", audienceGender: "Female 89%", postFreq: "5x/week", activeSince: "2018", status: "waiting", colors: ["#7C1D1D", "#991B1B"], bio: "Beauty and fashion out of Jeddah. Sephora ambassador. 570K more on Instagram.",
+    avatar: "/creators/ghalya.mu2/avatar.jpg",
+    accounts: [{ platform: "TikTok", handle: "@ghalya.mu2" }, { platform: "Instagram", handle: "@ghalya.mu" }],
+    posts: [{ img: "/creators/ghalya.mu2/p1.jpg", views: "268K", type: "Video" }, { img: "/creators/ghalya.mu2/p2.jpg", views: "195K", type: "Video" }, { img: "/creators/ghalya.mu2/p3.jpg", views: "312K", type: "Video" }, { img: "/creators/ghalya.mu2/p4.jpg", views: "172K", type: "Video" }, { img: "/creators/ghalya.mu2/p5.jpg", views: "148K", type: "Video" }] },
+  { id: 7, initials: "RK", name: "Rebecca Kassab Al Azar", handle: "@rebeccarkassab", niche: "Fashion", platform: "Instagram", followers: 331000, score: 86, gcAudience: 70, avgViews: 58400, totalPosts: 2260, contentQuality: "High", brandConflict: "Minor (The Smart Vendor)", location: "UAE", topCountries: "UAE 49%, KSA 18%, Lebanon 13%", audienceAge: "25–34 (60%)", audienceGender: "Female 80%", postFreq: "Daily", activeSince: "2016", status: "waiting", colors: ["#1A3A5C", "#2563EB"], bio: "Fashion, beauty and lifestyle from the UAE. Co-founder of The Smart Vendor.",
+    avatar: "/creators/rebeccarkassab/avatar.jpg",
+    accounts: [{ platform: "Instagram", handle: "@rebeccarkassab" }],
+    posts: [{ img: "/creators/rebeccarkassab/p1.jpg", views: "67K", type: "Post" }, { img: "/creators/rebeccarkassab/p2.jpg", views: "52K", type: "Reel" }, { img: "/creators/rebeccarkassab/p3.jpg", views: "78K", type: "Reel" }, { img: "/creators/rebeccarkassab/p4.jpg", views: "44K", type: "Reel" }, { img: "/creators/rebeccarkassab/p5.jpg", views: "51K", type: "Post" }] },
+  { id: 8, initials: "DS", name: "Dima Sheikhly", handle: "@dimasheikhly", niche: "Luxury", platform: "Instagram", followers: 942000, score: 91, gcAudience: 64, avgViews: 121000, totalPosts: 2980, contentQuality: "Premium", brandConflict: "Competing (Namshi)", location: "UAE", topCountries: "UAE 41%, KSA 20%, Kuwait 9%", audienceAge: "27–40 (57%)", audienceGender: "Female 73%", postFreq: "4x/week", activeSince: "2014", status: "waiting", colors: ["#4C1D95", "#6D28D9"], bio: "Luxury fashion and travel. Front row in Milan, Venice and New York, back home in Dubai.",
+    avatar: "/creators/dimasheikhly/avatar.jpg",
+    accounts: [{ platform: "Instagram", handle: "@dimasheikhly" }],
+    posts: [{ img: "/creators/dimasheikhly/p1.jpg", views: "142K", type: "Post" }, { img: "/creators/dimasheikhly/p2.jpg", views: "108K", type: "Reel" }, { img: "/creators/dimasheikhly/p3.jpg", views: "165K", type: "Reel" }, { img: "/creators/dimasheikhly/p4.jpg", views: "96K", type: "Post" }, { img: "/creators/dimasheikhly/p5.jpg", views: "94K", type: "Reel" }] },
+  { id: 9, initials: "PS", name: "Paola El Sitt", handle: "@paola.elsitt", niche: "Lifestyle", platform: "Instagram", followers: 1000000, score: 87, gcAudience: 67, avgViews: 168000, totalPosts: 1960, contentQuality: "Premium", brandConflict: "Minor (own brand, Joi)", location: "UAE", topCountries: "UAE 43%, KSA 17%, Lebanon 15%", audienceAge: "25–34 (62%)", audienceGender: "Female 84%", postFreq: "Daily", activeSince: "2015", status: "liked", colors: ["#064E3B", "#059669"], bio: "Food, wellness and everyday luxury. Founder of Joi, gut-friendly snacks and bread.",
+    avatar: "/creators/paola.elsitt/avatar.jpg",
+    accounts: [{ platform: "Instagram", handle: "@paola.elsitt" }],
+    posts: [{ img: "/creators/paola.elsitt/p1.jpg", views: "195K", type: "Reel" }, { img: "/creators/paola.elsitt/p2.jpg", views: "152K", type: "Post" }, { img: "/creators/paola.elsitt/p3.jpg", views: "231K", type: "Reel" }, { img: "/creators/paola.elsitt/p4.jpg", views: "138K", type: "Reel" }, { img: "/creators/paola.elsitt/p5.jpg", views: "124K", type: "Post" }] },
+  { id: 10, initials: "NR", name: "Noon Reviews", handle: "@skindew0", niche: "Beauty", platform: "TikTok", followers: 335600, score: 74, gcAudience: 79, avgViews: 96000, totalPosts: 1480, contentQuality: "High", brandConflict: "Competing (Boutiqaat)", location: "UAE", topCountries: "UAE 46%, Kuwait 24%, KSA 18%", audienceAge: "20–30 (70%)", audienceGender: "Female 92%", postFreq: "Daily", activeSince: "2020", status: "passed", colors: ["#78350F", "#92400E"], bio: "Skincare and beauty reviews out of the UAE. Codes, comparisons and what she'd buy twice.",
+    avatar: "/creators/skindew0/avatar.jpg",
+    accounts: [{ platform: "TikTok", handle: "@skindew0" }],
+    posts: [{ img: "/creators/skindew0/p1.jpg", views: "118K", type: "Video" }, { img: "/creators/skindew0/p2.jpg", views: "87K", type: "Video" }, { img: "/creators/skindew0/p3.jpg", views: "141K", type: "Video" }, { img: "/creators/skindew0/p4.jpg", views: "74K", type: "Video" }, { img: "/creators/skindew0/p5.jpg", views: "62K", type: "Video" }] },
 ];
 
 
@@ -124,15 +141,6 @@ function ageRange(s: string): [number, number] | null {
   return m ? [Number(m[1]), Number(m[2])] : null;
 }
 
-// Platforms a creator is active on — primary first, plus a deterministic
-// set of others so profiles show as multi-platform.
-function platformsFor(c: Creator): Platform[] {
-  const others = (["Instagram", "TikTok", "YouTube"] as Platform[]).filter((p) => p !== c.platform);
-  if (c.id % 3 === 0) return [c.platform];
-  if (c.id % 2 === 0) return [c.platform, others[0]];
-  return [c.platform, others[0], others[1]];
-}
-
 const TABS: { key: Signal; label: string }[] = [
   { key: "waiting", label: "Waiting" },
   { key: "liked", label: "Liked" },
@@ -168,7 +176,6 @@ function Detail({
   const slug = c.handle.replace("@", "");
   const plat = PLAT[c.platform];
   const platUrl = plat.url(slug);
-  const platforms = platformsFor(c);
   const isWaiting = c.status === "waiting";
   const idx = waitingList.findIndex((x) => x.id === c.id);
   const hasPrev = idx > 0, hasNext = idx >= 0 && idx < waitingList.length - 1;
@@ -316,12 +323,13 @@ function Detail({
             <div className="min-w-0 flex-1">
               <div className="mb-1.5 flex flex-wrap items-center gap-2">
                 <h2 className="text-[20px] font-bold tracking-tight" style={{ color: INK }}>{c.name}</h2>
-                {platforms.map((pf) => {
-                  const P = PLAT[pf];
+                {c.accounts.map((acc) => {
+                  const P = PLAT[acc.platform];
                   return (
-                    <a key={pf} href={P.url(slug)} target="_blank" rel="noopener noreferrer"
+                    <a key={acc.platform} href={P.url(acc.handle.replace("@", ""))}
+                      target="_blank" rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 rounded-md border border-black/[0.08] bg-neutral-50 px-2 py-0.5 text-[11px] font-medium text-neutral-600 no-underline transition hover:border-[#4D2FB0]/30 hover:text-[#4D2FB0]">
-                      <P.Icon size={13} weight="fill" /> {pf}
+                      <P.Icon size={13} weight="fill" /> {acc.platform}
                       <ArrowUpRight size={10} weight="bold" className="opacity-60" />
                     </a>
                   );

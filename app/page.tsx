@@ -126,14 +126,14 @@ function ShowcasePanel() {
             <div className="absolute bottom-[calc(2.5rem+4px)] left-3 h-8 w-8 overflow-hidden rounded-full border-2 border-white bg-white/30">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=80&h=80&fit=crop&crop=faces"
+                src="/creators/ghalya.mu2/avatar.jpg"
                 alt=""
                 className="h-full w-full object-cover"
               />
             </div>
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/65 p-3">
-              <p className="text-[11px] font-semibold text-white">@luna.creates</p>
-              <p className="text-[10px] text-white/70">847K watching</p>
+              <p className="text-[11px] font-semibold text-white">@ghalya.mu2</p>
+              <p className="text-[10px] text-white/70">1.1M watching</p>
             </div>
           </div>
         </div>
@@ -226,7 +226,7 @@ function ShowcasePanel() {
           <div className="relative h-36">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=440&h=360&fit=crop"
+              src="/creators/olafarahat/p1.jpg"
               alt="Creator styling the leather tote"
               className="absolute inset-0 h-full w-full object-cover"
             />
