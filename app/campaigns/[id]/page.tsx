@@ -27,8 +27,8 @@ import NotificationCenter from "../../components/NotificationCenter";
 import CommandPalette from "../../components/CommandPalette";
 import StatusBadge from "../../components/StatusBadge";
 import {
-  adCreator, fmtUSD, nextPhase, phaseHasStarted, phaseTitle, vatOn, withVat,
-  REVIEW_WINDOW_DAYS,
+  adCreator, draftDaysLeft, fmtUSD, nextPhase, phaseHasStarted, phaseTitle,
+  phaseWindow, vatOn, withVat, REVIEW_WINDOW_DAYS,
   type Ad, type Campaign,
 } from "../../lib/campaigns";
 import { useCampaign, useRoster, fundPhase } from "../../lib/funding";
@@ -154,6 +154,16 @@ export default function CampaignDetailPage() {
   const waiting = useWaitingFor(params.id);
   const liked    = drafts.filter((a) => a.signal === "liked");
   const disliked = drafts.filter((a) => a.signal === "disliked");
+
+  /* How long the brand really has: the soonest deadline among the drafts
+     still waiting, parsed from the same `submitted` text the review screen
+     counts down from. An unparseable date contributes nothing rather than
+     a guess, and with nothing parseable at all the window length is the
+     only honest answer left. */
+  const deadlines = waiting
+    .map((a) => draftDaysLeft(a.submitted))
+    .filter((d): d is number => d !== null);
+  const soonestDeadline = deadlines.length ? Math.min(...deadlines) : REVIEW_WINDOW_DAYS;
 
   const cid    = detail?.id;
   const cphase = detail?.phaseNo;
@@ -335,7 +345,7 @@ export default function CampaignDetailPage() {
               <section className={`${CARD} p-5`}>
                 <div className="flex flex-wrap items-center gap-2">
                   <StatusBadge status={detail.status} />
-                  <span className="text-xs text-neutral-500">{detail.dates}</span>
+                  <span className="text-xs text-neutral-500">{phaseWindow(detail)}</span>
                   {/* A phase that has not run has no ROAS — printing the
                       placeholder as "— ROAS" reads like a broken number.
                       What it does have is the multiple it is promised. */}
@@ -449,7 +459,7 @@ export default function CampaignDetailPage() {
                           `/campaigns/ads?c=${detail.id}&shelf=${waiting.length > 0 ? "waiting" : "disliked"}`,
                         )}
                         aria-label={waiting.length > 0
-                          ? `${waiting.length} ads waiting on you. ${liked.length + disliked.length} of ${drafts.length} decided. A draft left undecided publishes on its own after ${REVIEW_WINDOW_DAYS} days. Open ad review.`
+                          ? `${waiting.length} ads waiting on you. ${liked.length + disliked.length} of ${drafts.length} decided. You have ${soonestDeadline} ${soonestDeadline === 1 ? "day" : "days"} left to review and submit your decision. Open ad review.`
                           : `Every draft decided. ${disliked.length} not publishing. Open ad review to reopen a decline.`}
                         className={`${CARD} flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-neutral-50`}
                       >
@@ -467,12 +477,16 @@ export default function CampaignDetailPage() {
                               : "Every draft decided"}
                           </span>
                           {/* The ledger, condensed to the line it was always
-                              read as: how much is done, and the rule that
-                              governs what is not. */}
+                              read as: how much is done, and how long is left
+                              to do the rest. The countdown is the SOONEST
+                              deadline in the queue, not the window length —
+                              the review screen shows a per-ad countdown, and
+                              a row promising ten days over an ad with two
+                              left would be the disagreement a brand notices. */}
                           <span className="mt-0.5 block truncate text-xs text-neutral-500">
                             {liked.length + disliked.length} of {drafts.length} decided
                             {waiting.length > 0
-                              ? ` · undecided drafts publish on their own after ${REVIEW_WINDOW_DAYS} days`
+                              ? `. You have ${soonestDeadline} ${soonestDeadline === 1 ? "day" : "days"} left to review and submit your decision.`
                               : disliked.length > 0
                                 ? ` · ${disliked.length} not publishing — a decline can be reopened`
                                 : ""}
@@ -657,24 +671,6 @@ export default function CampaignDetailPage() {
                     </p>
                   </div>
 
-                  {/* Per-CREATOR efficiency, and only that. Each figure divides
-                      two numbers this phase owns, so it cannot drift from it —
-                      which is exactly what "revenue per live ad" could not
-                      claim: it divided by the stored 125, a live count this
-                      page no longer believes. */}
-                  <div className="mt-5 grid grid-cols-2 gap-x-4 gap-y-4 border-t border-black/[0.06] pt-4">
-                    {[
-                      { k: "Revenue per creator",
-                        v: detail.creators ? fmtUSD(Math.round(detail.rev / detail.creators)) : "—" },
-                      { k: "Cost per creator",
-                        v: detail.creators ? fmtUSD(Math.round(detail.budget / detail.creators)) : "—" },
-                    ].map((m) => (
-                      <div key={m.k}>
-                        <p className="text-[17px] font-bold leading-none tabular-nums" style={{ color: INK }}>{m.v}</p>
-                        <p className="mt-1 text-[11px] leading-tight text-neutral-500">{m.k}</p>
-                      </div>
-                    ))}
-                  </div>
                 </section>
               ) : (
                 /* Not funded: there is no performance to chart. What can be

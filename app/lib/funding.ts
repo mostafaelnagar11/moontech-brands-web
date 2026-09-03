@@ -15,7 +15,7 @@
 
 import { useSyncExternalStore } from "react";
 import {
-  CAMPAIGNS, adsFor, fmtUSD, ladderFor,
+  CAMPAIGNS, adsFor, fmtDay, fmtUSD, ladderFor,
   type Campaign, type CampaignStatus,
 } from "./campaigns";
 import { useActiveBrandId } from "./brand";
@@ -97,7 +97,7 @@ export function applyFunding(ids: readonly string[]): Campaign[] {
         ...c,
         status: "Live" as CampaignStatus,
         due: null,
-        dates: "Starting now",
+        start: fmtDay(new Date()),
         revTarget: target,
         revPct: 0,
         threshold: `Deploying ${fmtUSD(c.budget)} to matched creators — metered against ${fmtUSD(target)}`,
@@ -108,11 +108,16 @@ export function applyFunding(ids: readonly string[]): Campaign[] {
       };
     }
 
-    /* 2 — the phase it replaces. Only one phase runs at a time. */
+    /* 2 — the phase it replaces. Only one phase runs at a time.
+       This is the moment a live phase learns its end date: it had none
+       while it ran, and what stopped it was this payment, today. Without
+       setting it here the phase would go Ended still reading "Started
+       Feb 10" — running, by the only date on the card. */
     if (c.status === "Live" && paid.has(c.phaseNo + 1)) {
       return {
         ...c,
         status: "Ended" as CampaignStatus,
+        end: fmtDay(new Date()),
         threshold: null,
         thresholdGreen: false,
         due: null,

@@ -205,7 +205,13 @@ export interface Campaign {
   id: string;
   brandId: string;              // whose ladder this rung belongs to
   phaseNo: number;              // 1..n — unbounded
-  dates: string;                // THIS phase's own window
+  /* THIS phase's own window, as two facts rather than one string.
+     A LIVE PHASE HAS NO END DATE: it runs until its successor is funded,
+     and when that happens is the brand's decision, not a date we can
+     print while it is still running. The three live phases used to carry
+     a range and two of those end dates had already gone by. */
+  start: string | null;         // null until the phase is funded
+  end: string | null;           // null while Live — set when the phase ends
   status: CampaignStatus;
   budget: number;               // THIS phase's budget, nothing else's
   guaranteedRoas: number;       // the multiple promised on this phase
@@ -235,7 +241,7 @@ export const CAMPAIGNS: Campaign[] = [
   /* ── Ounass ─────────────────────────────────────────────────── */
   {
     id: "ounass-phase-1", brandId: "ounass", phaseNo: 1,
-    dates: "Jan 8 – Feb 6, 2026", status: "Ended",
+    start: "Jan 8, 2026", end: "Feb 6, 2026", status: "Ended",
     budget: 1000, guaranteedRoas: 5,
     rev: 5200, revLabel: "$5,200", revTarget: 5000, revPct: 104, roas: "5.2×",
     threshold: null, thresholdGreen: false, due: null,
@@ -244,7 +250,7 @@ export const CAMPAIGNS: Campaign[] = [
   },
   {
     id: "ounass-phase-2", brandId: "ounass", phaseNo: 2,
-    dates: "Feb 10 – Apr 12, 2026", status: "Live",
+    start: "Feb 10, 2026", end: null, status: "Live",
     budget: 3000, guaranteedRoas: 5,
     rev: 12600, revLabel: "$12,600", revTarget: 15000, revPct: 84, roas: "4.2×",
     threshold: "80% unlock line crossed — Phase 3 is ready to fund", thresholdGreen: true,
@@ -254,7 +260,7 @@ export const CAMPAIGNS: Campaign[] = [
   },
   {
     id: "ounass-phase-3", brandId: "ounass", phaseNo: 3,
-    dates: "Starts when funded", status: "Ready",
+    start: null, end: null, status: "Ready",
     budget: 6000, guaranteedRoas: 5,
     rev: 0, revLabel: "$0", revTarget: null, revPct: null, roas: "—",
     threshold: null, thresholdGreen: false,
@@ -265,7 +271,7 @@ export const CAMPAIGNS: Campaign[] = [
   },
   {
     id: "ounass-phase-4", brandId: "ounass", phaseNo: 4,
-    dates: "Not scheduled", status: "Locked",
+    start: null, end: null, status: "Locked",
     budget: 10000, guaranteedRoas: 5,
     rev: 0, revLabel: "$0", revTarget: null, revPct: null, roas: "—",
     threshold: null, thresholdGreen: false, due: null,
@@ -276,7 +282,7 @@ export const CAMPAIGNS: Campaign[] = [
   /* ── Luna Beauty ────────────────────────────────────────────── */
   {
     id: "luna-phase-1", brandId: "luna", phaseNo: 1,
-    dates: "Feb 1 – Mar 2, 2026", status: "Ended",
+    start: "Feb 1, 2026", end: "Mar 2, 2026", status: "Ended",
     budget: 500, guaranteedRoas: 5,
     rev: 2400, revLabel: "$2,400", revTarget: 2500, revPct: 96, roas: "4.8×",
     threshold: null, thresholdGreen: false, due: null,
@@ -285,7 +291,7 @@ export const CAMPAIGNS: Campaign[] = [
   },
   {
     id: "luna-phase-2", brandId: "luna", phaseNo: 2,
-    dates: "Mar 10 – May 8, 2026", status: "Live",
+    start: "Mar 10, 2026", end: null, status: "Live",
     budget: 1500, guaranteedRoas: 5,
     rev: 4100, revLabel: "$4,100", revTarget: 7500, revPct: 55, roas: "2.7×",
     threshold: "On pace — 80% unlock line about 9 days away", thresholdGreen: false,
@@ -295,7 +301,7 @@ export const CAMPAIGNS: Campaign[] = [
   },
   {
     id: "luna-phase-3", brandId: "luna", phaseNo: 3,
-    dates: "Not scheduled", status: "Locked",
+    start: null, end: null, status: "Locked",
     budget: 3000, guaranteedRoas: 5,
     rev: 0, revLabel: "$0", revTarget: null, revPct: null, roas: "—",
     threshold: null, thresholdGreen: false, due: null,
@@ -306,7 +312,7 @@ export const CAMPAIGNS: Campaign[] = [
   /* ── FreshGrocer ────────────────────────────────────────────── */
   {
     id: "fresh-phase-1", brandId: "fresh", phaseNo: 1,
-    dates: "Aug 18 – Sep 16, 2026", status: "Live",
+    start: "Aug 18, 2026", end: null, status: "Live",
     budget: 750, guaranteedRoas: 5,
     rev: 310, revLabel: "$310", revTarget: 3750, revPct: 8, roas: "0.41×",
     threshold: "Deploying to matched creators — first results in a few days",
@@ -320,6 +326,19 @@ export const CAMPAIGNS: Campaign[] = [
 /* Ladder helpers — the ladder is derived by ordering a brand's        */
 /* phases, never stored as an array on any single phase.                */
 /* ------------------------------------------------------------------ */
+
+/* How a phase's window reads, and the ONLY place that decides it.
+   A phase with no start has not been funded, so it has no window to
+   state — what it says instead depends on whether it is payable. A
+   started phase with no end is running, and says so. */
+export function phaseWindow(c: Campaign): string {
+  if (!c.start) return c.status === "Ready" ? "Starts when funded" : "Not scheduled";
+  return c.end ? `${c.start} \u2013 ${c.end}` : `Started ${c.start}`;
+}
+
+/** A short "Sep 3, 2026" for a window edge set as it happens. */
+export const fmtDay = (d: Date) =>
+  d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 
 /** One brand's phases, in order. The ladder. */
 export const ladderFor = (brandId: string, roster: Campaign[] = CAMPAIGNS) =>

@@ -19,7 +19,7 @@ import Sidebar from "../components/Sidebar";
 import NotificationCenter from "../components/NotificationCenter";
 import CommandPalette from "../components/CommandPalette";
 import StatusBadge from "../components/StatusBadge";
-import { duePhase, fmtUSD, phaseTitle, type Campaign } from "../lib/campaigns";
+import { duePhase, fmtUSD, phaseTitle, phaseWindow, type Campaign } from "../lib/campaigns";
 import { useRoster } from "../lib/funding";
 import { useActiveBrand } from "../lib/brand";
 
@@ -325,7 +325,7 @@ function CurrentPhaseCard({ c, onOpen }: { c: Campaign; onOpen: () => void }) {
             <h3 className="text-[15px] font-semibold" style={{ color: INK }}>{phaseTitle(c.phaseNo)}</h3>
             <StatusBadge status={c.status} />
           </div>
-          <p className="text-xs text-neutral-400 mt-1">{c.dates}</p>
+          <p className="text-xs text-neutral-400 mt-1">{phaseWindow(c)}</p>
         </div>
         <button onClick={onOpen}
           className="shrink-0 rounded-lg px-2.5 py-1.5 text-[13px] font-medium text-neutral-400 hover:text-[#4D2FB0] hover:bg-[#4D2FB0]/[0.06] transition-colors">
@@ -471,7 +471,7 @@ function PhaseLadder({
                 <tr key={c.id} className="hover:bg-neutral-50/60 transition-colors">
                   <td className="py-4 pr-4">
                     <p className="font-medium" style={{ color: INK }}>{phaseTitle(c.phaseNo)}</p>
-                    <p className="mt-0.5 text-[11px] text-neutral-400">{c.dates}</p>
+                    <p className="mt-0.5 text-[11px] text-neutral-400">{phaseWindow(c)}</p>
                   </td>
                   <td className="py-4 pr-3"><StatusBadge status={c.status} /></td>
                   <td className="py-4 pr-3">

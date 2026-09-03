@@ -29,7 +29,7 @@ import NotificationCenter from "../components/NotificationCenter";
 import CommandPalette from "../components/CommandPalette";
 import StatusBadge from "../components/StatusBadge";
 import {
-  CAMPAIGNS, adsFor, fmtUSD, phaseHasStarted, phaseTitle, prevPhase, withVat,
+  CAMPAIGNS, adsFor, fmtUSD, phaseHasStarted, phaseTitle, phaseWindow, prevPhase, withVat,
   type Ad, type Campaign, type CampaignStatus,
 } from "../lib/campaigns";
 import { useRoster } from "../lib/funding";
@@ -98,7 +98,7 @@ function CampaignCard({ c, i, onOpen }: { c: Campaign; i: number; onOpen: (id: s
           <h3 className="truncate text-[15px] font-semibold" style={{ color: INK }}>{title}</h3>
           {/* The name is the phase, so the second line carries the only
               other fact of identity a phase has: its own window. */}
-          <p className="mt-0.5 truncate text-xs text-neutral-500">{c.dates}</p>
+          <p className="mt-0.5 truncate text-xs text-neutral-500">{phaseWindow(c)}</p>
         </div>
         <StatusBadge status={c.status} />
       </div>
@@ -250,7 +250,7 @@ function CompletedBlock({
             </span>
             <span className="min-w-0 flex-1">
               <span className="block truncate text-sm font-semibold" style={{ color: INK }}>{phaseTitle(c.phaseNo)}</span>
-              <span className="mt-0.5 block text-xs text-neutral-500">{c.dates}</span>
+              <span className="mt-0.5 block text-xs text-neutral-500">{phaseWindow(c)}</span>
             </span>
             <span className="shrink-0 text-right">
               <span className="block text-sm font-semibold tabular-nums" style={{ color: INK }}>{c.revLabel}</span>
