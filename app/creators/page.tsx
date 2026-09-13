@@ -12,7 +12,6 @@ import NotificationCenter from "../components/NotificationCenter";
 import { useActiveBrand } from "../lib/brand";
 import {
   CREATOR_PASS_REASONS, creatorPassReasonLabel, NOTE_MAX, viewThrough, pct1, median,
-  fmtCount,
 } from "../lib/campaigns";
 
 /* ------------------------------------------------------------------ */
@@ -47,11 +46,17 @@ const CREATORS_SEED: Creator[] = [
   { id: 1, initials: "JA", name: "Jawaher Alsuwaidi", handle: "@jawahralsuwaidi", niche: "Fashion", platform: "Instagram", followers: 78400, score: 93, gcAudience: 76, avgViews: 21600, totalPosts: 612, contentQuality: "High", brandConflict: "None", location: "UAE", topCountries: "UAE 58%, KSA 19%, Kuwait 11%", audienceAge: "25–34 (64%)", audienceGender: "Female 81%", postFreq: "4–5x/week", activeSince: "2018", status: "waiting", colors: ["#2D1B6B", "#4A2BA0"], bio: "Emirati fashion and travel creator. Ounass finds, promo codes and the edit behind every trip.",
     avatar: "/creators/jawahralsuwaidi/avatar.jpg",
     accounts: [{ platform: "Instagram", handle: "@jawahralsuwaidi" }, { platform: "TikTok", handle: "@jawahralsuwaidi" }],
-    posts: [{ img: "/creators/jawahralsuwaidi/p1.jpg", views: "26K", type: "Reel" }, { img: "/creators/jawahralsuwaidi/p2.jpg", views: "19K", type: "Post" }, { img: "/creators/jawahralsuwaidi/p3.jpg", views: "31K", type: "Reel" }, { img: "/creators/jawahralsuwaidi/p4.jpg", views: "17K", type: "Post" }, { img: "/creators/jawahralsuwaidi/p5.jpg", views: "15K", type: "Story" }] },
+    /* p2 was a Pampers box. Nothing wrong with the post; it is just not
+       the work a fashion buyer is deciding on. */
+    posts: [{ img: "/creators/jawahralsuwaidi/p1.jpg", views: "26K", type: "Reel" }, { img: "/creators/jawahralsuwaidi/p3.jpg", views: "31K", type: "Reel" }, { img: "/creators/jawahralsuwaidi/p4.jpg", views: "17K", type: "Post" }, { img: "/creators/jawahralsuwaidi/p5.jpg", views: "15K", type: "Story" }] },
   { id: 2, initials: "MB", name: "MakeupbyMemz", handle: "@makeupbymemz", niche: "Beauty", platform: "Instagram", followers: 135000, score: 88, gcAudience: 72, avgViews: 29800, totalPosts: 1840, contentQuality: "High", brandConflict: "None", location: "UAE", topCountries: "UAE 47%, KSA 26%, Kuwait 10%", audienceAge: "22–32 (69%)", audienceGender: "Female 93%", postFreq: "6x/week", activeSince: "2017", status: "waiting", colors: ["#831843", "#BE185D"], bio: "Pro makeup artist and beauty creator. Owner of Anabella Al Sharq salon. 500K+ on TikTok.",
     avatar: "/creators/makeupbymemz/avatar.jpg",
     accounts: [{ platform: "Instagram", handle: "@makeupbymemz" }, { platform: "TikTok", handle: "@makeupbymemz8" }],
-    posts: [{ img: "/creators/makeupbymemz/p1.jpg", views: "34K", type: "Reel" }, { img: "/creators/makeupbymemz/p2.jpg", views: "27K", type: "Reel" }, { img: "/creators/makeupbymemz/p3.jpg", views: "41K", type: "Reel" }, { img: "/creators/makeupbymemz/p4.jpg", views: "22K", type: "Post" }, { img: "/creators/makeupbymemz/p5.jpg", views: "25K", type: "Reel" }] },
+    /* p1 carried an OUNASS code. Every profile on this screen is one
+       MoonTech is recommending for the FIRST time — a creator already
+       running the brand's codes is not a new recommendation, and the
+       screen would be contradicting itself. */
+    posts: [{ img: "/creators/makeupbymemz/p2.jpg", views: "27K", type: "Reel" }, { img: "/creators/makeupbymemz/p3.jpg", views: "41K", type: "Reel" }, { img: "/creators/makeupbymemz/p4.jpg", views: "22K", type: "Post" }, { img: "/creators/makeupbymemz/p5.jpg", views: "25K", type: "Reel" }] },
   { id: 3, initials: "OF", name: "Ola Farahat", handle: "@olafarahat", niche: "Luxury", platform: "Instagram", followers: 1300000, score: 90, gcAudience: 68, avgViews: 186000, totalPosts: 3410, contentQuality: "Premium", brandConflict: "Minor (Farfetch)", location: "UAE", topCountries: "UAE 44%, KSA 21%, Egypt 12%", audienceAge: "28–38 (56%)", audienceGender: "Female 76%", postFreq: "Daily", activeSince: "2013", status: "waiting", colors: ["#1A1A2E", "#3A3A5A"], bio: "Dubai-based luxury, travel and lifestyle. One of the region's longest-running fashion accounts.",
     avatar: "/creators/olafarahat/avatar.jpg",
     accounts: [{ platform: "Instagram", handle: "@olafarahat" }],
@@ -60,7 +65,7 @@ const CREATORS_SEED: Creator[] = [
     avatar: "/creators/mais.mustafa/avatar.jpg",
     accounts: [{ platform: "TikTok", handle: "@mais.mustafa" }],
     posts: [{ img: "/creators/mais.mustafa/p1.jpg", views: "24K", type: "Video" }, { img: "/creators/mais.mustafa/p2.jpg", views: "17K", type: "Video" }, { img: "/creators/mais.mustafa/p3.jpg", views: "29K", type: "Video" }, { img: "/creators/mais.mustafa/p4.jpg", views: "13K", type: "Video" }, { img: "/creators/mais.mustafa/p5.jpg", views: "11K", type: "Video" }] },
-  { id: 5, initials: "AA", name: "Asma Al Azmi", handle: "@asmaalazmii_", niche: "Lifestyle", platform: "Instagram", followers: 18200, score: 79, gcAudience: 81, avgViews: 5400, totalPosts: 1120, contentQuality: "Medium", brandConflict: "None", location: "Kuwait", topCountries: "Kuwait 54%, KSA 21%, UAE 14%", audienceAge: "24–34 (66%)", audienceGender: "Female 90%", postFreq: "Daily", activeSince: "2019", status: "waiting", colors: ["#14532D", "#1A7A3F"], bio: "Kuwait-based creator. Perfume, restaurants and honest takes on everything she's sent.",
+  { id: 5, initials: "AA", name: "Asma Al Azmi", handle: "@asmaalazmii_", niche: "Lifestyle", platform: "Instagram", followers: 18200, score: 82, gcAudience: 81, avgViews: 5400, totalPosts: 1120, contentQuality: "Medium", brandConflict: "None", location: "Kuwait", topCountries: "Kuwait 54%, KSA 21%, UAE 14%", audienceAge: "24–34 (66%)", audienceGender: "Female 90%", postFreq: "Daily", activeSince: "2019", status: "waiting", colors: ["#14532D", "#1A7A3F"], bio: "Kuwait-based creator. Perfume, restaurants and honest takes on everything she's sent.",
     avatar: "/creators/asmaalazmii_/avatar.jpg",
     accounts: [{ platform: "Instagram", handle: "@asmaalazmii_" }],
     posts: [{ img: "/creators/asmaalazmii_/p1.jpg", views: "7K", type: "Reel" }, { img: "/creators/asmaalazmii_/p2.jpg", views: "5K", type: "Post" }, { img: "/creators/asmaalazmii_/p3.jpg", views: "8K", type: "Reel" }, { img: "/creators/asmaalazmii_/p4.jpg", views: "4K", type: "Post" }, { img: "/creators/asmaalazmii_/p5.jpg", views: "3K", type: "Story" }] },
@@ -79,8 +84,10 @@ const CREATORS_SEED: Creator[] = [
   { id: 9, initials: "PS", name: "Paola El Sitt", handle: "@paola.elsitt", niche: "Lifestyle", platform: "Instagram", followers: 1000000, score: 87, gcAudience: 67, avgViews: 168000, totalPosts: 1960, contentQuality: "Premium", brandConflict: "Minor (own brand, Joi)", location: "UAE", topCountries: "UAE 43%, KSA 17%, Lebanon 15%", audienceAge: "25–34 (62%)", audienceGender: "Female 84%", postFreq: "Daily", activeSince: "2015", status: "liked", colors: ["#064E3B", "#059669"], bio: "Food, wellness and everyday luxury. Founder of Joi, gut-friendly snacks and bread.",
     avatar: "/creators/paola.elsitt/avatar.jpg",
     accounts: [{ platform: "Instagram", handle: "@paola.elsitt" }],
-    posts: [{ img: "/creators/paola.elsitt/p1.jpg", views: "195K", type: "Reel" }, { img: "/creators/paola.elsitt/p2.jpg", views: "152K", type: "Post" }, { img: "/creators/paola.elsitt/p3.jpg", views: "231K", type: "Reel" }, { img: "/creators/paola.elsitt/p4.jpg", views: "138K", type: "Reel" }, { img: "/creators/paola.elsitt/p5.jpg", views: "124K", type: "Post" }] },
-  { id: 10, initials: "NR", name: "Noon Reviews", handle: "@skindew0", niche: "Beauty", platform: "TikTok", followers: 335600, score: 74, gcAudience: 79, avgViews: 96000, totalPosts: 1480, contentQuality: "High", brandConflict: "Competing (Boutiqaat)", location: "UAE", topCountries: "UAE 46%, Kuwait 24%, KSA 18%", audienceAge: "20–30 (70%)", audienceGender: "Female 92%", postFreq: "Daily", activeSince: "2020", status: "passed", colors: ["#78350F", "#92400E"], bio: "Skincare and beauty reviews out of the UAE. Codes, comparisons and what she'd buy twice.",
+    /* p4 was a clinic's before/after on skin tone. Not a call MoonTech
+       should be putting in front of a brand at all. */
+    posts: [{ img: "/creators/paola.elsitt/p1.jpg", views: "195K", type: "Reel" }, { img: "/creators/paola.elsitt/p2.jpg", views: "152K", type: "Post" }, { img: "/creators/paola.elsitt/p3.jpg", views: "231K", type: "Reel" }, { img: "/creators/paola.elsitt/p5.jpg", views: "124K", type: "Post" }] },
+  { id: 10, initials: "NR", name: "Noon Reviews", handle: "@skindew0", niche: "Beauty", platform: "TikTok", followers: 335600, score: 81, gcAudience: 79, avgViews: 96000, totalPosts: 1480, contentQuality: "High", brandConflict: "Competing (Boutiqaat)", location: "UAE", topCountries: "UAE 46%, Kuwait 24%, KSA 18%", audienceAge: "20–30 (70%)", audienceGender: "Female 92%", postFreq: "Daily", activeSince: "2020", status: "passed", colors: ["#78350F", "#92400E"], bio: "Skincare and beauty reviews out of the UAE. Codes, comparisons and what she'd buy twice.",
     avatar: "/creators/skindew0/avatar.jpg",
     accounts: [{ platform: "TikTok", handle: "@skindew0" }],
     posts: [{ img: "/creators/skindew0/p1.jpg", views: "118K", type: "Video" }, { img: "/creators/skindew0/p2.jpg", views: "87K", type: "Video" }, { img: "/creators/skindew0/p3.jpg", views: "141K", type: "Video" }, { img: "/creators/skindew0/p4.jpg", views: "74K", type: "Video" }, { img: "/creators/skindew0/p5.jpg", views: "62K", type: "Video" }] },
@@ -156,11 +163,11 @@ function Detail({
   onUndoPass: (id: number) => void;
   passInfo?: { reasons: string[]; note: string };
 }) {
-  /* The checklist below is checked against THIS brand's criteria, not a
-     house threshold — so switching brands in the sidebar changes what
-     "matched" means, which is the whole point of storing criteria per
-     brand. */
-  const { criteria } = useActiveBrand();
+  /* What MoonTech has learned about THIS brand, not a house threshold —
+     so switching brands in the sidebar changes who gets recommended and
+     why, which is the whole point of holding it per brand. */
+  const brand = useActiveBrand();
+  const { criteria } = brand;
   const slug = c.handle.replace("@", "");
   const plat = PLAT[c.platform];
   const platUrl = plat.url(slug);
@@ -171,50 +178,63 @@ function Detail({
   /* Still read by the parked performance section below. */
   const vt = viewThrough(c.avgViews, c.followers);
 
-  /* ── THE FOUR SIGNALS ──
-     One row per thing the matcher extracts from a profile, each against
-     what THIS brand asked for. The list used to run to six, and two of
-     those — buyer age and cadence — were measured against criteria the
-     matcher never reads, so the checklist was describing work that was
-     not happening.
+  /* ── THE THREE SIGNALS ──
+     Not a filter readout. Nobody typed these in as a search: MoonTech
+     carries them forward from the creators this brand has already liked
+     and disliked, and each row names what lined up. So every line is
+     phrased as a comparison with that history — never as "you asked
+     for", which is search language for work a person did, and this work
+     is done by the model.
 
-     A row that does not clear is still shown, in neutral: the matcher
-     already weighed it, so it is context, not an alert. Red on this
-     screen means "needs your action", and nothing already priced into
-     the fit score qualifies. ── */
+     FOLLOWERS is gone from this list. A follower floor is the most
+     search-shaped thing on the screen and the least predictive signal
+     on it — this roster settles the argument, with 942K followers and
+     13% of them watching at one end and 44K and 43% at the other.
+
+     PLATFORM lists every account she holds, because the links in the
+     header do. A row reading "Instagram" under a header linking
+     Instagram and TikTok was one profile described two ways.
+
+     REGION names the actual countries. "In the Gulf" is true of an
+     audience that is 61% Saudi and of one that is 61% Kuwaiti, and a
+     brand buying Saudi cares which.
+
+     A row that diverges is still shown, in neutral: the model already
+     weighed it and recommended her anyway, so it is context, not an
+     alert. ── */
+  const herPlatforms = c.accounts.map((a) => a.platform);
+  const platformOk = herPlatforms.some((pl) => criteria.platforms.includes(pl));
   const nicheOk = criteria.niches.some(
     (n) => n.toLowerCase() === c.niche.toLowerCase(),
   );
-  const checks: { label: string; ok: boolean; node: React.ReactNode }[] = [
+  const regionOk = c.gcAudience >= criteria.minGccAudience;
+
+  const signals: { label: string; ok: boolean; value: string; why: string }[] = [
     {
       label: "Platform",
-      ok: criteria.platforms.includes(c.platform),
-      node: criteria.platforms.includes(c.platform)
-        ? `${c.platform} · one of the platforms you asked for`
-        : `${c.platform} · you asked for ${criteria.platforms.join(" or ")}`,
+      ok: platformOk,
+      value: herPlatforms.join(", "),
+      why: platformOk
+        ? "where the creators you like publish"
+        : "outside where the creators you like publish",
     },
     {
-      label: "Followers",
-      ok: c.followers >= criteria.minFollowers,
-      node: `${fmtCount(c.followers)} followers · you asked for ${fmtCount(criteria.minFollowers)}+`,
-    },
-    {
-      label: "Profile",
-      /* The niche IS the profile signal the matcher reads. Phrased as what
-         her profile is either way, so the line reads the same cleared or
-         not — the tick is what says which. */
+      label: "Category",
       ok: nicheOk,
-      node: nicheOk
-        ? `${c.niche} · you are buying ${criteria.niches.join(", ")}`
-        : `${c.niche} · no strong ${criteria.niches.join("/").toLowerCase()} signal`,
+      value: c.niche,
+      why: nicheOk
+        ? "the category you keep liking"
+        : "next to the categories you like, not inside them",
     },
     {
       label: "Region",
-      ok: c.gcAudience >= criteria.minGccAudience,
-      node: `${c.gcAudience}% of her audience is in the Gulf · you asked for ${criteria.minGccAudience}%+`,
+      ok: regionOk,
+      value: c.topCountries,
+      why: regionOk
+        ? "the markets your liked creators reach"
+        : "lighter in those markets than the creators you like",
     },
   ];
-  const cleared = checks.filter((k) => k.ok).length;
 
   /* ── Performance ──
      View-through is the honest headline: there is no like or comment data
@@ -226,7 +246,20 @@ function Detail({
   const lo = views ? Math.min(...views) : null;
   const hi = views ? Math.max(...views) : null;
 
-  const scoreLabel = c.score >= 90 ? "Excellent" : c.score >= 80 ? "Good" : "Fair";
+  /* ── TWO TIERS ──
+     90+ is Excellent, 80–90 is Good, and there is no third tier because
+     there is nothing to put in it: MoonTech does not recommend a creator
+     it is not confident about, so the floor on this screen is 81%. A
+     "Fair" label was describing profiles that never arrive.
+
+     Green and orange, so the two tiers read apart at a glance. Orange
+     rather than a caution yellow — an 84% is a creator the model is
+     recommending, not a warning — and this one is held at the same
+     contrast against white as the green, so neither tier's label is
+     harder to read than the other's. */
+  const excellent = c.score >= 90;
+  const scoreLabel = excellent ? "Excellent" : "Good";
+  const scoreBg = excellent ? "#059669" : "#EA580C";
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-white">
@@ -280,9 +313,10 @@ function Detail({
                   to frame it were decoration around text that needed none. */}
               <p className="max-w-[62ch] text-xs leading-relaxed text-neutral-600">{c.bio}</p>
             </div>
-            {/* Brand fit — pinned to the right of the header */}
-            <div className="flex h-[96px] w-[96px] shrink-0 flex-col items-center justify-center rounded-2xl bg-[#059669] text-center">
-              <div className="text-[9px] font-semibold uppercase tracking-wide text-white/70">Brand fit</div>
+            {/* Match score — pinned to the right of the header */}
+            <div className="flex h-[96px] w-[96px] shrink-0 flex-col items-center justify-center rounded-2xl text-center"
+              style={{ background: scoreBg }}>
+              <div className="text-[9px] font-semibold uppercase tracking-wide text-white/70">Match</div>
               <div className="mt-1 text-[26px] font-bold tabular-nums leading-none text-white">{c.score}%</div>
               <div className="mt-1 text-[10px] font-medium text-white/80">{scoreLabel}</div>
             </div>
@@ -293,21 +327,25 @@ function Detail({
         {c.status === "liked" && (
           <div className="mx-7 mb-6 flex items-center gap-2.5 rounded-xl border border-green-200 bg-green-50 px-4 py-3">
             <CheckCircle size={16} weight="fill" className="text-[#047857]" />
-            <span className="flex-1 text-[13px] font-semibold text-[#047857]">Liked — we&apos;ll match more creators like her</span>
+            <span className="flex-1 text-[13px] font-semibold text-[#047857]">Liked — MoonTech will look for more like her</span>
             <button onClick={() => onAskPass(c)}
               className="rounded-lg border border-green-200 px-2.5 py-1 text-xs text-neutral-500 transition hover:bg-white">Dislike</button>
           </div>
         )}
-        {/* A pass is a MATCHING SIGNAL, so it is drawn as one: ink on
-            neutral, never the red that means "needs your action", and
-            always with the way back out of it. Nothing here blocks the
-            person — MoonTech simply stops reaching for profiles like
-            hers. */}
+        {/* A dislike is something MoonTech LEARNS, so it is drawn that
+            way: ink on neutral, never the red that means "needs your
+            action", and always with the way back out of it. Nothing here
+            blocks the person — the model simply stops reaching for
+            profiles like hers.
+
+            The word is "disliked" here, on the tab and on the button. It
+            used to be "passed" in this one banner, which quietly asked
+            the reader to work out that the two were the same thing. */}
         {c.status === "passed" && (
           <div className="mx-7 mb-6 rounded-xl border border-black/[0.06] bg-neutral-50 px-4 py-3">
             <div className="flex flex-wrap items-center gap-2.5">
               <span className="flex-1 text-[13px] font-semibold" style={{ color: INK }}>
-                Passed — we&apos;ll stop matching creators like her
+                Disliked — MoonTech will ease off profiles like hers
               </span>
               <button onClick={() => onUndoPass(c.id)}
                 className="inline-flex items-center gap-1.5 rounded-lg border border-black/[0.1] bg-white px-2.5 py-1 text-xs font-medium text-neutral-600 transition hover:bg-neutral-50">
@@ -316,8 +354,8 @@ function Detail({
               <button onClick={() => onDecide(c.id, "liked")}
                 className="rounded-lg border border-black/[0.1] bg-white px-2.5 py-1 text-xs font-medium text-[#4D2FB0] transition hover:bg-neutral-50">Like instead</button>
             </div>
-            {/* What the brand actually told the matcher, echoed back. A
-                signal you cannot read afterwards is one you cannot
+            {/* What the brand actually told MoonTech, echoed back. Feedback
+                you cannot read afterwards is feedback you cannot
                 correct. */}
             {passInfo && passInfo.reasons.length > 0 && (
               <ul className="mt-2.5 flex flex-col gap-1.5 border-t border-black/[0.06] pt-2.5">
@@ -335,32 +373,37 @@ function Detail({
               </p>
             )}
             <p className="mt-2 text-[11px] leading-snug text-neutral-500">
-              A tuning signal, not a decision about her. Undo it any time.
+              This only shapes who MoonTech brings you next. Undo it any time.
             </p>
           </div>
         )}
 
-        {/* Why we matched — the brand's own criteria, checked */}
+        {/* Why MoonTech recommended her — learned, not filtered */}
         <div className="mb-5 px-7">
           <div className="rounded-2xl border border-[#4D2FB0]/12 bg-[#4D2FB0]/[0.04] p-4">
             <div className="mb-1 flex flex-wrap items-center gap-x-2 gap-y-1">
               <span className="text-xs">✶</span>
-              <span className="text-[11px] font-bold uppercase tracking-wide text-[#4D2FB0]">Why we matched</span>
-              <span className="text-[11px] font-semibold tabular-nums text-neutral-500">
-                {cleared} of {checks.length} clear
-              </span>
+              <span className="text-[11px] font-bold uppercase tracking-wide text-[#4D2FB0]">Why MoonTech recommended her</span>
             </div>
+            {/* The "n of 4 clear" counter that used to sit in that row is
+                gone with the rest of the filter language. A score out of
+                four turns a recommendation back into a test she either
+                sits or fails, and the match score above already carries
+                the model's confidence. */}
             <p className="mb-3 text-[11.5px] leading-snug text-neutral-500">
-              These are the criteria you set for this brand, checked against her actual numbers.
+              MoonTech learns from every creator {brand.name} likes and dislikes. She came up because
+              these line up with the ones you&apos;ve been liking.
             </p>
             <div className="flex flex-col gap-2">
-              {checks.map((k) => (
+              {signals.map((k) => (
                 <div key={k.label} className="flex items-start gap-2.5">
-                  {/* Green tick = cleared. A row that did not clear is
-                      neutral and still shown — hiding it would leave the
-                      brand confident for reasons it cannot see. */}
+                  {/* Purple tick, not green: green reads as a test passed,
+                      and the model is not grading her — it is showing its
+                      work. A signal that diverges is neutral and still
+                      shown, because hiding it would leave the brand
+                      confident for reasons it cannot see. */}
                   <span className={`mt-px inline-flex h-4 w-4 shrink-0 items-center justify-center rounded ${
-                    k.ok ? "bg-[#059669]/10 text-[#047857]" : "bg-black/[0.05] text-neutral-400"
+                    k.ok ? "bg-[#4D2FB0]/10 text-[#4D2FB0]" : "bg-black/[0.05] text-neutral-400"
                   }`}>
                     {k.ok
                       ? <Check size={10} weight="bold" aria-hidden="true" />
@@ -369,12 +412,16 @@ function Detail({
                   <span className="w-[74px] shrink-0 text-[11px] font-semibold uppercase tracking-wide text-neutral-400">
                     {k.label}
                   </span>
-                  <span className={`min-w-0 flex-1 text-xs leading-relaxed ${k.ok ? "text-neutral-600" : "text-neutral-500"}`}>
-                    {k.node}
+                  <span className="min-w-0 flex-1 text-xs leading-relaxed">
+                    <span className={`font-semibold ${k.ok ? "text-neutral-700" : "text-neutral-600"}`}>{k.value}</span>
+                    <span className="text-neutral-500"> · {k.why}</span>
                   </span>
                 </div>
               ))}
             </div>
+            <p className="mt-3 border-t border-[#4D2FB0]/10 pt-2.5 text-[11px] leading-snug text-neutral-500">
+              Your next like or dislike moves what comes after her.
+            </p>
           </div>
         </div>
 
@@ -413,7 +460,7 @@ function Detail({
                   <div className="rounded-2xl border border-black/[0.06] bg-[#FAFAFA] p-3.5">
                     <div className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">Typical views per post</div>
                     <div className="mt-1 text-[22px] font-bold tabular-nums leading-none" style={{ color: INK }}>{fmtViews(typical)}</div>
-                    <div className="mt-1.5 text-[11px] leading-snug text-neutral-500">median of her last 5 posts</div>
+                    <div className="mt-1.5 text-[11px] leading-snug text-neutral-500">median of her last {c.posts.length} posts</div>
                   </div>
                   <div className="rounded-2xl border border-black/[0.06] bg-[#FAFAFA] p-3.5">
                     <div className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">Consistency</div>
@@ -435,23 +482,27 @@ function Detail({
           </div>
         )}
 
-        {/* Last 5 posts */}
+        {/* Recent posts.
+            "Last 5" was a promise the data stopped keeping the moment a
+            post was pulled from a creator's set, so the heading no longer
+            counts and the columns follow whatever is actually there. */}
         <div className={`px-7 ${isWaiting ? "mb-6" : "mb-8"}`}>
-          <div className="mb-3 text-[11px] font-bold uppercase tracking-wide text-neutral-400">Last 5 posts</div>
-          <div className="grid grid-cols-5 gap-2">
+          <div className="mb-3 text-[11px] font-bold uppercase tracking-wide text-neutral-400">Recent posts</div>
+          <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${c.posts.length}, minmax(0, 1fr))` }}>
             {c.posts.map((p, i) => (
               <a key={i} href={platUrl} target="_blank" rel="noopener noreferrer"
                 className="relative block aspect-[9/14] cursor-pointer overflow-hidden rounded-xl bg-neutral-200">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={p.img} alt={`${c.name} — ${p.type}`} loading="lazy" className="h-full w-full object-cover" />
-                {/* The like and comment pair used to sit here over a gradient.
-                    Both are gone, and the gradient with them — it existed only
-                    to keep that white text legible. What is back is the view
-                    count, which is real per-post reach rather than a vanity
-                    figure, and it is the same data the Performance tiles above
-                    are derived from. */}
+                {/* Nothing but the format sits on the picture now. Likes
+                    and comments went first, then the view count: a brand
+                    at this step is deciding whether the WORK looks like
+                    its brand, and a number stamped on the corner of every
+                    tile is the one thing guaranteed to pull the eye off
+                    it. The figure is still in the model, still feeding
+                    the performance tiles above — it is just not a caption
+                    on her photograph. */}
                 <div className="absolute left-1.5 top-1.5 rounded bg-black/50 px-1.5 py-0.5 text-[9px] font-bold text-white">{p.type}</div>
-                <div className="absolute bottom-1.5 left-1.5 inline-flex items-center rounded bg-black/50 px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-white">{p.views} views</div>
               </a>
             ))}
           </div>
@@ -463,10 +514,10 @@ function Detail({
         <div className="flex items-center gap-3 border-t border-black/[0.06] bg-white px-7 py-4">
           <div className="min-w-0 flex-1">
             <div className="text-[11px] font-semibold text-neutral-400">Waiting on you</div>
-            <div className="truncate text-xs text-neutral-500">Liking <strong className="text-neutral-700">{c.name}</strong> tunes who MoonTech matches you with</div>
+            <div className="truncate text-xs text-neutral-500">Either way, MoonTech learns from it and the next set gets closer</div>
           </div>
           {/* Dislike asks first. A like is one click — it costs nothing to
-              be wrong about — but a pass teaches the matcher to stop
+              be wrong about — but a dislike teaches the model to stop
               reaching for a whole kind of creator, and that is worth one
               question. */}
           <button onClick={() => onAskPass(c)}
@@ -748,12 +799,13 @@ export default function CreatorsPage() {
         </div>
       </div>
 
-      {/* ── THE PASS DIALOG ──
-             The only two-step decision on this screen. It asks what to stop
-             matching — never whether the person is allowed here — because
-             the brand does not preapprove creators; MoonTech matches them.
-             Confirm is one button, Cancel is the other, and Escape is
-             Cancel: the easy exit is the one that changes nothing. ── */}
+      {/* ── THE DISLIKE DIALOG ──
+             The only two-step decision on this screen. It asks what the
+             model got wrong — never whether the person is allowed here —
+             because the brand does not approve creators; MoonTech
+             recommends them. Confirm is one button, Cancel is the other,
+             and Escape is Cancel: the easy exit is the one that changes
+             nothing. ── */}
       {passing && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
           <div aria-hidden="true" onClick={closePass} className="absolute inset-0" />
@@ -765,26 +817,30 @@ export default function CreatorsPage() {
             className="relative max-h-full w-full max-w-[520px] overflow-y-auto rounded-2xl border border-black/[0.06] bg-white p-5 shadow-[0_24px_60px_-20px_rgba(0,0,0,0.45)]"
           >
             <h2 id="pass-title" className="pr-9 text-[17px] font-bold" style={{ color: INK }}>
-              Why isn&apos;t {passing.name} a match?
+              What did we get wrong about {passing.name.split(" ")[0]}?
             </h2>
-            {/* The subtitle carries the whole model of this screen: a signal
-                tunes matching, and it does not stand between the creator
-                and the platform. */}
+            {/* The subtitle carries the whole model of this screen: the
+                answer teaches a recommendation engine, and it does not
+                stand between the creator and the platform. The question
+                above owns the miss — MoonTech recommended her, so "why
+                isn't she a match" was asking the brand to justify a call
+                the model made. */}
             <p className="mt-1 pr-9 text-[12.5px] leading-snug text-neutral-500">
-              This tunes who MoonTech matches you with. It isn&apos;t a decision about her — she keeps
-              working with every other brand, and you can undo it any time.
+              MoonTech recommended her, so this is feedback on us, not a verdict on her. She keeps
+              working with every other brand. Tell us what missed and the next set gets closer.
             </p>
             <button
               onClick={closePass}
-              aria-label="Cancel, leave her in matching"
+              aria-label="Cancel, send no feedback"
               className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-lg text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4D2FB0]"
             >
               <X size={16} weight="bold" />
             </button>
 
-            {/* Reasons, not a blank box. Each one is measured against the
-                brand's criteria, so the matcher gets something it can act
-                on. Two columns so all six fit without a scroll. */}
+            {/* Reasons, not a blank box — the model can act on a reason and
+                cannot act on a mood. Four of them, in two columns, and
+                every one is readable from a public profile: these are
+                creators nobody here has worked with yet. */}
             <div className="mt-3.5 grid grid-cols-1 gap-2 sm:grid-cols-2">
               {CREATOR_PASS_REASONS.map((r) => {
                 const on = reasons.includes(r.id);
@@ -826,7 +882,7 @@ export default function CreatorsPage() {
                 maxLength={NOTE_MAX}
                 rows={2}
                 onChange={(e) => setNote(e.target.value)}
-                placeholder="Add anything that would sharpen the matching…"
+                placeholder="Anything else that would help MoonTech learn…"
                 className="mt-1.5 w-full resize-none rounded-xl border border-black/[0.06] bg-[#fafafa] p-3 text-[13px] leading-relaxed outline-none placeholder:text-neutral-400 focus:border-[#4D2FB0] focus:ring-2 focus:ring-[#4D2FB0]/25"
                 style={{ color: INK }}
               />
@@ -841,9 +897,9 @@ export default function CreatorsPage() {
                 Cancel
               </button>
               {/* Ink, not red: red on this screen means needs-your-action,
-                  and a tuning signal is not an alarm. Disabled until a
-                  reason is ticked — a signal with nothing attached teaches
-                  the matcher nothing, which is what this dialog exists to
+                  and feedback is not an alarm. Disabled until a reason is
+                  ticked — a dislike with nothing attached teaches the
+                  model nothing, which is what this dialog exists to
                   prevent. */}
               <button
                 onClick={confirmPass}

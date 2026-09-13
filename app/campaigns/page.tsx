@@ -29,7 +29,7 @@ import NotificationCenter from "../components/NotificationCenter";
 import CommandPalette from "../components/CommandPalette";
 import StatusBadge from "../components/StatusBadge";
 import {
-  CAMPAIGNS, adsFor, fmtUSD, phaseHasStarted, phaseTitle, phaseWindow, prevPhase, withVat,
+  CAMPAIGNS, adsFor, fmtUSD, hasAdReview, phaseHasStarted, phaseTitle, phaseWindow, prevPhase, withVat,
   type Ad, type Campaign, type CampaignStatus,
 } from "../lib/campaigns";
 import { useRoster } from "../lib/funding";
@@ -291,7 +291,12 @@ export default function CampaignsPage() {
      so it can't be called inside a loop — the overrides are read once and
      applied exactly the way useAdsFor applies them. */
   const overrides = useAdOverrides();
+  /* hasAdReview comes FIRST, before the queue is ever counted: a brand
+     that does not review its ads must not contribute to the "· 6" in the
+     panel heading either, and filtering the rendered rows alone would
+     have left that total counting work nobody can open. */
   const adQueue: { c: Campaign; waiting: Ad[] }[] = roster
+    .filter((c) => hasAdReview(c.brandId))
     .filter(phaseHasStarted)
     .map((c) => ({
       c,

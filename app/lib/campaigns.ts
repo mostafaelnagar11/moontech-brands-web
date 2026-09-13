@@ -98,13 +98,22 @@ export const declineReasonLabel = (id: string) =>
 /* SIGNAL. MoonTech picks the creators; this teaches it what to stop    */
 /* reaching for. Nothing here blocks a person from the platform.        */
 /* ------------------------------------------------------------------ */
+/* What a brand can tell MoonTech about a creator it has RECOMMENDED and
+   the brand did not want. Every line here has to be readable from a
+   public profile, because that is all anyone has: these creators have
+   never published for this brand, so nothing about how they deliver, how
+   often they turn work around, or how a phase went with them exists yet.
+   "Doesn't publish often enough for a phase" was asking the brand to
+   judge work that has not happened.
+
+   Markets and buyer age used to be two lines that meant the same thing —
+   the brand ticked both and MoonTech learned one fact twice. They are one
+   line now. */
 export const CREATOR_PASS_REASONS = [
-  { id: "markets",   label: "Audience isn't in our target markets" },
-  { id: "age",       label: "Audience age doesn't match our buyer" },
-  { id: "style",     label: "Content style doesn't fit our brand" },
-  { id: "competing", label: "Publishes for a competing brand" },
-  { id: "reach",     label: "Reach is low for the size of the following" },
-  { id: "cadence",   label: "Doesn't publish often enough for a phase" },
+  { id: "audience",  label: "Her audience isn't who we're trying to reach" },
+  { id: "style",     label: "Her content doesn't feel like our brand" },
+  { id: "competing", label: "She's too close to a competing brand" },
+  { id: "reach",     label: "Her posts don't land with many of her followers" },
 ] as const;
 
 export type CreatorPassReasonId = (typeof CREATOR_PASS_REASONS)[number]["id"];
@@ -767,6 +776,25 @@ export const ADS: Ad[] = [
 
 /** Every draft waiting on the brand for one phase-campaign. */
 export const adsFor = (campaignId: string) => ADS.filter((a) => a.campaignId === campaignId);
+
+/* ------------------------------------------------------------------ */
+/* Which brands run ad review                                          */
+/*                                                                     */
+/* Ounass does not. Its ads reach the brand already decided, so the     */
+/* review queue, the "N ads waiting on you" panel on the campaigns      */
+/* list and the bell notification that deep-links into the review       */
+/* screen are all off for it.                                          */
+/*                                                                     */
+/* The rule lives HERE, once, rather than as an `=== "ounass"` on each  */
+/* of the three screens that show a way in. Three copies of it is       */
+/* three chances for the campaign detail to hide a queue the campaigns  */
+/* list is still advertising, and a brand that is told six ads wait on  */
+/* it and then cannot find them has been lied to by its own workspace.  */
+/* ------------------------------------------------------------------ */
+const NO_AD_REVIEW = new Set<string>(["ounass"]);
+
+/** Whether this brand reviews its own ads before they publish. */
+export const hasAdReview = (brandId: string) => !NO_AD_REVIEW.has(brandId);
 
 export const adCreator = (a: Ad) => AD_CREATORS.find((c) => c.id === a.creatorId)!;
 
