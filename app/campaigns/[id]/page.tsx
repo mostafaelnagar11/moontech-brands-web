@@ -27,7 +27,7 @@ import NotificationCenter from "../../components/NotificationCenter";
 import CommandPalette from "../../components/CommandPalette";
 import StatusBadge from "../../components/StatusBadge";
 import {
-  adCreator, draftDaysLeft, fmtUSD, hasAdReview, nextPhase, phaseHasStarted, phaseTitle,
+  adCreator, draftDaysLeft, fmtUSD, nextPhase, phaseHasStarted, phaseTitle,
   phaseWindow, vatOn, withVat, REVIEW_WINDOW_DAYS,
   type Ad, type Campaign,
 } from "../../lib/campaigns";
@@ -464,13 +464,7 @@ export default function CampaignDetailPage() {
                        real one — the ledger it carried is condensed into the
                        one line underneath, which is all of it a brand reads
                        at a glance anyway. ── */}
-                  {/* Brands that do not review their own ads never see this
-                      row — for them the ads arrive decided, and a queue is
-                      not waiting on anybody. The same gate turns off the
-                      campaigns-list panel and the bell notification, so a
-                      brand is never told six ads wait on it by one screen
-                      and nothing by another. */}
-                  {hasAdReview(detail.brandId) && (waiting.length > 0 || disliked.length > 0) && (
+                  {(waiting.length > 0 || disliked.length > 0) && (
                     <section>
                       <p className={`${EYEBROW} mb-2 text-[#7C5CE0]`}>Ad review</p>
                       <button

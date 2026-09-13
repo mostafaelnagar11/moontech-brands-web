@@ -6,7 +6,7 @@ import {
   Bell, Lightning, Images, UsersThree, CreditCard, ChartLineUp, Checks,
 } from "@phosphor-icons/react";
 import {
-  CAMPAIGNS, duePhase, fmtUSD, nextPhase, phaseTitle,
+  CAMPAIGNS, adsFor, duePhase, fmtUSD, nextPhase, phaseTitle,
 } from "../lib/campaigns";
 
 const INK = "#191234";
@@ -63,11 +63,18 @@ const NOTIFS: Notif[] = [
     body: `${phaseTitle(OU_LIVE.phaseNo)} reached ${OU_LIVE.revPct}% of its ${fmtUSD(OU_LIVE.revTarget!)} target — the next rung is ready to fund.`,
     href: `/campaigns/${OU_DUE.id}`,
     cta: `${OU_FUND.label} — ${fmtUSD(OU_FUND.amount)}` },
-  /* The "N ads waiting on you" notification that sat here was Ounass's,
-     and Ounass no longer reviews its own ads — hasAdReview() turns the
-     queue off on the campaigns list and on the phase page, so a bell
-     still ringing for it would be the one surface left insisting there
-     is work behind a door that has been taken off the wall. */
+  /* This used to read "12 ads awaiting review — needs your approval before it
+     goes live", which is the exact claim the signup key terms deny. The count
+     is DERIVED from the drafts sitting on the phase, so the bell and the
+     review screen cannot disagree about how much is waiting.
+
+     It counts UNDECIDED drafts, not every draft on the phase. Two of the
+     eight already carry a signal, and a draft you have judged is not
+     waiting on you — the campaigns list says 6, so this has to say 6. */
+  { id: "n2", type: "content", group: "Today",   time: "1h ago",
+    title: `${adsFor(OU_LIVE.id).filter((a) => a.signal === "none").length} ads waiting on you`,
+    body: `Drafts from ${phaseTitle(OU_LIVE.phaseNo)} are ready to publish — nothing publishes until you like them.`,
+    href: `/campaigns/ads?c=${OU_LIVE.id}&shelf=waiting` },
   { id: "n3", type: "creator", group: "Today",   time: "3h ago",
     title: "8 creators waiting on you",
     body: `Fresh matches for ${phaseTitle(OU_LIVE.phaseNo)}.`,

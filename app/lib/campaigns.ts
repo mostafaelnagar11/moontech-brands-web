@@ -777,25 +777,6 @@ export const ADS: Ad[] = [
 /** Every draft waiting on the brand for one phase-campaign. */
 export const adsFor = (campaignId: string) => ADS.filter((a) => a.campaignId === campaignId);
 
-/* ------------------------------------------------------------------ */
-/* Which brands run ad review                                          */
-/*                                                                     */
-/* Ounass does not. Its ads reach the brand already decided, so the     */
-/* review queue, the "N ads waiting on you" panel on the campaigns      */
-/* list and the bell notification that deep-links into the review       */
-/* screen are all off for it.                                          */
-/*                                                                     */
-/* The rule lives HERE, once, rather than as an `=== "ounass"` on each  */
-/* of the three screens that show a way in. Three copies of it is       */
-/* three chances for the campaign detail to hide a queue the campaigns  */
-/* list is still advertising, and a brand that is told six ads wait on  */
-/* it and then cannot find them has been lied to by its own workspace.  */
-/* ------------------------------------------------------------------ */
-const NO_AD_REVIEW = new Set<string>(["ounass"]);
-
-/** Whether this brand reviews its own ads before they publish. */
-export const hasAdReview = (brandId: string) => !NO_AD_REVIEW.has(brandId);
-
 export const adCreator = (a: Ad) => AD_CREATORS.find((c) => c.id === a.creatorId)!;
 
 /* An unposted ad has no views. This is the creator's own audience taken
