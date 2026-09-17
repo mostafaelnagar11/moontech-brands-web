@@ -256,14 +256,20 @@ function Detail({
      it is not confident about, so the floor on this screen is 81%. A
      "Fair" label was describing profiles that never arrive.
 
-     Green and orange, so the two tiers read apart at a glance. Orange
-     rather than a caution yellow — an 84% is a creator the model is
-     recommending, not a warning — and this one is held at the same
-     contrast against white as the green, so neither tier's label is
-     harder to read than the other's. */
+     ONE HUE, TWO SHADES. Both tiers are green because both are creators
+     the model is recommending — a second colour, whatever it was, read as
+     a second verdict, and amber or orange read as a warning on an 84%
+     nobody is being warned about. Depth carries the tier instead: the
+     app's own green for Excellent, a step lighter for Good.
+
+     How much lighter is decided by white text, not by taste. Good sits at
+     3.1:1 against white, which a 26px bold number clears; the obvious
+     next step down, emerald-500, is 2.6:1 and would have made the lower
+     tier the harder one to READ — backwards from anything worth saying
+     with colour. */
   const excellent = c.score >= 90;
   const scoreLabel = excellent ? "Excellent" : "Good";
-  const scoreBg = excellent ? "#059669" : "#EA580C";
+  const scoreBg = excellent ? "#059669" : "#0CA678";
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-white">
