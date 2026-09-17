@@ -19,7 +19,7 @@ import Sidebar from "../components/Sidebar";
 import NotificationCenter from "../components/NotificationCenter";
 import CommandPalette from "../components/CommandPalette";
 import StatusBadge from "../components/StatusBadge";
-import { duePhase, fmtUSD, phaseTitle, phaseWindow, type Campaign } from "../lib/campaigns";
+import { campaignTitle, duePhase, fmtUSD, phaseWindow, runsPhases, type Campaign } from "../lib/campaigns";
 import { useRoster } from "../lib/funding";
 import { useActiveBrand } from "../lib/brand";
 
@@ -322,8 +322,8 @@ function CurrentPhaseCard({ c, onOpen }: { c: Campaign; onOpen: () => void }) {
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-[15px] font-semibold" style={{ color: INK }}>{phaseTitle(c.phaseNo)}</h3>
-            <StatusBadge status={c.status} />
+            <h3 className="text-[15px] font-semibold" style={{ color: INK }}>{campaignTitle(c)}</h3>
+            <StatusBadge status={c.status} brandId={c.brandId} />
           </div>
           <p className="text-xs text-neutral-400 mt-1">{phaseWindow(c)}</p>
         </div>
@@ -412,7 +412,7 @@ function NoPhaseRunningCard({ due, onFund }: { due: Campaign | undefined; onFund
       <h3 className="text-[15px] font-semibold" style={{ color: INK }}>No phase running</h3>
       <p className="mt-1.5 max-w-sm text-xs leading-relaxed text-neutral-400">
         {due
-          ? `${phaseTitle(due.phaseNo)} is unlocked and waiting on payment. Fund it and it is live within the hour.`
+          ? `${campaignTitle(due)} is unlocked and waiting on payment. Fund it and it is live within the hour.`
           : "Nothing is live and nothing is waiting on you. Your next phase unlocks when the current one crosses its 80% line."}
       </p>
       {due && (
@@ -470,18 +470,22 @@ function PhaseLadder({
               return (
                 <tr key={c.id} className="hover:bg-neutral-50/60 transition-colors">
                   <td className="py-4 pr-4">
-                    <p className="font-medium" style={{ color: INK }}>{phaseTitle(c.phaseNo)}</p>
+                    <p className="font-medium" style={{ color: INK }}>{campaignTitle(c)}</p>
                     <p className="mt-0.5 text-[11px] text-neutral-400">{phaseWindow(c)}</p>
                   </td>
-                  <td className="py-4 pr-3"><StatusBadge status={c.status} /></td>
+                  <td className="py-4 pr-3"><StatusBadge status={c.status} brandId={c.brandId} /></td>
                   <td className="py-4 pr-3">
                     <p className={`font-medium tabular-nums ${funded ? "text-neutral-700" : "text-neutral-400"}`}>
                       {fmtUSD(c.budget)}
                     </p>
                     <p className="mt-0.5 text-[11px] text-neutral-400">
+                      {/* "due now" and "not payable yet" are both answers to
+                          "when do I pay for this", which a brand that does
+                          not pay per campaign never asks. */}
                       {funded
                         ? `${fmtUSD(target)} target`
-                        : c.status === "Ready" ? "due now" : "not payable yet"}
+                        : !runsPhases(c.brandId) ? "allocated"
+                          : c.status === "Ready" ? "due now" : "not payable yet"}
                     </p>
                   </td>
                   <td className="py-4 pr-3">
@@ -491,7 +495,9 @@ function PhaseLadder({
                         {c.revPct !== null && (
                           <div className="relative mt-1.5 h-1 w-24 rounded-full bg-[#EFEBFA]">
                             <div className="h-full rounded-full bg-[#4D2FB0]" style={{ width: `${Math.min(c.revPct, 100)}%` }} />
-                            <span aria-hidden="true" className="absolute -inset-y-0.5 left-[80%] w-px bg-[#4D2FB0]/40" />
+                            {runsPhases(c.brandId) && (
+                              <span aria-hidden="true" className="absolute -inset-y-0.5 left-[80%] w-px bg-[#4D2FB0]/40" />
+                            )}
                           </div>
                         )}
                       </>
@@ -512,7 +518,7 @@ function PhaseLadder({
                   <td className="py-4 text-right">
                     {c.status !== "Locked" && (
                       <button onClick={() => onOpen(c.id)}
-                        aria-label={`Open ${phaseTitle(c.phaseNo)}`}
+                        aria-label={`Open ${campaignTitle(c)}`}
                         className="rounded-lg px-2.5 py-1.5 text-[13px] font-medium text-neutral-400 hover:text-[#4D2FB0] hover:bg-[#4D2FB0]/[0.06] transition-colors">
                         View →
                       </button>
@@ -579,12 +585,12 @@ export default function Dashboard() {
       sub: `Across ${funded.length} funded phase${funded.length === 1 ? "" : "s"}`,
     },
     {
-      label: "Current phase",
+      label: runsPhases(brand.id) ? "Current phase" : "Current campaign",
       value: live ? (live.revPct !== null ? `${live.revPct}%` : "Live") : "—",
       sub: live
         ? live.revTarget !== null
-          ? `${phaseTitle(live.phaseNo)} · ${fmtUSD(live.rev)} of ${fmtUSD(live.revTarget)}`
-          : `${phaseTitle(live.phaseNo)} · deploying`
+          ? `${campaignTitle(live)} · ${fmtUSD(live.rev)} of ${fmtUSD(live.revTarget)}`
+          : `${campaignTitle(live)} · deploying`
         : "Nothing running right now",
     },
     {
@@ -677,7 +683,7 @@ export default function Dashboard() {
               {live ? (
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-[#4D2FB0]/[0.07] px-3 py-1.5 text-[12px] font-medium text-[#4D2FB0]">
                   <span className="h-1.5 w-1.5 rounded-full bg-[#4D2FB0] animate-pulse" />
-                  {phaseTitle(live.phaseNo)} is live
+                  {campaignTitle(live)} is live
                 </span>
               ) : (
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 px-3 py-1.5 text-[12px] font-medium text-neutral-500">

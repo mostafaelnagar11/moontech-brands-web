@@ -28,8 +28,10 @@ import Sidebar from "../components/Sidebar";
 import NotificationCenter from "../components/NotificationCenter";
 import CommandPalette from "../components/CommandPalette";
 import StatusBadge from "../components/StatusBadge";
+import { useActiveBrandId } from "../lib/brand";
 import {
-  CAMPAIGNS, adsFor, fmtUSD, phaseHasStarted, phaseTitle, phaseWindow, prevPhase, withVat,
+  CAMPAIGNS, adsFor, campaignTitle, fmtUSD, phaseHasStarted, phaseWindow,
+  prevPhase, runsPhases, statusWord, withVat,
   type Ad, type Campaign, type CampaignStatus,
 } from "../lib/campaigns";
 import { useRoster } from "../lib/funding";
@@ -44,15 +46,12 @@ const INK = "#191234";
 const STATUS_FILTERS = ["All", "Live", "Ready", "Locked", "Ended"] as const;
 type StatusFilter = (typeof STATUS_FILTERS)[number];
 
-/* The filter VALUES are the stored campaign statuses; the labels are the
-   canonical state words, so a tab and a status chip never disagree. */
-const FILTER_LABEL: Record<StatusFilter, string> = {
-  All: "All",
-  Live: "Live",
-  Ready: "Ready to fund",
-  Locked: "Queued",
-  Ended: "Completed",
-};
+/* The filter VALUES are the stored campaign statuses; the labels come
+   from statusWord, so a tab and the status chip on a card can never
+   disagree — including where the brand's model changes the word, and
+   "Ready to fund" becomes "Scheduled" for a brand that funds nothing. */
+const filterLabel = (f: StatusFilter, brandId: string) =>
+  f === "All" ? "All" : statusWord(f as CampaignStatus, brandId);
 
 /* ------------------------------------------------------------------ */
 /* The two states a card can be in                                     */
@@ -77,13 +76,19 @@ const cardState = (c: Campaign): CardState =>
 function CampaignCard({ c, i, onOpen }: { c: Campaign; i: number; onOpen: (id: string) => void }) {
   const state = cardState(c);
   const metered = state === "metered";
-  const title = phaseTitle(c.phaseNo);
+  const title = campaignTitle(c);
+  const ladder = runsPhases(c.brandId);
+  const noun = ladder ? "phase" : "campaign";
   const before = prevPhase(c);
   const label = metered
-    ? `${title}, ${c.status.toLowerCase()}, ${fmtUSD(c.rev)} of ${fmtUSD(c.revTarget!)}, ${c.revPct} percent of this phase's target, ${c.roas} ROAS. Open phase.`
+    ? `${title}, ${c.status.toLowerCase()}, ${fmtUSD(c.rev)} of ${fmtUSD(c.revTarget!)}, ${c.revPct} percent of this ${noun}'s target, ${c.roas} ROAS. Open ${noun}.`
     : c.status === "Ready"
-      ? `${title}, ready to fund, ${fmtUSD(c.budget)} to deploy at a guaranteed ${c.guaranteedRoas} times. Open phase.`
-      : `${title}, queued, ${fmtUSD(c.budget)} reserved. Unlocks when the running phase crosses its 80% line. Open phase.`;
+      ? ladder
+        ? `${title}, ready to fund, ${fmtUSD(c.budget)} to deploy at a guaranteed ${c.guaranteedRoas} times. Open phase.`
+        : `${title}, scheduled for ${c.planned}, ${fmtUSD(c.budget)} to deploy at a guaranteed ${c.guaranteedRoas} times. Open campaign.`
+      : ladder
+        ? `${title}, queued, ${fmtUSD(c.budget)} reserved. Unlocks when the running phase crosses its 80% line. Open phase.`
+        : `${title}, queued, ${fmtUSD(c.budget)} reserved. Open campaign.`;
 
   return (
     <button
@@ -100,7 +105,7 @@ function CampaignCard({ c, i, onOpen }: { c: Campaign; i: number; onOpen: (id: s
               other fact of identity a phase has: its own window. */}
           <p className="mt-0.5 truncate text-xs text-neutral-500">{phaseWindow(c)}</p>
         </div>
-        <StatusBadge status={c.status} />
+        <StatusBadge status={c.status} brandId={c.brandId} />
       </div>
 
       {metered ? (
@@ -131,13 +136,20 @@ function CampaignCard({ c, i, onOpen }: { c: Campaign; i: number; onOpen: (id: s
               className="bar-fill keyline-grad h-full rounded-full"
               style={{ width: `${Math.min(c.revPct ?? 0, 100)}%`, "--bd": `${(0.35 + i * 0.08).toFixed(2)}s` } as React.CSSProperties}
             />
-            <span aria-hidden="true" className={`unlock-notch ${c.revPct! >= 80 ? "unlock-notch--crossed" : ""}`} />
+            {/* The notch marks where the next phase unlocks. A brand that
+                does not buy its campaigns one at a time has no such gate,
+                so the bar is just progress to target and carries no mark. */}
+            {ladder && (
+              <span aria-hidden="true" className={`unlock-notch ${c.revPct! >= 80 ? "unlock-notch--crossed" : ""}`} />
+            )}
           </div>
-          <span className="sr-only">
-            {c.revPct! >= 80
-              ? "Past the 80% unlock line."
-              : `${80 - c.revPct!} percentage points below the 80% unlock line.`}
-          </span>
+          {ladder && (
+            <span className="sr-only">
+              {c.revPct! >= 80
+                ? "Past the 80% unlock line."
+                : `${80 - c.revPct!} percentage points below the 80% unlock line.`}
+            </span>
+          )}
 
           {/* Row 3 — threshold, verbatim from the shared data */}
           {c.threshold && (
@@ -162,14 +174,17 @@ function CampaignCard({ c, i, onOpen }: { c: Campaign; i: number; onOpen: (id: s
                 {fmtUSD(c.budget)}
               </p>
               <p className="mt-1.5 text-[11px] font-medium text-neutral-500">
-                {c.status === "Ready" ? "ready to deploy" : "reserved for this phase"}
+                {c.status === "Ready" ? "ready to deploy" : `reserved for this ${noun}`}
               </p>
             </div>
             <span className="shrink-0 rounded-full bg-[#F6F4FC] px-2 py-0.5 text-[11px] font-semibold tabular-nums text-[#4D2FB0]">
               {c.guaranteedRoas}× guaranteed
             </span>
           </div>
-          {c.status === "Ready" && c.due ? (
+          {/* On a calendar there is no unlock to wait for and no cheque to
+              explain — the window under the title has already said when it
+              runs, and repeating it here would be the same fact twice. */}
+          {!ladder ? null : c.status === "Ready" && c.due ? (
             <p className="mt-2.5 flex items-start gap-1.5 text-xs font-medium text-[#4D2FB0]">
               <Lightning size={13} weight="fill" aria-hidden="true" className="mt-px shrink-0" />
               {c.due.reason}
@@ -178,7 +193,7 @@ function CampaignCard({ c, i, onOpen }: { c: Campaign; i: number; onOpen: (id: s
             <p className="mt-2.5 flex items-start gap-1.5 text-xs font-medium text-neutral-400">
               <LockSimple size={13} weight="fill" aria-hidden="true" className="mt-px shrink-0" />
               {before
-                ? `Unlocks when ${phaseTitle(before.phaseNo)} crosses its 80% line`
+                ? `Unlocks when ${campaignTitle(before)} crosses its 80% line`
                 : "Unlocks when the phase before it crosses its 80% line"}
             </p>
           )}
@@ -240,7 +255,7 @@ function CompletedBlock({
           <button
             key={c.id}
             onClick={() => onOpen(c.id)}
-            aria-label={`${phaseTitle(c.phaseNo)}, completed, ${c.revLabel} earned, ${c.roas} ROAS. Open phase.`}
+            aria-label={`${campaignTitle(c)}, completed, ${c.revLabel} earned, ${c.roas} ROAS. Open it.`}
             className={`flex w-full items-center gap-3.5 px-4 py-3.5 text-left transition-colors hover:bg-neutral-50 sm:px-5 ${
               i > 0 ? "border-t border-black/[0.06]" : ""
             }`}
@@ -249,7 +264,7 @@ function CompletedBlock({
               <CheckCircle size={17} weight="fill" className="text-neutral-400" />
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm font-semibold" style={{ color: INK }}>{phaseTitle(c.phaseNo)}</span>
+              <span className="block truncate text-sm font-semibold" style={{ color: INK }}>{campaignTitle(c)}</span>
               <span className="mt-0.5 block text-xs text-neutral-500">{phaseWindow(c)}</span>
             </span>
             <span className="shrink-0 text-right">
@@ -280,6 +295,7 @@ export default function CampaignsPage() {
   /* Funding is optimistic and lives in a module store, because the detail
      is its own route — a phase funded there has to be visible here. */
   const roster = useRoster();
+  const brandId = useActiveBrandId();
   const open = (id: string) => router.push(`/campaigns/${id}`);
 
   /* At most one phase can be awaiting payment, because only the phase
@@ -443,7 +459,7 @@ export default function CampaignsPage() {
                       <Lightning size={17} weight="fill" />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-semibold" style={{ color: INK }}>{phaseTitle(c.phaseNo)}</span>
+                      <span className="block truncate text-sm font-semibold" style={{ color: INK }}>{campaignTitle(c)}</span>
                       <span className="mt-0.5 block truncate text-xs text-neutral-500">{c.due!.reason}</span>
                     </span>
                     {/* The pill names the ACTION, not just a number — a bare
@@ -482,7 +498,7 @@ export default function CampaignsPage() {
                   <button
                     key={c.id}
                     onClick={() => router.push(`/campaigns/ads?c=${c.id}&shelf=waiting`)}
-                    aria-label={`${waiting.length} ads waiting on you for ${phaseTitle(c.phaseNo)}. Nothing publishes until you like or dislike it. Open ad review.`}
+                    aria-label={`${waiting.length} ads waiting on you for ${campaignTitle(c)}. Nothing publishes until you like or dislike it. Open ad review.`}
                     className={`flex w-full items-center gap-3 px-5 py-3.5 text-left transition-colors hover:bg-neutral-50 ${
                       i > 0 ? "border-t border-black/[0.06]" : "border-t border-black/[0.06]"
                     }`}
@@ -499,7 +515,7 @@ export default function CampaignsPage() {
                         {waiting.length} ads waiting on you
                       </span>
                       <span className="mt-0.5 block truncate text-xs text-neutral-500">
-                        {phaseTitle(c.phaseNo)} · Nothing publishes until you like or dislike it
+                        {campaignTitle(c)} · Nothing publishes until you like or dislike it
                       </span>
                     </span>
                     <CaretRight size={14} weight="bold" aria-hidden="true" className="shrink-0 text-neutral-300" />
@@ -519,7 +535,7 @@ export default function CampaignsPage() {
                 onClick={() => {
                   setFilter(f);
                   const n = f === "All" ? roster.length : count(f as CampaignStatus);
-                  setAnnounce(`Showing ${n} ${f === "All" ? "" : FILTER_LABEL[f].toLowerCase() + " "}campaign${n === 1 ? "" : "s"}`);
+                  setAnnounce(`Showing ${n} ${f === "All" ? "" : filterLabel(f, brandId).toLowerCase() + " "}campaign${n === 1 ? "" : "s"}`);
                 }}
                 aria-pressed={filter === f}
                 className={`rounded-xl px-4 py-1.5 text-sm font-medium transition-colors ${
@@ -527,7 +543,7 @@ export default function CampaignsPage() {
                     ? "border border-[#4D2FB0] bg-[#4D2FB0]/[0.06] text-[#4D2FB0]"
                     : "border border-black/[0.09] bg-white text-neutral-500 hover:border-neutral-300 hover:text-neutral-700"
                 }`}>
-                {FILTER_LABEL[f]}
+                {filterLabel(f, brandId)}
                 <span className={`ml-1.5 text-[11px] tabular-nums ${filter === f ? "text-[#4D2FB0]" : "text-neutral-400"}`}>
                   {f === "All" ? roster.length : count(f as CampaignStatus)}
                 </span>

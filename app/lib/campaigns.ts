@@ -39,6 +39,37 @@ export const PHASE_NAMES = ["Warm-up", "Scale", "Peak"] as const;
 export const phaseTitle = (no: number) =>
   no <= PHASE_NAMES.length ? `Phase ${no} · ${PHASE_NAMES[no - 1]}` : `Phase ${no}`;
 
+/* ------------------------------------------------------------------ */
+/* LADDER BRANDS vs CALENDAR BRANDS                                    */
+/*                                                                     */
+/* Ounass does not climb a ladder. It runs NAMED CAMPAIGNS against a   */
+/* retail calendar — Ramadan, Eid, Black Friday — and it does not buy  */
+/* them a rung at a time, so nothing downstream of funding applies to  */
+/* it: no amount due, no 80% line that unlocks the next payment, no    */
+/* Ready-to-fund state, and no phase performance card whose whole job  */
+/* is to justify the next cheque.                                      */
+/*                                                                     */
+/* What survives is RESULTS. A campaign still earns against a target   */
+/* and still returns a multiple, and neither of those is funding.      */
+/*                                                                     */
+/* The rule lives here, once, as a question about the BRAND — the two  */
+/* models differ in what the product does for them, not in how any one */
+/* screen draws a card.                                                */
+/* ------------------------------------------------------------------ */
+const CALENDAR_BRANDS = new Set<string>(["ounass"]);
+
+/** Whether this brand buys its campaigns one funded phase at a time. */
+export const runsPhases = (brandId: string) => !CALENDAR_BRANDS.has(brandId);
+
+const STATUS_WORD: Record<CampaignStatus, string> = {
+  Live: "Live", Ready: "Ready to fund", Locked: "Queued", Ended: "Completed",
+};
+
+/** The word a status goes by on screen. A brand that does not fund its
+    campaigns has nothing "ready to fund" — that one is simply next. */
+export const statusWord = (status: CampaignStatus, brandId: string) =>
+  status === "Ready" && !runsPhases(brandId) ? "Scheduled" : STATUS_WORD[status];
+
 /* The creators an ad can come from. Avatars and post images are
    byte-identical to app/creators/page.tsx, so the review stage paints
    from a cache the creators screen has already warmed. */
@@ -214,6 +245,13 @@ export interface Campaign {
   id: string;
   brandId: string;              // whose ladder this rung belongs to
   phaseNo: number;              // 1..n — unbounded
+  /* The campaign's own name, for a brand that runs a named calendar
+     rather than a numbered ladder. null means the title is its rung. */
+  name: string | null;
+  /* A window a campaign is SCHEDULED for but has not started. Only a
+     calendar brand has one: on a ladder, when the next phase runs is not
+     a date, it is whenever the brand decides to pay for it. */
+  planned: string | null;
   /* THIS phase's own window, as two facts rather than one string.
      A LIVE PHASE HAS NO END DATE: it runs until its successor is funded,
      and when that happens is the brand's decision, not a date we can
@@ -250,6 +288,7 @@ export const CAMPAIGNS: Campaign[] = [
   /* ── Ounass ─────────────────────────────────────────────────── */
   {
     id: "ounass-phase-1", brandId: "ounass", phaseNo: 1,
+    name: "Winter Sale 2026", planned: null,
     start: "Jan 8, 2026", end: "Feb 6, 2026", status: "Ended",
     budget: 1000, guaranteedRoas: 5,
     rev: 5200, revLabel: "$5,200", revTarget: 5000, revPct: 104, roas: "5.2×",
@@ -259,27 +298,34 @@ export const CAMPAIGNS: Campaign[] = [
   },
   {
     id: "ounass-phase-2", brandId: "ounass", phaseNo: 2,
+    name: "Ramadan Edit 2026", planned: null,
     start: "Feb 10, 2026", end: null, status: "Live",
     budget: 3000, guaranteedRoas: 5,
     rev: 12600, revLabel: "$12,600", revTarget: 15000, revPct: 84, roas: "4.2×",
-    threshold: "80% unlock line crossed — Phase 3 is ready to fund", thresholdGreen: true,
+    /* Not "80% unlock line crossed": nothing unlocks, because nothing is
+       bought a rung at a time here. The line says the one thing about
+       this number the figures above it do not — the distance left. */
+    threshold: "$2,400 from its target, and still running", thresholdGreen: true,
     due: null,
     creators: 24, adsLive: 6,  adsTotal: 13, content: 6,
     faces: [byId(1), byId(3), byId(9)],
   },
   {
     id: "ounass-phase-3", brandId: "ounass", phaseNo: 3,
+    name: "Eid Al Fitr 2026", planned: "Mar 19 \u2013 Apr 2, 2026",
     start: null, end: null, status: "Ready",
     budget: 6000, guaranteedRoas: 5,
     rev: 0, revLabel: "$0", revTarget: null, revPct: null, roas: "—",
     threshold: null, thresholdGreen: false,
-    due: { label: "Fund Phase 3", amount: 6000,
-           reason: "Phase 2 crossed the 80% line at 84%" },
+    /* No `due`. Ounass does not pay per campaign, so there is no amount
+       waiting on it and nothing on any screen may ask for one. */
+    due: null,
     creators: null, adsLive: null, adsTotal: null, content: null,
     faces: [byId(5), byId(7), byId(8)],
   },
   {
     id: "ounass-phase-4", brandId: "ounass", phaseNo: 4,
+    name: "Black Friday 2026", planned: "Nov 24 \u2013 Nov 30, 2026",
     start: null, end: null, status: "Locked",
     budget: 10000, guaranteedRoas: 5,
     rev: 0, revLabel: "$0", revTarget: null, revPct: null, roas: "—",
@@ -291,6 +337,7 @@ export const CAMPAIGNS: Campaign[] = [
   /* ── Luna Beauty ────────────────────────────────────────────── */
   {
     id: "luna-phase-1", brandId: "luna", phaseNo: 1,
+    name: null, planned: null,
     start: "Feb 1, 2026", end: "Mar 2, 2026", status: "Ended",
     budget: 500, guaranteedRoas: 5,
     rev: 2400, revLabel: "$2,400", revTarget: 2500, revPct: 96, roas: "4.8×",
@@ -300,6 +347,7 @@ export const CAMPAIGNS: Campaign[] = [
   },
   {
     id: "luna-phase-2", brandId: "luna", phaseNo: 2,
+    name: null, planned: null,
     start: "Mar 10, 2026", end: null, status: "Live",
     budget: 1500, guaranteedRoas: 5,
     rev: 4100, revLabel: "$4,100", revTarget: 7500, revPct: 55, roas: "2.7×",
@@ -310,6 +358,7 @@ export const CAMPAIGNS: Campaign[] = [
   },
   {
     id: "luna-phase-3", brandId: "luna", phaseNo: 3,
+    name: null, planned: null,
     start: null, end: null, status: "Locked",
     budget: 3000, guaranteedRoas: 5,
     rev: 0, revLabel: "$0", revTarget: null, revPct: null, roas: "—",
@@ -321,6 +370,7 @@ export const CAMPAIGNS: Campaign[] = [
   /* ── FreshGrocer ────────────────────────────────────────────── */
   {
     id: "fresh-phase-1", brandId: "fresh", phaseNo: 1,
+    name: null, planned: null,
     start: "Aug 18, 2026", end: null, status: "Live",
     budget: 750, guaranteedRoas: 5,
     rev: 310, revLabel: "$310", revTarget: 3750, revPct: 8, roas: "0.41×",
@@ -341,9 +391,18 @@ export const CAMPAIGNS: Campaign[] = [
    state — what it says instead depends on whether it is payable. A
    started phase with no end is running, and says so. */
 export function phaseWindow(c: Campaign): string {
-  if (!c.start) return c.status === "Ready" ? "Starts when funded" : "Not scheduled";
+  if (!c.start) {
+    /* A scheduled window outranks both — a campaign with a date in the
+       calendar is neither waiting on money nor unscheduled. Only calendar
+       brands carry one, so no brand check is needed here. */
+    if (c.planned) return `Planned ${c.planned}`;
+    return c.status === "Ready" ? "Starts when funded" : "Not scheduled";
+  }
   return c.end ? `${c.start} \u2013 ${c.end}` : `Started ${c.start}`;
 }
+
+/** What to call this campaign: its own name, or the rung it sits on. */
+export const campaignTitle = (c: Campaign) => c.name ?? phaseTitle(c.phaseNo);
 
 /** A short "Sep 3, 2026" for a window edge set as it happens. */
 export const fmtDay = (d: Date) =>

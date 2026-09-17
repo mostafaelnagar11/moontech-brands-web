@@ -7,7 +7,7 @@ import {
   MagnifyingGlass, House, Megaphone, UsersThree,
   Gear, CreditCard, Question, ArrowElbowDownLeft, type Icon,
 } from "@phosphor-icons/react";
-import { phaseTitle, type CampaignStatus } from "../lib/campaigns";
+import { campaignTitle, statusWord } from "../lib/campaigns";
 import { useActiveBrand } from "../lib/brand";
 import { useRoster } from "../lib/funding";
 
@@ -19,13 +19,6 @@ type Group = { title: string; items: Item[] };
 /* The state words the campaigns list uses, so a palette row and a status
    chip never disagree. They also widen what a row can be found by — the
    filter below matches `label` and nothing else. */
-const STATE_WORD: Record<CampaignStatus, string> = {
-  Live: "Live",
-  Ready: "Ready to fund",
-  Locked: "Queued",
-  Ended: "Completed",
-};
-
 /* The rows that do not depend on which brand you are in. The campaign
    rows do — they are the active brand's ladder — so they are built in the
    component below.
@@ -106,7 +99,7 @@ export default function CommandPalette() {
         title: `${brand.name} phases`,
         items: roster.map((c) => ({
           id: `p-${c.id}`,
-          label: `${phaseTitle(c.phaseNo)} — ${STATE_WORD[c.status]}`,
+          label: `${campaignTitle(c)} — ${statusWord(c.status, c.brandId)}`,
           icon: Megaphone,
           href: `/campaigns/${c.id}`,
         })),

@@ -48,7 +48,7 @@ import {
 } from "@phosphor-icons/react";
 import {
   CAMPAIGNS, HIGH_FIT, REVIEW_WINDOW_DAYS, adChecks, adCreator, adHero, adsFor,
-  DECLINE_REASONS, declineReasonLabel, draftDaysLeft, fmtUSD, livePhase, phaseTitle,
+  DECLINE_REASONS, declineReasonLabel, draftDaysLeft, fmtUSD, livePhase, campaignTitle,
   type Ad, type AdSignal, type Platform,
 } from "../../lib/campaigns";
 import { setAdSignal, useAdFeedback, useAdsFor, type AdFeedback } from "../../lib/adSignals";
@@ -438,12 +438,12 @@ export default function CampaignAdsPage() {
     <header className="flex h-[60px] shrink-0 items-center gap-3 border-b border-white/10 px-4">
       <button
         onClick={back}
-        aria-label={campaign ? `Back to ${phaseTitle(campaign.phaseNo)}` : "Back to all campaigns"}
+        aria-label={campaign ? `Back to ${campaignTitle(campaign)}` : "Back to all campaigns"}
         className="flex min-w-0 items-center gap-2 rounded-xl px-2.5 py-2 text-white/70 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
       >
         <ArrowLeft size={18} weight="bold" aria-hidden="true" className="shrink-0" />
         <span className="max-w-[190px] truncate text-[12.5px] font-semibold">
-          Back to {campaign ? phaseTitle(campaign.phaseNo) : "campaigns"}
+          Back to {campaign ? campaignTitle(campaign) : "campaigns"}
         </span>
       </button>
       <span aria-hidden="true" className="hidden h-6 w-px shrink-0 bg-white/10 sm:block" />
@@ -498,7 +498,7 @@ export default function CampaignAdsPage() {
             <p className="mt-2 max-w-[440px] text-sm leading-relaxed text-white/60">
               {cid ? (
                 <>
-                  {campaign ? `${phaseTitle(campaign.phaseNo)} has` : "This phase has"} no ads to
+                  {campaign ? `${campaignTitle(campaign)} has` : "This phase has"} no ads to
                   review. New ads land here the moment a creator finishes one.
                 </>
               ) : (

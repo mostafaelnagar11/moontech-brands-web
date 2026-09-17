@@ -27,8 +27,8 @@ import NotificationCenter from "../../components/NotificationCenter";
 import CommandPalette from "../../components/CommandPalette";
 import StatusBadge from "../../components/StatusBadge";
 import {
-  adCreator, draftDaysLeft, fmtUSD, nextPhase, phaseHasStarted, phaseTitle,
-  phaseWindow, vatOn, withVat, REVIEW_WINDOW_DAYS,
+  adCreator, campaignTitle, draftDaysLeft, fmtUSD, nextPhase, phaseHasStarted,
+  phaseTitle, phaseWindow, runsPhases, vatOn, withVat, REVIEW_WINDOW_DAYS,
   type Ad, type Campaign,
 } from "../../lib/campaigns";
 import { useCampaign, useRoster, fundPhase } from "../../lib/funding";
@@ -210,6 +210,10 @@ export default function CampaignDetailPage() {
   const pct = detail.revPct;
   const target = detail.revTarget;
   const metered = pct !== null && target !== null;
+  /* Ounass runs a named calendar, not a funded ladder: no cheque, no
+     unlock, and no phase-performance card — that card exists to justify
+     the next payment, and there is no next payment. */
+  const ladder = runsPhases(detail.brandId);
 
   /* The successor, for the "nothing waiting on you" copy — a lookup, not
      a comparison against a fixed ladder length. */
@@ -314,7 +318,7 @@ export default function CampaignDetailPage() {
             <ArrowLeft size={15} weight="bold" />
           </button>
 
-          <h1 className="text-[15px] font-semibold text-[#191234] shrink-0 truncate">{phaseTitle(detail.phaseNo)}</h1>
+          <h1 className="text-[15px] font-semibold text-[#191234] shrink-0 truncate">{campaignTitle(detail)}</h1>
 
           <CommandPalette />
 
@@ -357,7 +361,7 @@ export default function CampaignDetailPage() {
               {/* ── The money this campaign has made ── */}
               <section className={`${CARD} p-5`}>
                 <div className="flex flex-wrap items-center gap-2">
-                  <StatusBadge status={detail.status} />
+                  <StatusBadge status={detail.status} brandId={detail.brandId} />
                   <span className="text-xs text-neutral-500">{phaseWindow(detail)}</span>
                   {/* A phase that has not run has no ROAS — printing the
                       placeholder as "— ROAS" reads like a broken number.
@@ -378,7 +382,7 @@ export default function CampaignDetailPage() {
                         rail owns the percentage and the 80% mark, so this card
                         keeps only the fact — a bar here made two things draw
                         the same number two ways, three inches apart. */}
-                    <p className="mt-2 text-xs text-neutral-500">of {fmtUSD(target)} phase target</p>
+                    <p className="mt-2 text-xs text-neutral-500">of {fmtUSD(target)} {ladder ? "phase" : "campaign"} target</p>
                   </>
                 ) : (
                   /* Not started. Its revenue is $0 and its ROAS undefined,
@@ -598,7 +602,7 @@ export default function CampaignDetailPage() {
                    Every figure divides two numbers this phase already owns.
                    Nothing here is estimated, and nothing repeats the
                    Delivery rail — that counts ads and crew, this rates them. */}
-              {metered ? (
+              {metered && ladder ? (
                 <section className={`${CARD} p-5`}>
                   <p className={`${EYEBROW} mb-4 text-[#7C5CE0]`}>Phase performance</p>
 
@@ -687,11 +691,13 @@ export default function CampaignDetailPage() {
                   </div>
 
                 </section>
-              ) : (
-                /* Not funded: there is no performance to chart. What can be
+              ) : metered ? null : (
+                /* Not started: there is no performance to chart. What can be
                    stated honestly is the arithmetic of the offer. */
                 <section className={`${CARD} p-5`}>
-                  <p className={`${EYEBROW} mb-4 text-[#7C5CE0]`}>What this phase commits to</p>
+                  <p className={`${EYEBROW} mb-4 text-[#7C5CE0]`}>
+                    {ladder ? "What this phase commits to" : "What this campaign commits to"}
+                  </p>
                   <div className="grid grid-cols-3 gap-4">
                     {[
                       { k: "Budget", v: fmtUSD(detail.budget) },
@@ -705,8 +711,9 @@ export default function CampaignDetailPage() {
                     ))}
                   </div>
                   <p className="mt-4 border-t border-black/[0.06] pt-3.5 text-xs text-neutral-500">
-                    Creators are matched and drafts are cut once this phase is funded, so there is
-                    nothing to measure until then.
+                    {ladder
+                      ? "Creators are matched and drafts are cut once this phase is funded, so there is nothing to measure until then."
+                      : "Creators are matched and drafts are cut when this campaign opens, so there is nothing to measure until then."}
                   </p>
                 </section>
               )}
@@ -739,11 +746,17 @@ export default function CampaignDetailPage() {
                     + 5% VAT · {fmtUSD(withVat(due.amount))} due today
                   </p>
                 </section>
-              ) : detail.status === "Live" ? (
+              ) : detail.status === "Live" && ladder ? (
+                /* The rail's action card is the LADDER's card: it exists to
+                   hand the brand the next rung — fund it, or wait for the
+                   80% line. A calendar brand has no next rung to buy, so
+                   the card's only remaining job was to repeat the campaign
+                   name under the one already in the header and offer to
+                   open a campaign the list beside it already links to. */
                 <section className={`${CARD} p-5`}>
                   <p className={`${EYEBROW} text-[#7C5CE0]`}>Live</p>
                   <p className="mt-2 text-sm font-semibold" style={{ color: INK }}>
-                    {phaseTitle(detail.phaseNo)}
+                    {campaignTitle(detail)}
                   </p>
                   {/* This card used to open "Nothing is waiting on you" and
                       then promise an unlock that had already happened. Both
@@ -758,11 +771,17 @@ export default function CampaignDetailPage() {
                   <p className="mt-1 text-xs text-neutral-500">
                     {waiting.length > 0
                       ? "Nothing publishes until you decide."
-                      : after && after.status === "Ready"
-                        ? `${phaseTitle(after.phaseNo)} is unlocked and waiting on funding.`
-                        : after
-                          ? `Nothing is waiting on you. ${phaseTitle(after.phaseNo)} unlocks when this phase crosses 80%.`
-                          : "Nothing is waiting on you. This is your last phase so far."}
+                      : !ladder
+                        /* No unlock and no cheque on a calendar — what is
+                           true is simply what runs next, and when. */
+                        ? after
+                          ? `Nothing is waiting on you. ${campaignTitle(after)} runs ${after.planned ?? "next"}.`
+                          : "Nothing is waiting on you. This is your last scheduled campaign."
+                        : after && after.status === "Ready"
+                          ? `${campaignTitle(after)} is unlocked and waiting on funding.`
+                          : after
+                            ? `Nothing is waiting on you. ${campaignTitle(after)} unlocks when this phase crosses 80%.`
+                            : "Nothing is waiting on you. This is your last phase so far."}
                   </p>
                   {/* No Review button here. The Ad review section carries the
                       same CTA, word for word, sitting beside the creative it
@@ -772,7 +791,7 @@ export default function CampaignDetailPage() {
                     <button
                       onClick={() => router.push(`/campaigns/${after.id}`)}
                       className="mt-4 flex w-full items-center justify-center rounded-xl bg-[#4D2FB0] px-4 py-3 text-[13px] font-semibold tabular-nums text-white hover:bg-[#3F2596] transition-colors">
-                      {after.due ? `${after.due.label} — ${fmtUSD(after.due.amount)}` : `Open ${phaseTitle(after.phaseNo)}`}
+                      {after.due ? `${after.due.label} — ${fmtUSD(after.due.amount)}` : `Open ${campaignTitle(after)}`}
                     </button>
                   ) : (
                     <button
@@ -800,7 +819,9 @@ export default function CampaignDetailPage() {
                   <div className="mt-4 flex flex-col items-center">
                     <div className="relative h-[136px] w-[136px]">
                       <svg viewBox="0 0 120 120" className="h-full w-full" role="img"
-                        aria-label={`${pct}% of this phase's ${fmtUSD(target)} revenue target — ${fmtUSD(detail.rev)} earned. The next phase unlocks at 80%.`}>
+                        aria-label={ladder
+                          ? `${pct}% of this phase's ${fmtUSD(target)} revenue target — ${fmtUSD(detail.rev)} earned. The next phase unlocks at 80%.`
+                          : `${pct}% of this campaign's ${fmtUSD(target)} revenue target — ${fmtUSD(detail.rev)} earned.`}>
                         <circle cx="60" cy="60" r={RING_R} fill="none" stroke="#EFEBFA" strokeWidth="10" />
                         {/* The ARC IS CLAMPED at one full turn while the label
                             below keeps the truth: Phase 1 closed at 104%, and
@@ -815,11 +836,16 @@ export default function CampaignDetailPage() {
                         {/* THE 80% UNLOCK LINE — the number the phase turns
                             on, marked on the rule it is measured against. The
                             arc starts at twelve o'clock and runs clockwise, so
-                            0.8 of a turn is 288 degrees from there. */}
-                        <line x1="60" y1="2" x2="60" y2="16" strokeWidth="2.5" strokeLinecap="round"
-                          stroke={pct >= 80 ? "#047857" : "#191234"}
-                          strokeOpacity={pct >= 80 ? 1 : 0.35}
-                          transform="rotate(288 60 60)" />
+                            0.8 of a turn is 288 degrees from there.
+
+                            A calendar campaign turns on nothing at 80%, so the
+                            ring is progress to target and carries no mark. */}
+                        {ladder && (
+                          <line x1="60" y1="2" x2="60" y2="16" strokeWidth="2.5" strokeLinecap="round"
+                            stroke={pct >= 80 ? "#047857" : "#191234"}
+                            strokeOpacity={pct >= 80 ? 1 : 0.35}
+                            transform="rotate(288 60 60)" />
+                        )}
                       </svg>
                       <div aria-hidden="true" className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
                         <p className="text-[27px] font-bold leading-none tabular-nums"
@@ -837,9 +863,13 @@ export default function CampaignDetailPage() {
                       of {fmtUSD(target)}
                     </p>
                     <p className={`mt-1 text-[11px] font-medium ${pct >= 80 ? "text-[#047857]" : "text-neutral-500"}`}>
-                      {pct >= 80
-                        ? "Past the 80% unlock line"
-                        : `${80 - pct} points to the 80% unlock line`}
+                      {ladder
+                        ? pct >= 80
+                          ? "Past the 80% unlock line"
+                          : `${80 - pct} points to the 80% unlock line`
+                        : pct >= 100
+                          ? "Target met"
+                          : `${fmtUSD(target - detail.rev)} to target`}
                     </p>
                   </div>
                 </section>
@@ -892,7 +922,7 @@ export default function CampaignDetailPage() {
 
                 <div className="mt-4 overflow-hidden rounded-2xl border border-black/[0.06]">
                   <div className="flex items-center justify-between px-4 py-3">
-                    <span className="text-sm text-neutral-500">{phaseTitle(detail.phaseNo)} budget</span>
+                    <span className="text-sm text-neutral-500">{campaignTitle(detail)} budget</span>
                     <span className="text-sm font-medium tabular-nums text-neutral-700">{fmtUSD(amount)}</span>
                   </div>
                   <div className="flex items-center justify-between border-t border-black/[0.06] px-4 py-3">
@@ -906,7 +936,7 @@ export default function CampaignDetailPage() {
                 </div>
 
                 <p className="mt-3 text-sm text-neutral-500">
-                  {phaseTitle(detail.phaseNo)} — {fmtUSD(amount)} deploys across your matched creators,
+                  {campaignTitle(detail)} — {fmtUSD(amount)} deploys across your matched creators,
                   metered against {fmtUSD(amount * detail.guaranteedRoas)} at your guaranteed {detail.guaranteedRoas}×.
                 </p>
 
@@ -957,7 +987,7 @@ export default function CampaignDetailPage() {
                   </svg>
                 </div>
                 <h2 id="pay-dialog-title" className="mt-6 text-[19px] font-bold" style={{ color: INK }}>
-                  {phaseTitle(detail.phaseNo)} funded
+                  {campaignTitle(detail)} funded
                 </h2>
                 <p className="mt-1.5 text-xs text-neutral-500">
                   Deploying to matched creators. You&apos;ll get a notification as ads publish.
