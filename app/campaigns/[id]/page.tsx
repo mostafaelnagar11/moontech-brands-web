@@ -248,8 +248,8 @@ export default function CampaignDetailPage() {
      sized for and left a quarter of the row empty — the grid follows the
      tiles, never the other way round. */
   const tiles = [
-    { k: "Influencers live", v: String(detail.creators), sub: "matched to this phase" },
-    { k: "Budget deployed",  v: fmtUSD(detail.budget),   sub: "allocated budget for phase" },
+    { k: "Influencers live", v: String(detail.creators), sub: `matched to this ${runsPhases(detail.brandId) ? "phase" : "campaign"}` },
+    { k: "Budget deployed",  v: fmtUSD(detail.budget),   sub: `allocated budget for ${runsPhases(detail.brandId) ? "phase" : "campaign"}` },
     /* Only when there is a queue to count. A phase with no drafts on file
        would print "Live ads 0", which reads as "nothing ran" — and the
        stored adsLive that could contradict it is exactly the figure this
@@ -366,12 +366,20 @@ export default function CampaignDetailPage() {
                   {/* A phase that has not run has no ROAS — printing the
                       placeholder as "— ROAS" reads like a broken number.
                       What it does have is the multiple it is promised. */}
-                  <span className="ml-auto rounded-full bg-[#F6F4FC] px-2.5 py-1 text-[11px] font-semibold tabular-nums text-[#4D2FB0]">
-                    {detail.rev > 0 ? `${detail.roas} ROAS` : `${detail.guaranteedRoas}× guaranteed`}
-                  </span>
+                  {(ladder || !metered) && (
+                    <span className="ml-auto rounded-full bg-[#F6F4FC] px-2.5 py-1 text-[11px] font-semibold tabular-nums text-[#4D2FB0]">
+                      {detail.rev > 0 ? `${detail.roas} ROAS` : `${detail.guaranteedRoas}× guaranteed`}
+                    </span>
+                  )}
                 </div>
 
-                {metered ? (
+                {/* A running calendar campaign reports no revenue on this
+                    page, so what is left of this card is the two facts that
+                    identify it: whether it is running, and since when. The
+                    card stays rather than going with the figures — the status
+                    and the window are not revenue, and the header above
+                    carries only the name. */}
+                {metered && !ladder ? null : metered ? (
                   <>
                     <div className="mt-5 flex items-baseline justify-between gap-2">
                       <p className="text-[34px] font-bold leading-none tabular-nums" style={{ color: INK }}>
@@ -382,7 +390,7 @@ export default function CampaignDetailPage() {
                         rail owns the percentage and the 80% mark, so this card
                         keeps only the fact — a bar here made two things draw
                         the same number two ways, three inches apart. */}
-                    <p className="mt-2 text-xs text-neutral-500">of {fmtUSD(target)} {ladder ? "phase" : "campaign"} target</p>
+                    <p className="mt-2 text-xs text-neutral-500">of {fmtUSD(target)} phase target</p>
                   </>
                 ) : (
                   /* Not started. Its revenue is $0 and its ROAS undefined,
@@ -393,7 +401,7 @@ export default function CampaignDetailPage() {
                       {fmtUSD(detail.budget)}
                     </p>
                     <p className="mt-2 text-xs text-neutral-500">
-                      {detail.status === "Ready" ? "ready to deploy" : "reserved for this phase"} ·
+                      {detail.status === "Ready" ? "ready to deploy" : `reserved for this ${ladder ? "phase" : "campaign"}`} ·
                       metered against{" "}
                       <span className="font-semibold tabular-nums">
                         {fmtUSD(detail.budget * detail.guaranteedRoas)}
@@ -404,8 +412,10 @@ export default function CampaignDetailPage() {
                 )}
               </section>
 
-              {/* ── Threshold, verbatim from the shared data ── */}
-              {detail.threshold && (
+              {/* ── Threshold, verbatim from the shared data ──
+                   It is a sentence ABOUT the revenue figure, so it goes
+                   wherever that figure goes. ── */}
+              {detail.threshold && ladder && (
                 <div className={`flex items-start gap-2 rounded-2xl px-4 py-3 text-sm font-medium ${
                   detail.thresholdGreen ? "bg-[#059669]/[0.08] text-[#047857]" : "bg-[#D70015]/[0.07] text-[#D70015]"
                 }`}>
@@ -427,8 +437,13 @@ export default function CampaignDetailPage() {
               {/* `creators` is null until a phase is funded and a phase that
                   has not started has no ads to count, so the grid is gated on
                   both. The "What this phase commits to" card further down
-                  already states an unfunded phase's budget and target. */}
-              {phaseHasStarted(detail) && detail.creators !== null && (
+                  already states an unfunded phase's budget and target.
+
+                  And off entirely for a calendar brand, with the Delivery
+                  rail below: crew and budget are what the PHASE bought, and
+                  the two of them counted the same 24 creators twice on a page
+                  whose remaining job is the creative. */}
+              {phaseHasStarted(detail) && detail.creators !== null && ladder && (
                 <div className={`grid grid-cols-1 gap-3 ${GLANCE_COLS[tiles.length]}`}>
                   {tiles.map((m) => (
                     <div key={m.k} className={`${CARD} p-4`}>
@@ -812,7 +827,7 @@ export default function CampaignDetailPage() {
                    because revTarget is null until a phase is funded — a Ready
                    or Locked phase renders nothing at all instead of a 0% donut
                    against a target it has not been given yet. ── */}
-              {pct !== null && target !== null && (
+              {pct !== null && target !== null && ladder && (
                 <section className={`${CARD} p-5`}>
                   <p className={`${EYEBROW} text-[#7C5CE0]`}>Revenue progress</p>
 
@@ -884,7 +899,7 @@ export default function CampaignDetailPage() {
                      same way earlier — 89 against 125 on one campaign, 142
                      against 96 on another. Both fields stay in the data, unread
                      here. Creators is real: it is what the money bought. ── */}
-              {detail.creators !== null && (
+              {detail.creators !== null && ladder && (
                 <section className={`${CARD} overflow-hidden`}>
                   <p className={`${EYEBROW} px-5 pt-4 pb-1 text-neutral-400`}>Delivery</p>
                   <div className="flex items-center justify-between px-5 py-3.5">

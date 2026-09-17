@@ -731,7 +731,18 @@ export default function Dashboard() {
               Five tiles, one row from xl up. Below that the hero spans two
               columns and the rest wrap under it; at xl the hero gives up its
               span so all five sit on one line, and the solid purple fill
-              carries its emphasis instead of extra width. */}
+              carries its emphasis instead of extra width.
+
+              THE WHOLE ROW IS A LADDER READOUT, which is why it is off for a
+              calendar brand rather than trimmed down to the tiles that still
+              parse. Four of the five are summed "along this ladder" or count
+              funded phases against it — committed spend, blended ROAS,
+              revenue to date and phases completed all answer "how far up has
+              this brand paid its way", and a brand that does not buy its
+              campaigns one at a time is not on that climb. The fifth, the
+              live campaign's percentage, is the one figure worth keeping and
+              it is already the headline of the card directly below. */}
+          {runsPhases(brand.id) && (
           <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
             {stats.map((s) => (
               <div key={s.label}
@@ -749,12 +760,13 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
+          )}
 
           {/* The phase running now — singular, because only one can be */}
           <div className="pt-2">
             <h2 className="text-[16px] font-semibold tracking-tight" style={{ color: INK }}>Running now</h2>
             <p className="text-[13px] text-neutral-400 mt-0.5">
-              {brand.name} runs one phase at a time · updated in real time
+              {brand.name} runs one {runsPhases(brand.id) ? "phase" : "campaign"} at a time · updated in real time
             </p>
           </div>
 

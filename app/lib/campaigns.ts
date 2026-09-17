@@ -61,6 +61,17 @@ const CALENDAR_BRANDS = new Set<string>(["ounass"]);
 /** Whether this brand buys its campaigns one funded phase at a time. */
 export const runsPhases = (brandId: string) => !CALENDAR_BRANDS.has(brandId);
 
+/* A SEPARATE question, deliberately not folded into the one above.
+   Whether a brand funds phases and whether it wants its match signals
+   explained have nothing to do with each other — they only happen to
+   have the same answer for Ounass today, and a single flag covering both
+   would mean the next brand cannot have one without the other. */
+const TERSE_MATCH_BRANDS = new Set<string>(["ounass"]);
+
+/** Whether a creator's match rows say what each signal is doing there,
+    or just state it: "Instagram, TikTok" and nothing after. */
+export const explainsMatchSignals = (brandId: string) => !TERSE_MATCH_BRANDS.has(brandId);
+
 const STATUS_WORD: Record<CampaignStatus, string> = {
   Live: "Live", Ready: "Ready to fund", Locked: "Queued", Ended: "Completed",
 };

@@ -11,7 +11,8 @@ import Sidebar from "../components/Sidebar";
 import NotificationCenter from "../components/NotificationCenter";
 import { useActiveBrand } from "../lib/brand";
 import {
-  CREATOR_PASS_REASONS, creatorPassReasonLabel, NOTE_MAX, viewThrough, pct1, median,
+  CREATOR_PASS_REASONS, creatorPassReasonLabel, explainsMatchSignals, NOTE_MAX,
+  viewThrough, pct1, median,
 } from "../lib/campaigns";
 
 /* ------------------------------------------------------------------ */
@@ -168,6 +169,9 @@ function Detail({
      why, which is the whole point of holding it per brand. */
   const brand = useActiveBrand();
   const { criteria } = brand;
+  /* Some brands want the signal stated and nothing more — the row reads
+     "Instagram, TikTok" and stops there. */
+  const explain = explainsMatchSignals(brand.id);
   const slug = c.handle.replace("@", "");
   const plat = PLAT[c.platform];
   const platUrl = plat.url(slug);
@@ -414,7 +418,7 @@ function Detail({
                   </span>
                   <span className="min-w-0 flex-1 text-xs leading-relaxed">
                     <span className={`font-semibold ${k.ok ? "text-neutral-700" : "text-neutral-600"}`}>{k.value}</span>
-                    <span className="text-neutral-500"> · {k.why}</span>
+                    {explain && <span className="text-neutral-500"> · {k.why}</span>}
                   </span>
                 </div>
               ))}
