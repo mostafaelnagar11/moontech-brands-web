@@ -238,7 +238,8 @@ function LadderAverages({ funded }: { funded: Campaign[] }) {
 /* No category label: the workspace does not store one per brand, and   */
 /* calling a grocery brand "Fashion & Apparel" would be a fabrication.  */
 /* ------------------------------------------------------------------ */
-function HowYouCompare({ funded }: { funded: Campaign[] }) {
+function HowYouCompare({ funded, brandId }: { funded: Campaign[]; brandId: string }) {
+  const ladder = runsPhases(brandId);
   const spend = sumBy(funded, (c) => c.budget);
   const revenue = sumBy(funded, (c) => c.rev);
   const metered = meteredPhases(funded);
@@ -251,18 +252,24 @@ function HowYouCompare({ funded }: { funded: Campaign[] }) {
       ours: spend ? revenue / spend : null, cat: 4.1, catLabel: "vs 4.1× category avg",
       good: "Ahead of comparable brands", bad: "Behind comparable brands",
     },
-    {
-      label: "Phases past the 80% line",
-      value: metered.length ? `${Math.round((crossed / metered.length) * 100)}%` : "—",
-      ours: metered.length ? (crossed / metered.length) * 100 : null, cat: 84, catLabel: "vs 84% category avg",
-      good: "Unlocking the next rung reliably", bad: "Opportunity — unlock pace",
-    },
-    {
-      label: "Revenue per funded phase",
-      value: funded.length ? fmtUSD(Math.round(revenue / funded.length)) : "—",
-      ours: funded.length ? revenue / funded.length : null, cat: 3200, catLabel: "vs $3,200 category avg",
-      good: "Bigger return per rung", bad: "Opportunity — return per rung",
-    },
+    /* Both of the others are ladder arithmetic — how reliably this brand
+       clears the 80% gate, and what one funded rung returns — so a brand
+       with neither a gate nor a rung is left with the comparison that
+       still means something about it. */
+    ...(ladder ? [
+      {
+        label: "Phases past the 80% line",
+        value: metered.length ? `${Math.round((crossed / metered.length) * 100)}%` : "—",
+        ours: metered.length ? (crossed / metered.length) * 100 : null, cat: 84, catLabel: "vs 84% category avg",
+        good: "Unlocking the next rung reliably", bad: "Opportunity — unlock pace",
+      },
+      {
+        label: "Revenue per funded phase",
+        value: funded.length ? fmtUSD(Math.round(revenue / funded.length)) : "—",
+        ours: funded.length ? revenue / funded.length : null, cat: 3200, catLabel: "vs $3,200 category avg",
+        good: "Bigger return per rung", bad: "Opportunity — return per rung",
+      },
+    ] : []),
   ];
 
   return (
@@ -270,11 +277,13 @@ function HowYouCompare({ funded }: { funded: Campaign[] }) {
       <div className="flex flex-wrap items-center gap-2.5">
         <h3 className="text-[15px] font-semibold" style={{ color: INK }}>How you compare</h3>
         <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-[11px] font-medium text-neutral-500">
-          GCC · comparable ladder stage
+          {ladder ? "GCC · comparable ladder stage" : "GCC · comparable brands"}
         </span>
       </div>
       <p className="text-xs text-neutral-400 mt-1">
-        Benchmarked against anonymised MoonTech brands at a similar point on their own ladder
+        {ladder
+          ? "Benchmarked against anonymised MoonTech brands at a similar point on their own ladder"
+          : "Benchmarked against anonymised MoonTech brands running comparable campaigns"}
       </p>
       {/* One per row. In half a row three columns squeezed a 26px figure
           and its caption into ~200px; stacked, each comparison gets its
@@ -316,6 +325,11 @@ function CurrentPhaseCard({ c, onOpen }: { c: Campaign; onOpen: () => void }) {
      so the meter only draws once there is a percentage to draw. */
   const pct = c.revPct;
   const target = c.revTarget;
+  /* A calendar brand reports no revenue anywhere else — not on the
+     campaigns list, not on the campaign page — so the money half of this
+     card goes with them. What it keeps is what the campaign is DOING:
+     the ads live and the crew behind them. */
+  const ladder = runsPhases(c.brandId);
 
   return (
     <div className={`${card} p-5 flex flex-col transition-colors hover:border-black/[0.12]`}>
@@ -335,6 +349,7 @@ function CurrentPhaseCard({ c, onOpen }: { c: Campaign; onOpen: () => void }) {
 
       {/* Revenue against THIS phase's own target — budget × the multiple
           guaranteed on this phase, never a portfolio figure. */}
+      {ladder && (
       <div className="mt-6">
         <div className="flex items-baseline justify-between gap-2">
           <p className="text-[26px] font-semibold tracking-tight tabular-nums leading-none" style={{ color: INK }}>
@@ -378,8 +393,12 @@ function CurrentPhaseCard({ c, onOpen }: { c: Campaign; onOpen: () => void }) {
           )}
         </div>
       </div>
+      )}
 
-      {/* Metric row — all three belong to this phase alone. */}
+      {/* Metric row. ROAS stays on every brand — it is the one money
+          figure a calendar brand keeps, the same rule the campaigns table
+          and the comparison card follow. What left this card is the
+          revenue it is a ratio OF, not the ratio. */}
       <div className="mt-6 grid grid-cols-3 gap-4 border-t border-black/[0.05] pt-4">
         {[
           {
@@ -388,7 +407,7 @@ function CurrentPhaseCard({ c, onOpen }: { c: Campaign; onOpen: () => void }) {
             suffix: c.adsTotal ? `/${c.adsTotal}` : "",
             note: c.adsTotal ? `${Math.round(((c.adsLive ?? 0) / c.adsTotal) * 100)}% of plan` : "deploying",
           },
-          { label: "Creators", value: String(c.creators ?? 0), suffix: "", note: "on this phase" },
+          { label: "Creators", value: String(c.creators ?? 0), suffix: "", note: `on this ${ladder ? "phase" : "campaign"}` },
           { label: "ROAS", value: c.roas, suffix: "", note: `${c.guaranteedRoas}× guaranteed` },
         ].map((m) => (
           <div key={m.label}>
@@ -441,24 +460,37 @@ function NoPhaseRunningCard({ due, onFund }: { due: Campaign | undefined; onFund
 /* button: its predecessor has not crossed the 80% line.                */
 /* ------------------------------------------------------------------ */
 function PhaseLadder({
-  roster, brandName, onOpen,
-}: { roster: Campaign[]; brandName: string; onOpen: (id: string) => void }) {
+  roster, brandName, brandId, onOpen,
+}: { roster: Campaign[]; brandName: string; brandId: string; onOpen: (id: string) => void }) {
+  /* ROAS is the one money column a calendar brand keeps, so Revenue
+     leaves and Budget stays — what a campaign was given is not what it
+     brought back. */
+  const ladder = runsPhases(brandId);
+  const cols = ladder
+    ? ["Phase", "Status", "Budget", "Revenue", "ROAS", ""]
+    : ["Campaign", "Status", "Budget", "ROAS", ""];
   return (
     <div className={`${card} p-6 overflow-x-auto`}>
-      <h3 className="text-[15px] font-semibold" style={{ color: INK }}>Phase ladder</h3>
+      <h3 className="text-[15px] font-semibold" style={{ color: INK }}>
+        {ladder ? "Phase ladder" : "All campaigns"}
+      </h3>
       <p className="text-xs text-neutral-400 mt-1 mb-4">
-        Every phase {brandName} has run or has queued, in order — one runs at a time
+        {ladder
+          ? `Every phase ${brandName} has run or has queued, in order — one runs at a time`
+          : `Every campaign ${brandName} has run or has scheduled, in order — one runs at a time`}
       </p>
 
       {roster.length === 0 ? (
         <p className="py-6 text-[13px] text-neutral-400">
-          This brand has no phases yet. MoonTech builds the ladder, so the first rung appears here once it is matched.
+          {ladder
+            ? "This brand has no phases yet. MoonTech builds the ladder, so the first rung appears here once it is matched."
+            : "This brand has no campaigns yet. The first one appears here once it is matched."}
         </p>
       ) : (
         <table className="w-full min-w-[640px] text-[13px]">
           <thead>
             <tr className="border-b border-black/[0.05]">
-              {["Phase", "Status", "Budget", "Revenue", "ROAS", ""].map((h, i) => (
+              {cols.map((h, i) => (
                 <th key={h || i} className="pb-3 text-left text-xs font-medium text-neutral-400">{h}</th>
               ))}
             </tr>
@@ -483,11 +515,12 @@ function PhaseLadder({
                           "when do I pay for this", which a brand that does
                           not pay per campaign never asks. */}
                       {funded
-                        ? `${fmtUSD(target)} target`
-                        : !runsPhases(c.brandId) ? "allocated"
+                        ? (ladder ? `${fmtUSD(target)} target` : "deployed")
+                        : !ladder ? "allocated"
                           : c.status === "Ready" ? "due now" : "not payable yet"}
                     </p>
                   </td>
+                  {ladder && (
                   <td className="py-4 pr-3">
                     {funded ? (
                       <>
@@ -505,6 +538,7 @@ function PhaseLadder({
                       <span className="text-neutral-300">—</span>
                     )}
                   </td>
+                  )}
                   <td className="py-4 pr-3">
                     {funded ? (
                       <>
@@ -770,31 +804,45 @@ export default function Dashboard() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Ladder averages holds no ROAS — it averages revenue per rung,
+              counts rungs past the 80% line and crew per rung — so with
+              ROAS the only money figure a calendar brand keeps, the card
+              has nothing left to say and the row closes to one. */}
+          <div className={`grid grid-cols-1 gap-4 ${runsPhases(brand.id) ? "lg:grid-cols-2" : ""}`}>
             {live
               ? <CurrentPhaseCard c={live} onOpen={() => open(live.id)} />
               : <NoPhaseRunningCard due={due} onFund={() => due && open(due.id)} />}
-            <div className={`${card} p-5 flex flex-col`}>
-              <h3 className="text-[15px] font-semibold" style={{ color: INK }}>Ladder averages</h3>
-              <p className="text-xs text-neutral-400 mt-1 mb-3">{fundedLabel}</p>
-              <LadderAverages funded={funded} />
-            </div>
+            {runsPhases(brand.id) && (
+              <div className={`${card} p-5 flex flex-col`}>
+                <h3 className="text-[15px] font-semibold" style={{ color: INK }}>Ladder averages</h3>
+                <p className="text-xs text-neutral-400 mt-1 mb-3">{fundedLabel}</p>
+                <LadderAverages funded={funded} />
+              </div>
+            )}
           </div>
 
           {/* The ladder itself */}
-          <PhaseLadder roster={roster} brandName={brand.name} onOpen={open} />
+          <PhaseLadder roster={roster} brandName={brand.name} brandId={brand.id} onOpen={open} />
 
           {/* Performance Overview */}
           <div className="pt-2">
             <h2 className="text-[16px] font-semibold tracking-tight" style={{ color: INK }}>Performance overview</h2>
-            <p className="text-[13px] text-neutral-400 mt-0.5">Revenue over time, and how this ladder compares</p>
+            <p className="text-[13px] text-neutral-400 mt-0.5">
+              {runsPhases(brand.id)
+                ? "Revenue over time, and how this ladder compares"
+                : "How this brand compares"}
+            </p>
           </div>
 
           {/* Two cards, one row. The chart is viewBox-scaled, so at full
               width it letterboxed inside huge side gaps; half a row is
               closer to its natural aspect and the comparison reads better
               beside it than stacked under it. */}
-          <div className="grid gap-5 xl:grid-cols-2">
+          {/* The chart is monthly REVENUE, which is the one thing a calendar
+              brand's dashboard no longer reports — leaving it would have put
+              the figure back, ten times over, under a different heading. */}
+          <div className={`grid gap-5 ${runsPhases(brand.id) ? "xl:grid-cols-2" : ""}`}>
+            {runsPhases(brand.id) && (
             <div className={`${card} flex h-full flex-col p-5`}>
               <h3 className="text-[15px] font-semibold" style={{ color: INK }}>Revenue over time</h3>
               <p className="text-xs text-neutral-400 mt-1 mb-4">Monthly revenue and orders for {brand.name}</p>
@@ -802,7 +850,8 @@ export default function Dashboard() {
                 <RevenueOverTimeChart />
               </div>
             </div>
-            <HowYouCompare funded={funded} />
+            )}
+            <HowYouCompare funded={funded} brandId={brand.id} />
           </div>
 
         </main>
