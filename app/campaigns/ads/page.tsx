@@ -1096,11 +1096,15 @@ export default function CampaignAdsPage() {
                 <h2 id="decline-title" className="mt-3.5 pr-9 text-[17px] font-bold" style={{ color: INK }}>
                   One of your strongest matches
                 </h2>
+                {/* The word for the rung is the brand's own — Ounass runs
+                    named campaigns, everyone else runs numbered phases —
+                    so this sentence does not hardcode either. */}
                 <p className="mt-1.5 pr-9 text-[13px] leading-relaxed text-neutral-500">
-                  MoonTech rated {dCreator.name}{" "}
-                  <span className="font-bold tabular-nums" style={{ color: BRAND }}>{dCreator.fit}</span>{" "}
-                  brand fit for this phase. Disliking this ad keeps it from
-                  publishing and stops us matching its pattern.
+                  MoonTech has scored {dCreator.name}&rsquo;s Ad{" "}
+                  <span className="font-bold tabular-nums" style={{ color: BRAND }}>{dCreator.fit}%</span>{" "}
+                  quality match for this {campaign && !runsPhases(campaign.brandId) ? "campaign" : "phase"}.
+                  Disliking this ad will force the creator to remove it from their page and prevent
+                  MoonTech from using its content pattern for future ad scoring.
                 </p>
                 <div className="mt-5 flex justify-end gap-2.5">
                   <button
