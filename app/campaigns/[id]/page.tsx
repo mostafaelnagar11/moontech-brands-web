@@ -461,11 +461,13 @@ export default function CampaignDetailPage() {
               {/* ── THE ADS, IN TWO SECTIONS ──
                    One "Live ads" section used to hold the entire queue —
                    waiting, liked and declined in one strip — which is why the
-                   name never fit: most of what it listed was not live. A LIKE
-                   PUBLISHES AN AD, so the split is the model's own:
+                   name never fit: it listed work still waiting on a verdict
+                   beside work the brand had already kept. Every ad here is
+                   running; a LIKE is what keeps it running, so the split is
+                   the model's own:
 
                      Ad review — waiting + declined. The work.
-                     Live ads  — liked. The record of what is running.
+                     Live ads  — liked. The record of what the brand kept.
 
                    Drafts are seeded against every phase that CAN run, so this
                    still has to ask whether the phase has actually STARTED: a
@@ -492,7 +494,7 @@ export default function CampaignDetailPage() {
                         )}
                         aria-label={waiting.length > 0
                           ? `${waiting.length} ads waiting on you. ${liked.length + disliked.length} of ${drafts.length} decided. You have ${soonestDeadline} ${soonestDeadline === 1 ? "day" : "days"} left to review and submit your decision. Open ad review.`
-                          : `Every draft decided. ${disliked.length} not publishing. Open ad review to reopen a decline.`}
+                          : `Every ad decided. ${disliked.length} coming down. Open ad review to reopen a decline.`}
                         className={`${CARD} flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-neutral-50`}
                       >
                         <span className="flex shrink-0 -space-x-2" aria-hidden="true">
@@ -506,7 +508,7 @@ export default function CampaignDetailPage() {
                           <span className="block truncate text-sm font-semibold" style={{ color: INK }}>
                             {waiting.length > 0
                               ? `${waiting.length} ads waiting on you`
-                              : "Every draft decided"}
+                              : "Every ad decided"}
                           </span>
                           {/* The ledger, condensed to the line it was always
                               read as: how much is done, and how long is left
@@ -727,8 +729,8 @@ export default function CampaignDetailPage() {
                   </div>
                   <p className="mt-4 border-t border-black/[0.06] pt-3.5 text-xs text-neutral-500">
                     {ladder
-                      ? "Creators are matched and drafts are cut once this phase is funded, so there is nothing to measure until then."
-                      : "Creators are matched and drafts are cut when this campaign opens, so there is nothing to measure until then."}
+                      ? "Creators are matched and their ads go live once this phase is funded, so there is nothing to measure until then."
+                      : "Creators are matched and their ads go live when this campaign opens, so there is nothing to measure until then."}
                   </p>
                 </section>
               )}
@@ -785,7 +787,7 @@ export default function CampaignDetailPage() {
                       most it should ever appear. */}
                   <p className="mt-1 text-xs text-neutral-500">
                     {waiting.length > 0
-                      ? "Nothing publishes until you decide."
+                      ? "Running now, waiting on your decision."
                       : !ladder
                         /* No unlock and no cheque on a calendar — what is
                            true is simply what runs next, and when. */

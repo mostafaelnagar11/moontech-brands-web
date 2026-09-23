@@ -511,7 +511,7 @@ export default function CampaignsPage() {
                   <button
                     key={c.id}
                     onClick={() => router.push(`/campaigns/ads?c=${c.id}&shelf=waiting`)}
-                    aria-label={`${waiting.length} ads waiting on you for ${campaignTitle(c)}. Nothing publishes until you like or dislike it. Open ad review.`}
+                    aria-label={`${waiting.length} ads waiting on you for ${campaignTitle(c)}. They are running now — like one to keep it up, dislike to take it down. Open ad review.`}
                     className={`flex w-full items-center gap-3 px-5 py-3.5 text-left transition-colors hover:bg-neutral-50 ${
                       i > 0 ? "border-t border-black/[0.06]" : "border-t border-black/[0.06]"
                     }`}
@@ -528,7 +528,7 @@ export default function CampaignsPage() {
                         {waiting.length} ads waiting on you
                       </span>
                       <span className="mt-0.5 block truncate text-xs text-neutral-500">
-                        {campaignTitle(c)} · Nothing publishes until you like or dislike it
+                        {campaignTitle(c)} · Running now, waiting on your like or dislike
                       </span>
                     </span>
                     <CaretRight size={14} weight="bold" aria-hidden="true" className="shrink-0 text-neutral-300" />

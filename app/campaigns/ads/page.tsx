@@ -3,29 +3,28 @@
 /* ------------------------------------------------------------------ */
 /* Ad review — the desktop review workstation.                          */
 /*                                                                     */
-/* THESE ADS ARE NOT LIVE. The creator has finished the piece and sent  */
-/* it in; nothing posts until the brand reacts. That is the whole       */
-/* screen: the creative, large, and two verbs under it.                 */
+/* THESE ADS ARE ALREADY LIVE. The creator has published the piece and  */
+/* it is running; the brand is not clearing it to post, it is saying    */
+/* whether it should stay. That is the whole screen: the creative,      */
+/* large, and two verbs under it.                                       */
 /*                                                                     */
-/* So there are no view counts here — an unpublished ad has not been    */
-/* seen by anyone, and a number pretending otherwise would be the one   */
-/* lie a reviewer would notice. What we can honestly show before it     */
-/* posts is the creator's typical reach, derived from their audience     */
-/* and labelled as an estimate.                                        */
+/* There are still no view counts here — this model carries no per-ad   */
+/* reach, and a figure invented to fill the gap is the one lie a        */
+/* reviewer would catch. What it can honestly show is the creator's     */
+/* typical reach, derived from their audience and labelled an estimate. */
 /*                                                                     */
-/* Like    → it publishes, and more of the phase budget goes behind     */
-/*           creative like it.                                          */
-/* Dislike → it never posts, and the matcher stops reaching for that    */
-/*           pattern. It is the one decision with a second step —       */
-/*           a dialog, because a decline can carry a note the CREATOR   */
-/*           reads, and talking a brand out of declining its best       */
-/*           match is worth one extra click.                            */
+/* Like    → it stays up, and more of the budget goes behind creative   */
+/*           like it.                                                   */
+/* Dislike → the creator is asked to take it down, and MoonTech stops   */
+/*           scoring that pattern. It is the one decision with a second */
+/*           step — a dialog, because it pulls a live post and can      */
+/*           carry a note the CREATOR reads, and talking a brand out of */
+/*           taking down its best match is worth one extra click.       */
 /*                                                                     */
-/* Doing nothing is not a third verb. A draft nobody judges publishes   */
-/* on its own after REVIEW_WINDOW_DAYS days: the phase is metered       */
-/* against a guarantee it cannot deliver with work parked in a queue.   */
-/* So the countdown sits on the creative it applies to, not in a        */
-/* footnote — neutral until it is nearly gone, then red.                */
+/* Doing nothing is not a third verb. An ad nobody judges is treated as */
+/* liked after REVIEW_WINDOW_DAYS days and simply keeps running. So the */
+/* countdown sits on the creative it applies to, not in a footnote —    */
+/* neutral until it is nearly gone, then red.                           */
 /*                                                                     */
 /* WHY THIS IS NOT THE MOBILE REEL. On a phone the three automatic      */
 /* checks hide behind an ⓘ, because a card on a full-bleed surface      */
@@ -284,9 +283,9 @@ export default function CampaignAdsPage() {
 
     setAnnounce(
       (to === "liked"
-        ? `Liked. ${c.name}'s ad publishes within the hour and more of this phase's budget goes behind ads like it.`
-        : `Disliked. This ad will not publish, and we stop matching ads like it.${
-            noted ? ` Your reasons go to ${c.name}.` : ` ${c.name} is told it will not run, with no reason given.`
+        ? `Liked. ${c.name}'s ad stays live and more of the budget goes behind ads like it.`
+        : `Disliked. ${c.name} is asked to take it down, and we stop scoring ads like it.${
+            noted ? ` Your reasons go to ${c.name}.` : " No reason is given."
           }`) +
       (remaining === 0
         ? " That is the last one on this shelf."
@@ -735,7 +734,7 @@ export default function CampaignAdsPage() {
                   : "No dislikes yet"}
               </p>
               <p className="mt-2 max-w-[420px] text-sm leading-relaxed text-white/55">
-                {tab === "none" ? "Every draft here has been decided. New ones land the moment a creator finishes them."
+                {tab === "none" ? "Every ad here has been decided. New ones land the moment a creator publishes them."
                   : tab === "liked" ? "Nothing from this phase is live yet. Ads you like in Ad review publish within the hour and collect here."
                   : "Drafts you decline never publish. They collect here so you can change your mind."}
               </p>
@@ -757,7 +756,7 @@ export default function CampaignAdsPage() {
               ad.signal === "liked"
                 ? "Liked — publishing."
                 : ad.signal === "disliked"
-                  ? "Disliked — will not publish."
+                  ? "Disliked — coming down."
                   : daysLeft !== null
                     ? `Waiting on you. Publishes on its own in ${daysLeft} ${daysLeft === 1 ? "day" : "days"} if you do not decide.`
                     : "Waiting on you."
@@ -909,7 +908,7 @@ export default function CampaignAdsPage() {
                   </button>
                   <button
                     onClick={() => rate(ad, sel, "liked")}
-                    aria-label={`Like ${creator.name}'s ad. It publishes within the hour.`}
+                    aria-label={`Like ${creator.name}'s ad. It stays live.`}
                     onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = BRAND_HOVER; }}
                     onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = BRAND; }}
                     style={{ backgroundColor: BRAND }}
@@ -935,7 +934,7 @@ export default function CampaignAdsPage() {
                    names the state, and the creative carries its own pill. */
                 <button
                   onClick={() => rate(ad, sel, "liked")}
-                  aria-label={`Like ${creator.name}'s ad instead. It publishes within the hour.`}
+                  aria-label={`Like ${creator.name}'s ad instead. It stays live.`}
                   className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-white/10 px-4 py-3.5 text-[14px] font-semibold text-white ring-1 ring-white/25 transition-colors hover:bg-white/[0.16] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
                 >
                   <ThumbsUp size={18} weight="fill" aria-hidden="true" /> Like instead
@@ -945,7 +944,7 @@ export default function CampaignAdsPage() {
             {/* THE WINDOW, GIVEN WEIGHT.
                 This was 11px grey centred text and it is the one consequence
                 on the screen that lands whether the brand acts or not: ignore
-                the queue and the draft publishes anyway. It is also specific
+                the queue and the ad keeps running anyway. It is also specific
                 to the draft on screen — daysLeft, not the policy — because
                 "10 days" as a house rule is background, while "this one goes
                 live in 10 days" is a decision.
@@ -998,8 +997,8 @@ export default function CampaignAdsPage() {
                 </span>
                 <p className="min-w-0 flex-1 text-[12.5px] font-medium">
                   {toast.to === "liked"
-                    ? `${toast.name}'s ad publishes within the hour.`
-                    : `${toast.name}'s ad will not publish.${toast.noted ? " Your reasons go with it." : ""}`}
+                    ? `${toast.name}'s ad stays live.`
+                    : `${toast.name}'s ad comes down.${toast.noted ? " Your reasons go with it." : ""}`}
                 </p>
                 <button
                   onClick={undo}

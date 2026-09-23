@@ -465,17 +465,18 @@ export function fmtCount(n: number) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Ads — drafts the creator has finished and sent in.                   */
+/* Ads — pieces the creator has published, waiting on the brand's        */
+/* verdict.                                                              */
 /*                                                                      */
-/* NOTHING HERE HAS POSTED. The creator has finished the piece and it    */
-/* waits on the brand, so there are no view counts — an unpublished ad   */
-/* has not been seen by anyone. What can honestly be shown before it     */
-/* posts is the creator's typical reach, labelled as an estimate.        */
+/* THESE ARE LIVE POSTS. The brand is not clearing them to run; it is    */
+/* saying whether they stay. There are still no view counts, because     */
+/* this model carries no per-ad reach — what it can honestly show is     */
+/* the creator's typical reach, labelled as an estimate.                 */
 /*                                                                      */
-/* Like    → it publishes, and more of the phase budget goes behind      */
-/*           creative like it.                                           */
-/* Dislike → it never posts, and the matcher stops reaching for that     */
-/*           pattern.                                                    */
+/* Like    → it stays up, and more of the budget goes behind creative    */
+/*           like it.                                                    */
+/* Dislike → the creator is asked to take it down, and MoonTech stops    */
+/*           scoring that pattern.                                       */
 /* ------------------------------------------------------------------ */
 export type AdFormat = "Reel" | "Video" | "Story" | "Post";
 export type AdSignal = "none" | "liked" | "disliked";

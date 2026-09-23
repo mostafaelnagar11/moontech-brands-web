@@ -60,17 +60,15 @@ const NOTIFS: Notif[] = [
     title: `${campaignTitle(OU_NEXT)} is next up`,
     body: `${campaignTitle(OU_LIVE)} is at ${OU_LIVE.revPct}% of its ${fmtUSD(OU_LIVE.revTarget!)} target. ${campaignTitle(OU_NEXT)} runs ${OU_NEXT.planned}.`,
     href: `/campaigns/${OU_NEXT.id}` },
-  /* This used to read "12 ads awaiting review — needs your approval before it
-     goes live", which is the exact claim the signup key terms deny. The count
-     is DERIVED from the drafts sitting on the phase, so the bell and the
-     review screen cannot disagree about how much is waiting.
+  /* The count is DERIVED from the undecided ads on the phase, so the bell
+     and the review screen cannot disagree about how much is waiting.
 
      It counts UNDECIDED drafts, not every draft on the phase. Two of the
      eight already carry a signal, and a draft you have judged is not
      waiting on you — the campaigns list says 6, so this has to say 6. */
   { id: "n2", type: "content", group: "Today",   time: "1h ago",
     title: `${adsFor(OU_LIVE.id).filter((a) => a.signal === "none").length} ads waiting on you`,
-    body: `Drafts from ${campaignTitle(OU_LIVE)} are ready to publish — nothing publishes until you like them.`,
+    body: `Ads from ${campaignTitle(OU_LIVE)} are running and waiting on your review — like one to keep it up, dislike to take it down.`,
     href: `/campaigns/ads?c=${OU_LIVE.id}&shelf=waiting` },
   { id: "n3", type: "creator", group: "Today",   time: "3h ago",
     title: "8 creators waiting on you",

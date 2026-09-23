@@ -85,10 +85,10 @@ export function applyFunding(ids: readonly string[]): Campaign[] {
 
     /* 1 — the phase that was paid for. Paying is what briefs the crew, so
        this is where a phase stops being a plan and acquires delivery: the
-       creators who cut for it and the drafts now waiting on the brand.
-       All three derive from the drafts themselves rather than being
-       invented, and adsLive is 0 because nothing publishes until the
-       brand likes it — which is the whole premise of the review screen. */
+       creators who cut for it and the ads now waiting on the brand.
+       All three derive from those ads rather than being invented, and
+       adsLive is 0 because a phase funded a moment ago has nothing the
+       brand has kept yet — Live ads counts liked work, not running work. */
     if (paid.has(c.phaseNo) && c.status === "Ready") {
       const target = c.budget * c.guaranteedRoas;
       const drafts = adsFor(c.id);
