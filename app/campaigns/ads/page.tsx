@@ -49,6 +49,7 @@ import {
 import {
   CAMPAIGNS, HIGH_FIT, REVIEW_WINDOW_DAYS, adChecks, adCreator, adHero, adsFor,
   DECLINE_REASONS, declineReasonLabel, draftDaysLeft, fmtUSD, livePhase, campaignTitle,
+  runsPhases,
   type Ad, type AdSignal, type Platform,
 } from "../../lib/campaigns";
 import { setAdSignal, useAdFeedback, useAdsFor, type AdFeedback } from "../../lib/adSignals";
@@ -454,7 +455,9 @@ export default function CampaignAdsPage() {
             against: THIS phase's budget, which is the only budget behind
             anything published from this queue. */}
         <p className="truncate text-[11px] leading-tight text-white/50">
-          {campaign ? `${fmtUSD(campaign.budget)} phase budget` : "No phase selected"}
+          {campaign
+            ? `${fmtUSD(campaign.budget)} ${runsPhases(campaign.brandId) ? "phase" : "campaign"} budget`
+            : "No phase selected"}
         </p>
       </div>
       {children}

@@ -637,10 +637,16 @@ export const ADS: Ad[] = [
     caption: "Unboxing the trench everyone keeps asking about. First impressions, completely unedited.",
     img: "/creators/mais.mustafa/p1.jpg",
     submitted: "14h ago", track: "MT-OU-P2-1163", signal: "none" },
+  /* The creative here was the Pampers recording — a nappy box standing in
+     for a jewellery Reel, on a fashion brand's review queue. The AD is not
+     deleted with it: the queue is pinned at 6 on purpose (see the Live ads
+     note below), and dropping to 5 would cost the review flow the thing it
+     exists to demonstrate. What it gets instead is the portrait, which is
+     the only frame in her set a hoop ad could plausibly be cut from. */
   { id: "ad-sp-5", campaignId: "ounass-phase-2", creatorId: 1,
     product: "Gold Vermeil Hoops", format: "Reel", platform: "Instagram",
     caption: "The hoops I haven't taken off in a month — gym, shower, everything. Still gold.",
-    img: "/creators/jawahralsuwaidi/p2.jpg",
+    img: "/creators/jawahralsuwaidi/p3.jpg",
     submitted: "Yesterday", track: "MT-OU-P2-1171", signal: "none" },
   { id: "ad-sp-6", campaignId: "ounass-phase-2", creatorId: 6,
     product: "Ceramide Night Serum 30ml", format: "Video", platform: "TikTok",

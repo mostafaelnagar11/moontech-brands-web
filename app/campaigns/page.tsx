@@ -80,7 +80,9 @@ function CampaignCard({ c, i, onOpen }: { c: Campaign; i: number; onOpen: (id: s
   const ladder = runsPhases(c.brandId);
   const noun = ladder ? "phase" : "campaign";
   const before = prevPhase(c);
-  const label = metered
+  const label = metered && !ladder
+    ? `${title}, ${c.status.toLowerCase()}, ${phaseWindow(c)}. Open campaign.`
+    : metered
     ? `${title}, ${c.status.toLowerCase()}, ${fmtUSD(c.rev)} of ${fmtUSD(c.revTarget!)}, ${c.revPct} percent of this ${noun}'s target, ${c.roas} ROAS. Open ${noun}.`
     : c.status === "Ready"
       ? ladder
@@ -108,7 +110,12 @@ function CampaignCard({ c, i, onOpen }: { c: Campaign; i: number; onOpen: (id: s
         <StatusBadge status={c.status} brandId={c.brandId} />
       </div>
 
-      {metered ? (
+      {/* A calendar brand reports no revenue on this list, the same as on
+          the campaign page behind it: the spine, the bar and the sentence
+          under them are one figure drawn three ways, and all three go
+          together or the card contradicts the page it opens. What is left
+          is the campaign, its window, its state and its crew. */}
+      {metered && !ladder ? null : metered ? (
         <>
           {/* Row 2A — the revenue spine */}
           <div className="mt-5 flex items-baseline justify-between gap-2">
@@ -255,7 +262,9 @@ function CompletedBlock({
           <button
             key={c.id}
             onClick={() => onOpen(c.id)}
-            aria-label={`${campaignTitle(c)}, completed, ${c.revLabel} earned, ${c.roas} ROAS. Open it.`}
+            aria-label={runsPhases(c.brandId)
+              ? `${campaignTitle(c)}, completed, ${c.revLabel} earned, ${c.roas} ROAS. Open it.`
+              : `${campaignTitle(c)}, completed, ${phaseWindow(c)}. Open it.`}
             className={`flex w-full items-center gap-3.5 px-4 py-3.5 text-left transition-colors hover:bg-neutral-50 sm:px-5 ${
               i > 0 ? "border-t border-black/[0.06]" : ""
             }`}
@@ -267,10 +276,14 @@ function CompletedBlock({
               <span className="block truncate text-sm font-semibold" style={{ color: INK }}>{campaignTitle(c)}</span>
               <span className="mt-0.5 block text-xs text-neutral-500">{phaseWindow(c)}</span>
             </span>
-            <span className="shrink-0 text-right">
-              <span className="block text-sm font-semibold tabular-nums" style={{ color: INK }}>{c.revLabel}</span>
-              <span className="block text-[11px] font-semibold tabular-nums text-neutral-500">{c.roas} ROAS</span>
-            </span>
+            {/* Same rule as the cards above: a finished campaign on a
+                calendar brand reports that it finished, not what it made. */}
+            {runsPhases(c.brandId) && (
+              <span className="shrink-0 text-right">
+                <span className="block text-sm font-semibold tabular-nums" style={{ color: INK }}>{c.revLabel}</span>
+                <span className="block text-[11px] font-semibold tabular-nums text-neutral-500">{c.roas} ROAS</span>
+              </span>
+            )}
             <CaretRight size={14} weight="bold" aria-hidden="true" className="shrink-0 text-neutral-300" />
           </button>
         ))}
